@@ -18,11 +18,6 @@ This is a mobile application/wallet that directly interacts with Ethereum blockc
 - State management : redux
 - Dispatch asynchronous actions :  redux-thunk
 
-## Prerequisite
-To run this software on your machine locally you need to run the following:
-
-- [Rahat Server](https://github.com/esatya/rahat)
-- Ganache
 
 ## Instalation
 1. Clone the repository <br>
