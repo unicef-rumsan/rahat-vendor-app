@@ -28,6 +28,7 @@ This is a mobile application/wallet that directly interacts with Ethereum blockc
  3. Run the app <br>
  `npx react-native run-android`
  
+
 # Coding Styles
 This repository uses eslint to enforce air-bnb coding styles.
 
