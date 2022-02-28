@@ -17,12 +17,14 @@ import {storeUserData} from '../../redux/actions/auth';
 const RegisterSuccessScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
   const {wallet} = useSelector(state => state.wallet);
-  const data = route?.params?.data;
+  const {data} = route?.params;
+  console.log(wallet, 'wallet from register success');
   const secretWords = wallet?._mnemonic().phrase.split(' ');
 
   useBackHandler(() => {
     if (data) {
-      dispatch(storeUserData(data));
+      dispatch({type: 'SET_USERDATA', userData: data});
+      // navigation.replace('Tabs');
       return true;
     }
     return false;
@@ -37,13 +39,14 @@ const RegisterSuccessScreen = ({navigation, route}) => {
     </View>
   );
 
-//   const registerSuccess = () => {
-//     navigation.replace('Tabs');
-//   };
+  //   const registerSuccess = () => {
+  //     navigation.replace('Tabs');
+  //   };
 
   const handleButtonClick = () => {
     if (data) {
-      dispatch(storeUserData(data));
+      dispatch({type: 'SET_USERDATA', userData: data});
+      // navigation.replace('Tabs');
     }
   };
 

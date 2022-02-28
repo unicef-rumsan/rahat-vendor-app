@@ -55,7 +55,8 @@ const CustomPopup = ({
               <CustomButton
                 width={widthPercentageToDP(80)}
                 title="Okay"
-                onPress={hide}
+                color={colors.green}
+                onPress={onConfirm || hide}
               />
             ) : (
               <View style={{flexDirection: 'row'}}>

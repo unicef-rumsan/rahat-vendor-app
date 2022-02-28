@@ -31,6 +31,8 @@ import {RNToasty} from 'react-native-toasty';
 import {useDispatch} from 'react-redux';
 import {getWallet} from '../../redux/actions/wallet';
 import {registerVendor} from '../../redux/actions/auth';
+import CustomLoader from '../../components/CustomLoader';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -76,8 +78,8 @@ const RenderPageIndicator = ({activePage, agreeTC}) => (
     <DotIndicator step={1} activePage={activePage} />
     <LineIndicator step={2} activePage={activePage} />
     <DotIndicator step={2} activePage={activePage} />
-    <LineIndicator step={3} activePage={activePage} />
-    <DotIndicator step={agreeTC ? 2 : 3} activePage={activePage} />
+    {/* <LineIndicator step={3} activePage={activePage} />
+    <DotIndicator step={agreeTC ? 2 : 3} activePage={activePage} /> */}
   </View>
 );
 
@@ -102,6 +104,7 @@ const SignupScreen = ({navigation}) => {
     showModal: false,
     imageType: '',
     isSubmitting: false,
+    loaderMessage: '',
   });
 
   const {
@@ -117,6 +120,7 @@ const SignupScreen = ({navigation}) => {
     showModal,
     imageType,
     isSubmitting,
+    loaderMessage,
   } = values;
 
   useEffect(() => {
@@ -138,16 +142,25 @@ const SignupScreen = ({navigation}) => {
 
   useEffect(() => {
     if (isSubmitting) {
-      dispatch(getWallet('create', onWalletCreateSuccess, onWalletCreateError));
+      setTimeout(() => {
+        dispatch(
+          getWallet('create', onWalletCreateSuccess, onWalletCreateError),
+        );
+      }, 500);
     }
   }, [isSubmitting]);
 
   const handleSubmit = () => {
-    setValues({...values, isSubmitting: true});
+    setValues({
+      ...values,
+      isSubmitting: true,
+      loaderMessage: 'Creating your wallet. Please wait...',
+    });
   };
 
   const onWalletCreateSuccess = wallet => {
     const wallet_address = wallet.address;
+    console.log('wallet created', wallet);
 
     const data = {
       name,
@@ -160,25 +173,44 @@ const SignupScreen = ({navigation}) => {
       photo: profileImageUrl,
     };
 
-    console.log(data);
-    dispatch(registerVendor(data, onRegisterSuccess, onRegisterError));
+    navigation.replace('LinkAgencyQRScreen', {
+      data,
+      // fromSignup: true,
+      from: "signup"
+    });
+    // console.log(data);
+    // setValues({
+    //   ...values,
+    //   loaderMessage: 'Setting up your rahat account. Please wait',
+    // });
+    // setTimeout(() => {
+    //   dispatch(registerVendor(data, onRegisterSuccess, onRegisterError));
+    // }, 200);
   };
 
   const onWalletCreateError = e => {
     console.log(e);
+    alert(e, 'wallet create error');
+    setValues({...values, isSubmitting: false});
   };
 
   const onRegisterSuccess = data => {
-    console.log(data);
+    console.log(data, "data")
     navigation.replace('RegisterSuccessScreen', {data});
   };
 
   const onRegisterError = e => {
-    console.log(e.response);
-    console.log(e);
-    const errorMessage = e.response ? e.response.data.error : e.message;
-    alert(e.response);
-    setValues({...values, isSubmitting: false});
+    AsyncStorage.clear()
+      .then(() => {
+        console.log(e.response);
+        console.log(e);
+        const errorMessage = e.response ? e.response : e.message;
+        alert(errorMessage, 'register error');
+        setValues({...values, isSubmitting: false});
+      })
+      .catch(e => {
+        console.log(e, 'asycn clear error');
+      });
   };
 
   const handleTextChange = (value, name) => {
@@ -218,9 +250,9 @@ const SignupScreen = ({navigation}) => {
         />
         <CustomTextInput
           placeholder="Phone Number"
-          keyboardType="numeric"
+          keyboardType="phone-pad"
           value={phone}
-          maxLength={10}
+          maxLength={15}
           onChangeText={value => handleTextChange(value, 'phone')}
           returnKeyType="next"
           ref={input => (inputRef.current['phone'] = input)}
@@ -263,9 +295,9 @@ const SignupScreen = ({navigation}) => {
           placeholder="Address"
           value={address}
           ref={input => (inputRef.current['address'] = input)}
-          onSubmitEditing={() => inputRef.current['govt_id'].focus()}
-          returnKeyType="next"
-          blurOnSubmit={false}
+          // onSubmitEditing={() => inputRef.current['govt_id'].focus()}
+          returnKeyType="done"
+          // blurOnSubmit={false}
           onChangeText={value => handleTextChange(value, 'address')}
           error={
             registerErrorFlag === 1 && address === '' && 'Address is required'
@@ -335,19 +367,18 @@ const SignupScreen = ({navigation}) => {
       />
       <View style={styles().buttonsView}>
         <CustomButton
+          title="Next"
+          onPress={() => setActivePage(prev => prev + 1)}
+          disabled={profileImageUrl !== '' ? false : true}
+        />
+        <CustomButton
           title="Previous"
-          width={wp(40)}
           color={colors.gray}
+          outlined
           onPress={() => {
             setActivePage(prev => prev - 1);
             setValues({...values, registerErrorFlag: 0});
           }}
-        />
-        <CustomButton
-          title="Next"
-          width={wp(40)}
-          onPress={() => setActivePage(prev => prev + 1)}
-          disabled={profileImageUrl !== '' ? false : true}
         />
       </View>
     </View>
@@ -367,16 +398,15 @@ const SignupScreen = ({navigation}) => {
       />
       <View style={styles().buttonsView}>
         <CustomButton
-          title="Previous"
-          width={wp(40)}
-          color={colors.gray}
-          onPress={() => setActivePage(prev => prev - 1)}
-        />
-        <CustomButton
           title="Next"
-          width={wp(40)}
           onPress={() => setActivePage(prev => prev + 1)}
           disabled={idFrontImageUrl !== '' ? false : true}
+        />
+        <CustomButton
+          title="Previous"
+          color={colors.gray}
+          outlined
+          onPress={() => setActivePage(prev => prev - 1)}
         />
       </View>
     </View>
@@ -384,11 +414,16 @@ const SignupScreen = ({navigation}) => {
 
   const termsAndConditionsPage = () => (
     <View style={{flex: 1, justifyContent: 'space-between'}}>
-      <SmallText>
-        Vendor will use the Rahat vendor application to provide goods to the
-        beneficiaries. The vendor will be reimbursed only after redeeming the
-        tokens back to aid agency.
-      </SmallText>
+      <View>
+        <SmallText noPadding>
+          1. Vendor will use the Rahat vendor application to provide goods to
+          the beneficiaries.
+        </SmallText>
+        <SmallText noPadding>
+          2. The vendor will be reimbursed only after redeeming the tokens back
+          to aid agency.
+        </SmallText>
+      </View>
       <View>
         <View
           style={{
@@ -406,18 +441,17 @@ const SignupScreen = ({navigation}) => {
         </View>
         <View style={styles().buttonsView}>
           <CustomButton
-            title="Previous"
-            disabled={isSubmitting}
-            width={wp(40)}
-            color={colors.gray}
-            onPress={() => setActivePage(prev => prev - 1)}
-          />
-          <CustomButton
-            title="Submit"
-            width={wp(40)}
+            title="Continue"
             onPress={handleSubmit}
             disabled={!agreeTC || isSubmitting ? true : false}
-            isSubmitting={isSubmitting}
+            // isSubmitting={isSubmitting}
+          />
+          <CustomButton
+            title="Previous"
+            disabled={isSubmitting}
+            outlined
+            color={colors.gray}
+            onPress={() => setActivePage(prev => prev - 1)}
           />
         </View>
       </View>
@@ -474,17 +508,20 @@ const SignupScreen = ({navigation}) => {
         <View style={styles().modalView}>
           <CustomButton
             title="Take a Photo"
+            color={colors.green}
             width={wp(80)}
             onPress={handleTakePhoto}
           />
           <CustomButton
             title="Choose from Gallery"
+            color={colors.green}
             width={wp(80)}
             onPress={handleChooseFromGallery}
           />
           <CustomButton
             title="Cancel"
-            color={colors.danger}
+            outlined
+            color={colors.gray}
             width={wp(80)}
             onPress={() => setValues({...values, showModal: false})}
           />
@@ -496,8 +533,11 @@ const SignupScreen = ({navigation}) => {
   return (
     <View style={styles().container}>
       <SignupHeader pageTitle={pageTitle} />
-      <RenderPageIndicator activePage={activePage} agreeTC={agreeTC} />
+      {activePage < 3 && (
+        <RenderPageIndicator activePage={activePage} agreeTC={agreeTC} />
+      )}
       {renderModal()}
+      <CustomLoader message={loaderMessage} show={isSubmitting} />
       {activePage === 0 && registerPage()}
       {activePage === 1 && profilePicturePage()}
       {activePage === 2 && identityPicturePage()}
@@ -557,8 +597,8 @@ const styles = props =>
       resizeMode: 'contain',
     },
     buttonsView: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      // flexDirection: 'row',
+      // justifyContent: 'space-between',
       marginBottom: Spacing.vs * 2,
     },
     uploadIcon: {paddingVertical: Spacing.vs},

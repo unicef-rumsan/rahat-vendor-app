@@ -6,7 +6,8 @@ export default {
     black: '#000000',
     danger: "#EA2F1C",
     lightGray: '#A7A7A7',
-    whiteGray: "#F3F3F3"
+    whiteGray: "#F3F3F3",
+    yellow: '#F99400',
     
 
 }

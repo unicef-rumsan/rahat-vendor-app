@@ -12,7 +12,7 @@ const RegularText = props => {
         {
           color: props.color || colors.gray,
           textAlign: props.center ? 'center' : 'auto',
-          fontSize: props.fontSize ? props.FontSize : FontSize.regular,
+          fontSize: props.fontSize ? props.fontSize : FontSize.regular,
           ...props.style,
         },
       ]}>

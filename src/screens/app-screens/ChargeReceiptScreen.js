@@ -62,8 +62,8 @@ const ChargeReceiptScreen = ({navigation, route}) => {
         <Card>
           <ChargeDetail
             title="Charge To"
-            detail={receiptData.chargeTo}
-            onPress={() => copyToClipboard(receiptData.chargeTo)}
+            detail={receiptData?.chargeTo}
+            onPress={() => copyToClipboard(receiptData?.chargeTo)}
           />
           <ChargeDetail
             title="Status"
@@ -72,24 +72,24 @@ const ChargeReceiptScreen = ({navigation, route}) => {
           />
           <ChargeDetail
             title="To"
-            detail={receiptData.to}
-            detailColor={colors.blue}
-            onPress={() => copyToClipboard(receiptData.to)}
-
+            detail={receiptData?.to}
+            detailColor={colors?.blue}
+            onPress={() => copyToClipboard(receiptData?.to)}
           />
 
-          <ChargeDetail title="Date" detail={receiptData.timeStamp} />
-          <ChargeDetail title="Amount" detail={receiptData.amount} />
-          {receiptData.remarks !== undefined && (
+          <ChargeDetail title="Date" detail={receiptData?.timeStamp} />
+          <ChargeDetail title="Amount" detail={receiptData?.amount} />
+          {receiptData?.remarks !== undefined && (
             <ChargeDetail
               title="Remarks"
-              detail={receiptData.remarks === '' ? '-' : receiptData.remarks}
+              detail={receiptData?.remarks === '' ? '-' : receiptData?.remarks}
             />
           )}
         </Card>
         <CustomButton
           title="Back To Home"
-          onPress={() => navigation.navigate('HomeScreen')}
+          color={colors.green}
+          onPress={() => navigation.navigate('HomeScreen', {refresh: true})}
         />
       </View>
     </>

@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {RNToasty} from 'react-native-toasty';
 import {useSelector} from 'react-redux';
 import colors from '../../../constants/colors';
@@ -16,6 +17,8 @@ import {
   CustomButton,
   CustomTextInput,
   RegularText,
+  CustomHeader,
+  Card,
 } from '../../components';
 import {RahatService} from '../../services/chain';
 
@@ -26,7 +29,7 @@ if (Platform.OS === 'android') {
 
 const VerifyOTPScreen = ({navigation, route}) => {
   const {wallet} = useSelector(state => state.wallet);
-  const {appSettings} = useSelector(state => state.auth);
+  const {activeAppSettings} = useSelector(state => state.auth);
   const {phone, amount, remarks} = route.params;
   const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,8 +56,9 @@ const VerifyOTPScreen = ({navigation, route}) => {
     }
     try {
       const receipt = await RahatService(
-        appSettings.agency.contracts.rahat,
+        activeAppSettings.agency.contracts.rahat,
         wallet,
+        activeAppSettings.agency.contracts.token,
       ).verifyCharge(phone, otp);
 
       // console.log(receipt);
@@ -66,7 +70,8 @@ const VerifyOTPScreen = ({navigation, route}) => {
         chargeTo: phone,
         amount: amount,
         type: 'charge',
-        remarks
+        agencyUrl: activeAppSettings.agencyUrl,
+        remarks,
       };
       RNToasty.Success({title: 'Success', duration: 1});
       setIsSubmitting(false);
@@ -76,25 +81,27 @@ const VerifyOTPScreen = ({navigation, route}) => {
       });
     } catch (e) {
       console.log(e);
+      alert(e);
       setIsSubmitting(false);
     }
   };
 
   return (
     <>
+      <CustomHeader title="Verify OTP" hideBackButton />
       <View style={styles.container}>
-        <SafeAreaView style={styles.header}>
+        {/* <SafeAreaView style={styles.header}>
           <PoppinsMedium style={{fontSize: FontSize.large}}>
             Verify OTP
           </PoppinsMedium>
-        </SafeAreaView>
+        </SafeAreaView> */}
         {/* <View
           style={{
             flex: 1,
             // justifyContent: 'space-between',
             // marginBottom: Spacing.vs * 3,
           }}> */}
-        <View>
+        <Card>
           <RegularText
             fontSize={FontSize.medium}
             style={{paddingBottom: Spacing.vs}}>
@@ -105,14 +112,15 @@ const VerifyOTPScreen = ({navigation, route}) => {
             keyboardType="numeric"
             onChangeText={setOtp}
           />
-        </View>
+          <CustomButton
+            title="Verify"
+            color={colors.green}
+            onPress={onSubmit}
+            width={widthPercentageToDP(80)}
+            isSubmitting={isSubmitting}
+          />
+        </Card>
 
-        <CustomButton
-          title="Verify"
-          color={colors.green}
-          onPress={onSubmit}
-          isSubmitting={isSubmitting}
-        />
         {/* </View> */}
       </View>
     </>
@@ -126,6 +134,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,
+    paddingVertical: Spacing.vs * 1.5,
   },
   header: {
     paddingTop: androidPadding,

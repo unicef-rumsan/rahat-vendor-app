@@ -32,20 +32,20 @@ const SettingsScreen = ({navigation}) => {
         <>
           <RegularText
             color={colors.black}
-            style={{paddingVertical: Spacing.vs}}>
+            style={{paddingTop: Spacing.vs / 2}}>
             General
           </RegularText>
           <Card>
             <SettingComponent
-              icon={<PersonIcon color={colors.gray}/>}
+              icon={<PersonIcon color={colors.gray} />}
               title="Profile"
               onPress={() => navigation.navigate('ProfileScreen')}
             />
-            <SettingComponent
+            {/* <SettingComponent
               icon={<WalletIcon />}
               title="Payment Methods"
               onPress={() => navigation.navigate('PaymentMethodScreen')}
-            />
+            /> */}
             <SettingComponent
               icon={<AgencyIcon />}
               title="Agency"
@@ -61,7 +61,7 @@ const SettingsScreen = ({navigation}) => {
         <>
           <RegularText
             color={colors.black}
-            style={{paddingVertical: Spacing.vs}}>
+            style={{paddingTop: Spacing.vs / 2}}>
             Advanced
           </RegularText>
           <Card>
@@ -80,11 +80,11 @@ const SettingsScreen = ({navigation}) => {
               title="Rahat Passcode"
               onPress={() => navigation.navigate('PasscodeScreen')}
             />
-            <SettingComponent
+            {/* <SettingComponent
               icon={<LanguageIcon />}
               title="Language"
               // onPress={() => alert('Soon')}
-            />
+            /> */}
           </Card>
         </>
       </View>

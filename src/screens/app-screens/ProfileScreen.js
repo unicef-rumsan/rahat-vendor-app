@@ -1,5 +1,12 @@
 import React from 'react';
-import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import colors from '../../../constants/colors';
 import {FontSize, Spacing} from '../../../constants/utils';
@@ -12,6 +19,8 @@ import {
 import {Card, CustomHeader, RegularText, SmallText} from '../../components';
 import {useSelector} from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
+import { RNToasty } from 'react-native-toasty';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 const ProfileScreen = ({navigation}) => {
   const {userData} = useSelector(state => state.auth);
@@ -22,12 +31,17 @@ const ProfileScreen = ({navigation}) => {
     </View>
   );
 
+  const copyToClipboard = string => {
+    Clipboard.setString(string);
+    RNToasty.Show({title: 'Copied to clipboard', duration: 0});
+  };
+
   return (
     <>
       <CustomHeader
         title="Profile"
         onBackPress={() => navigation.pop()}
-        rightIcon={<EditIcon />}
+        // rightIcon={<EditIcon />}
 
         // onRightIconPress={() => navigation.navigate('EditProfile')}
       />
@@ -50,7 +64,7 @@ const ProfileScreen = ({navigation}) => {
 
         <View
           style={{paddingHorizontal: Spacing.hs, marginVertical: Spacing.vs}}>
-          <RegularText color={colors.gray}>Wallet Address</RegularText>
+          <RegularText color={colors.gray}>Your Address</RegularText>
           <Card>
             <View
               style={{
@@ -58,15 +72,23 @@ const ProfileScreen = ({navigation}) => {
                 alignItems: 'center',
                 paddingTop: Spacing.vs * 2,
               }}>
-              <QRCode
-                value="0xA767CB61b16ea1c83d796E41bD17298b0643eFa"
-                size={200}
-              />
-
-              <SmallText center style={{fontSize: FontSize.xsmall}}>
-                0xA767CB61b16ea1c83d796E41bD17298b0643eFad
-              </SmallText>
-              <SmallText center style={{fontSize: FontSize.xsmall}}>
+              <QRCode value={userData.wallet_address} size={200} />
+              <Pressable
+                onPress={() => copyToClipboard(userData.wallet_address)}>
+                <SmallText
+                  center
+                  selectable
+                  style={{
+                    fontSize: FontSize.xsmall,
+                    paddingTop: Spacing.vs * 2,
+                  }}>
+                  {userData.wallet_address}
+                </SmallText>
+              </Pressable>
+              <SmallText
+                center
+                color={colors.lightGray}
+                style={{fontSize: FontSize.xsmall, paddingTop: Spacing.vs}}>
                 This QR Code (address) is your unique identity. Use this to
                 receive digital documents, assets or verify your identity.
               </SmallText>

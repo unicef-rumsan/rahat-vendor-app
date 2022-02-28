@@ -11,7 +11,7 @@ const RestoreAccountScreen = ({navigation}) => {
       <View />
       <View style={{justifyContent: 'center', alignItems: 'center'}}>
         <Logo />
-        <SmallText center>
+        <SmallText center style={{paddingTop: Spacing.vs * 2}}>
           Supporting vulnerable communities with a simple and efficient relief
           distribution platform.
         </SmallText>
