@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, Text, View, ScrollView} from 'react-native';
 import {heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import {useDispatch, useSelector} from 'react-redux';
@@ -13,12 +13,31 @@ import {
   SmallText,
 } from '../../components';
 import {storeUserData} from '../../redux/actions/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BackupMnemonicScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
   const {wallet} = useSelector(state => state.wallet);
   const data = route?.params?.data;
-  const secretWords = wallet?._mnemonic().phrase.split(' ');
+  // const secretWords = wallet?._mnemonic().phrase.split(' ');
+  const [secretWords, setSecretWords] = useState([]);
+  // const secretWords = ['asd', 'bsd'];
+
+  useEffect(() => {
+    AsyncStorage.getItem('walletInfo')
+      .then(item => {
+        if (item !== null) {
+
+          let temp = JSON.parse(item)?.mnemonic?.split(' ');
+          console.log(temp)
+          setSecretWords(temp);
+
+        }
+      })
+      .catch(e => {
+        alert(e);
+      });
+  }, []);
 
   useBackHandler(() => {
     if (data) {
@@ -37,14 +56,12 @@ const BackupMnemonicScreen = ({navigation, route}) => {
     </View>
   );
 
-  const registerSuccess = () => {
-    navigation.replace('Tabs');
-  };
+  // const registerSuccess = () => {
+  //   navigation.replace('Tabs');
+  // };
 
   const handleButtonClick = () => {
-    if (data) {
-      dispatch(storeUserData(data, registerSuccess));
-    }
+    navigation.pop();
   };
 
   return (

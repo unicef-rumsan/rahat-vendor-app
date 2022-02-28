@@ -7,6 +7,7 @@ import IndividualStatement from './IndividualStatement';
 import PoppinsMedium from './PoppinsMedium';
 import RegularText from './RegularText';
 import SmallText from './SmallText';
+import CustomLoader from './CustomLoader'
 
 export {
   Card,
@@ -18,4 +19,6 @@ export {
   PoppinsMedium,
   RegularText,
   SmallText,
+  CustomLoader
+
 };

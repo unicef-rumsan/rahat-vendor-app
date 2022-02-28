@@ -3,10 +3,10 @@ import {StyleSheet, View, Platform} from 'react-native';
 import {Spacing} from '../../constants/utils';
 const styles = StyleSheet.create({
   card: {
-    shadowColor: 'black',
+    shadowColor: 'gray',
     shadowOpacity: 0.26,
     shadowOffset: {width: 0, height: 2},
-    shadowRadius: 8,
+    shadowRadius: 3,
     elevation: 2,
     borderRadius: 20,
     backgroundColor: 'white',

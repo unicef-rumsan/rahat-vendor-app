@@ -52,7 +52,7 @@ const BackupWalletScreen = ({navigation}) => {
             onPress={() => navigation.navigate('BackupMnemonicScreen')}
           />
         </View>
-        <View style={styles.aboutView}>
+        {/* <View style={styles.aboutView}>
           <SmallText>Option 2: Backup to Google Drive.</SmallText>
           <SmallText style={styles.description}>
             Another easier way to backup is just storing an encrypted form of
@@ -64,7 +64,7 @@ const BackupWalletScreen = ({navigation}) => {
             it or any contents within it.
           </SmallText>
           <CustomButton color={colors.blue} title="Backup to Google Drive" />
-        </View>
+        </View> */}
       </ScrollView>
     </>
   );

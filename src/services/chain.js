@@ -1,14 +1,11 @@
 import {ethers} from 'ethers';
-// import { getDefaultNetwork } from '../constants/networks';
 
-// const DEFAULT_NETWORK = 'https://testnetwork.esatya.io';
-// const DEFAULT_NETWORK = {
-//   name: 'rumsan_test',
-//   url: 'https://testnetwork.esatya.io',
-//   display: 'Rumsan Test Network',
-//   default: true,
-// };
-const TOKEN_ADDRESS = '0xc367a378CE8358885CA6ea23c6311366F5707176';
+import networkUrls from '../../constants/networkUrls';
+
+let NETWORK_URL =
+  networkUrls.ENV === 'development'
+    ? networkUrls.TEST_NETWORK_URL
+    : networkUrls.PRODUCTION_NETWORK_URL;
 
 const ABI = {
   TOKEN: require(`../../assets/contracts/aidToken.json`),
@@ -20,7 +17,7 @@ const ABI = {
 // const DefaultProvider = new ethers.providers.JsonRpcProvider(
 //   getDefaultNetwork(),
 // );
-const getAgencyDetails = async agencyAddress => {
+const getAgencyDetails = async (agencyAddress, tokenAddress) => {
   //   const details = await DataService.getAgency(agencyAddress);
   //   if (!details) throw Error('Agency does not exists');
   //   const provider = details.network
@@ -28,13 +25,11 @@ const getAgencyDetails = async agencyAddress => {
   //     : DefaultProvider;
   const details = agencyAddress;
 
-  const provider = new ethers.providers.JsonRpcProvider(
-    'https://testnetwork.esatya.io',
-  );
+  const provider = new ethers.providers.JsonRpcProvider(NETWORK_URL);
   const rahatContract = new ethers.Contract(agencyAddress, ABI.RAHAT, provider);
   const tokenContract = new ethers.Contract(
     // details.tokenAddress,
-    TOKEN_ADDRESS,
+    tokenAddress,
     ABI.TOKEN,
     provider,
   );
@@ -46,10 +41,10 @@ const getAgencyDetails = async agencyAddress => {
   };
 };
 
-const RahatService = (agencyAddress, wallet) => {
+const RahatService = (agencyAddress, wallet, tokenAddress) => {
   return {
     async getContract() {
-      const agency = await getAgencyDetails(agencyAddress);
+      const agency = await getAgencyDetails(agencyAddress,tokenAddress);
       return agency.rahatContract.connect(wallet);
     },
     async chargeCustomer(phone, amount) {
@@ -69,13 +64,12 @@ const RahatService = (agencyAddress, wallet) => {
   };
 };
 
-const TokenService = (agencyAddress, wallet) => {
+const TokenService = (agencyAddress, wallet, tokenAddress) => {
   return {
     async getContract() {
-      const agency = await getAgencyDetails(agencyAddress);
+      const agency = await getAgencyDetails(agencyAddress, tokenAddress);
       return agency.tokenContract.connect(wallet);
       // return agency.tokenContract.connect(wallet)
-
     },
 
     async getBalance(address) {

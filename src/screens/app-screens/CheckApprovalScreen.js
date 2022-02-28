@@ -17,7 +17,8 @@ import {getUserByWalletAddress} from '../../redux/actions/auth';
 
 const CheckApprovalScreen = ({navigation}) => {
   const dispatch = useDispatch();
-  const {userData} = useSelector(state => state.auth);
+  const {userData, activeAppSettings} = useSelector(state => state.auth);
+  console.log(activeAppSettings, "active")
   const [values, setValues] = useState({
     // isApproved: false,
     isLoading: true,
@@ -27,7 +28,12 @@ const CheckApprovalScreen = ({navigation}) => {
 
   useEffect(() => {
     dispatch(
-      getUserByWalletAddress(userData.wallet_address, onSuccess, onError),
+      getUserByWalletAddress(
+        activeAppSettings.agencyUrl,
+        userData.wallet_address,
+        onSuccess,
+        onError,
+      ),
     );
   }, []);
 
@@ -55,7 +61,7 @@ const CheckApprovalScreen = ({navigation}) => {
           </>
         ) : (
           <>
-            <PoppinsMedium color={colors.danger}>
+            <PoppinsMedium color={colors.yellow}>
               Please wait for approval from agency.
             </PoppinsMedium>
             <Card>
@@ -64,8 +70,8 @@ const CheckApprovalScreen = ({navigation}) => {
               </SmallText>
               <View
                 style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                <SmallText>Agency name </SmallText>
-                <SmallText>Agency Phone Number </SmallText>
+                <SmallText>{activeAppSettings.agency.name} </SmallText>
+                <SmallText>{activeAppSettings.agency.phone}</SmallText>
               </View>
               <CustomButton
                 width={widthPercentageToDP(80)}

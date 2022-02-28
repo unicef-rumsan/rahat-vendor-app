@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import colors from '../../../constants/colors';
 import {Spacing} from '../../../constants/utils';
 import {
@@ -15,7 +15,7 @@ const StatementScreen = ({navigation, route}) => {
   return (
     <>
       <CustomHeader title="Statement" onBackPress={() => navigation.pop()} />
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <Card>
           <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
             <RegularText>Token Balance</RegularText>
@@ -25,24 +25,40 @@ const StatementScreen = ({navigation, route}) => {
         <Card>
           {transactions.map((item, index) => (
             <IndividualStatement
+              lastItem={index === transactions.length - 1 ? true : false}
               key={index}
               title={
                 item.type === 'charge'
-                  ? `${item.type} to ${item.chargeTo}`
-                  : 'Redeem token'
+                  ? `${item.type} to ...${item.chargeTo?.slice(
+                      item?.chargeTo?.length - 4,
+                      item?.chargeTo?.length,
+                    )}`
+                  : item.type === 'transfer'
+                  ? `${item.type} to ...${item.to?.slice(
+                      item?.to?.length - 4,
+                      item?.to?.length,
+                    )}`
+                  : 'redeem token'
               }
               type={item.type}
               amount={item.amount}
               date={item.timeStamp}
               onPress={() =>
-                navigation.navigate('ChargeReceiptScreen', {
-                  receiptData: item,
-                })
+                navigation.navigate(
+                  item.type === 'charge'
+                    ? 'ChargeReceiptScreen'
+                    : item.type === 'transfer'
+                    ? 'TransferReceiptScreen'
+                    : 'RedeemReceiptScreen',
+                  {
+                    receiptData: item,
+                  },
+                )
               }
             />
           ))}
         </Card>
-      </View>
+      </ScrollView>
     </>
   );
 };
@@ -51,7 +67,7 @@ export default StatementScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    // flex: 1,
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,
   },

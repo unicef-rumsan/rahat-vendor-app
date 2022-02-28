@@ -24,6 +24,11 @@ import {
 } from '../screens/app-screens';
 import colors from '../../constants/colors';
 import {ChargeIcon, HomeIcon, SettingsIcon} from '../../assets/icons';
+import RedeemScreen from '../screens/app-screens/RedeemScreen';
+import RedeemReceiptScreen from '../screens/app-screens/RedeemReceiptScreen';
+import LockScreen from '../screens/app-screens/LockScreen';
+import { useSelector } from 'react-redux';
+import TransferReceiptScreen from '../screens/app-screens/TransferRecieptScreen';
 
 const TabStack = createBottomTabNavigator();
 
@@ -59,6 +64,12 @@ const Tabs = () => {
             return <ChargeIcon color={color} />;
           },
         }}
+        listeners={({navigation}) => ({
+          tabPress: e => {
+            e.preventDefault();
+            navigation.navigate('ChargeScreen', {phone: null});
+          },
+        })}
       />
       <TabStack.Screen
         name="SettingsScreen"
@@ -75,9 +86,10 @@ const Tabs = () => {
 };
 
 const AppStack = () => {
+  const {lockScreen} = useSelector(state => state.auth);
   return (
     <Stack.Navigator
-      initialRouteName="Tabs"
+      initialRouteName={lockScreen ? 'LockScreen' : 'Tabs'}
       screenOptions={{headerShown: false, animation: 'fade'}}>
       <Stack.Screen name="Tabs" component={Tabs} />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
@@ -95,6 +107,13 @@ const AppStack = () => {
       />
       <Stack.Screen name="VerifyOTPScreen" component={VerifyOTPScreen} />
       <Stack.Screen name="ScanScreen" component={ScanScreen} />
+
+      <Stack.Screen name="RedeemScreen" component={RedeemScreen} />
+      <Stack.Screen
+        name="RedeemReceiptScreen"
+        component={RedeemReceiptScreen}
+      />
+
       <Stack.Screen
         name="ChargeReceiptScreen"
         component={ChargeReceiptScreen}
@@ -102,6 +121,10 @@ const AppStack = () => {
       <Stack.Screen
         name="TransferTokenScreen"
         component={TransferTokenScreen}
+      />
+      <Stack.Screen
+        name="TransferReceiptScreen"
+        component={TransferReceiptScreen}
       />
       <Stack.Screen name="StatementScreen" component={StatementScreen} />
       <Stack.Screen
@@ -117,6 +140,7 @@ const AppStack = () => {
         component={PaymentProcessScreen}
       />
       <Stack.Screen name="PasscodeScreen" component={PasscodeScreen} />
+      <Stack.Screen name="LockScreen" component={LockScreen} />
     </Stack.Navigator>
   );
 };

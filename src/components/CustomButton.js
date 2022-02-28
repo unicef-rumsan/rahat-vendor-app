@@ -24,14 +24,22 @@ const CustomButton = ({
   outlined,
   disabled,
   isSubmitting,
+  borderRadius,
+  capitalizeText,
+  fontFamily,
 }) => {
   return (
-    <View style={styles.buttonView}>
+    <View
+      style={[
+        styles.buttonView,
+        {borderRadius: borderRadius ? borderRadius : 10},
+      ]}>
       <Pressable
         onPress={onPress}
         style={[
           styles.button,
           {
+            borderRadius: borderRadius ? borderRadius : 10,
             // backgroundColor: color || colors.blue,
             backgroundColor: outlined ? 'transparent' : color || colors.blue,
             borderWidth: outlined ? 1 : 0,
@@ -54,7 +62,11 @@ const CustomButton = ({
               <Text
                 style={[
                   styles.outlinedButtonText,
-                  {color: color || colors.blue},
+                  {
+                    color: color || colors.blue,
+                    textTransform: capitalizeText ? 'capitalize' : 'uppercase',
+                    fontFamily: fontFamily ? fontFamily : 'Poppins-Medium',
+                  },
                 ]}>
                 {title || ''}
               </Text>
@@ -79,7 +91,7 @@ const styles = StyleSheet.create({
   buttonView: {
     alignSelf: 'center',
     overflow: 'hidden',
-    borderRadius: 10,
+    // borderRadius: 10,
     marginVertical: Spacing.vs / 2,
   },
   button: {
@@ -87,7 +99,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     // width: wp(90),
-    borderRadius: 10,
   },
   buttonText: {
     // fontSize: FontSize.medium,
@@ -96,7 +107,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.hs / 2,
   },
   outlinedButtonText: {
-    fontFamily: 'Lora-Regular',
-    paddingVertical: Spacing.vs / 2,
+    paddingVertical: Spacing.vs / 3,
   },
 });

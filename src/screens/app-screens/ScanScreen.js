@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View, StatusBar} from 'react-native';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import {
@@ -9,11 +9,25 @@ import colors from '../../../constants/colors';
 import {FontSize, Spacing} from '../../../constants/utils';
 import {RumsanLogo} from '../../../assets/icons';
 import {useIsFocused} from '@react-navigation/native';
-import {PoppinsMedium, RegularText, CustomButton} from '../../components';
+import {
+  PoppinsMedium,
+  RegularText,
+  CustomButton,
+  CustomPopup,
+} from '../../components';
+import {ethers} from 'ethers';
 
 const ScanScreen = ({navigation, route}) => {
   const isFocused = useIsFocused();
   const {type} = route.params;
+
+  const [values, setValues] = useState({
+    showPopup: false,
+    popupType: '',
+    messageType: '',
+    message: '',
+  });
+  const {message, messageType, popupType, showPopup} = values;
 
   const onChargeScan = res => {
     let phone, amount;
@@ -21,15 +35,36 @@ const ScanScreen = ({navigation, route}) => {
     const phoneDetails = details[0].split(':');
     const amountDetails = details[1].split('=');
     if (phoneDetails[0] === 'phone') {
-      phone = phoneDetails[1];
+      phone = phoneDetails[1].substr(4, phoneDetails[1].length);
     }
     if (amountDetails[0] === 'amount') {
       amount = amountDetails[1];
     }
 
     if (phone !== undefined && amount !== undefined) {
-      navigation.navigate('ChargeScreen', {phone, amount, fromTabs: false});
+      navigation.navigate('ChargeScreen', {phone, amount});
     }
+  };
+
+  const onTransferScan = res => {
+    console.log(res, 'transfer scan');
+    let data = res.data;
+    const temp = ethers?.utils.isAddress(data);
+    console.log(temp, 'isAddress');
+    if (!ethers?.utils.isAddress(data)) {
+      setValues({
+        ...values,
+        showPopup: true,
+        popupType: 'alert',
+        messageType: 'Error',
+        message: 'Invalid QR code',
+      });
+      return;
+    }
+    navigation.navigate('TransferTokenScreen', {
+      destinationAddress: data,
+      fromScan: true,
+    });
   };
 
   return (
@@ -38,13 +73,23 @@ const ScanScreen = ({navigation, route}) => {
         <StatusBar backgroundColor="rgba(0,0,0,0)" barStyle="light-content" />
       )}
 
-      <QRCodeScanner
-        cameraStyle={{height: '100%', backgroundColor: colors.blue}}
-        showMarker
-        markerStyle={{borderColor: colors.blue}}
-        reactivate
-        onRead={onChargeScan}
+      <CustomPopup
+        show={showPopup}
+        popupType={popupType}
+        messageType={messageType}
+        message={message}
+        onConfirm={() => setValues({...values, showPopup: false})}
       />
+
+      {!showPopup && (
+        <QRCodeScanner
+          cameraStyle={{height: '100%', backgroundColor: colors.blue}}
+          showMarker
+          markerStyle={{borderColor: colors.blue}}
+          reactivate
+          onRead={type === 'Charge' ? onChargeScan : onTransferScan}
+        />
+      )}
 
       {/* <View style={styles.top} />
       <View style={styles.side} />
@@ -66,12 +111,12 @@ const ScanScreen = ({navigation, route}) => {
           Please align the QR code within the frame
         </PoppinsMedium>
       </View>
-      <View style={styles.buttonView}>
+      {/* <View style={styles.buttonView}>
         <CustomButton
           title="Verify"
           onPress={() => navigation.navigate('VerifyOTPScreen')}
         />
-      </View>
+      </View> */}
       <View style={styles.poweredByView}>
         <RegularText
           color={colors.white}

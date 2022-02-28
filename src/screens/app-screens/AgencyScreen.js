@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, Text, View, Image, Pressable} from 'react-native';
 import {
   heightPercentageToDP as hp,
@@ -14,58 +14,96 @@ import {
   SmallText,
   CustomButton,
 } from '../../components';
+import {useDispatch, useSelector} from 'react-redux';
+import {switchAgency} from '../../redux/actions/auth';
+import CustomLoader from '../../components/CustomLoader';
 
 const TEMP_IMAGE =
   'https://cdn.freelogovectors.net/wp-content/uploads/2016/12/un-logo.png';
 
 const AgencyScreen = ({navigation}) => {
-  const swipeableRef = useRef(null);
+  const dispatch = useDispatch();
+  const {userData, appSettings, activeAppSettings} = useSelector(
+    state => state.auth,
+  );
 
-  const handleDelete = (name, website) => {
-    alert(`Delete Agency : ${name}  ${website}`);
-    swipeableRef.current.close();
+  const {wallet} = useSelector(state => state.wallet);
+  const [showLoader, setShowLoader] = useState(false);
+
+  // useEffect(() => {
+  //   const data = {
+  //     name: userData.name,
+  //     phone: userData.phone,
+  //     wallet_address: userData.wallet_address,
+  //     email: userData.email,
+  //     address: userData.address,
+  //     // govt_id,
+  //     govt_id_image: userData.govt_id_image,
+  //     photo: userData.photo[0],
+  //   };
+  // }, []);
+
+  // const swipeableRef = useRef(null);
+
+  // const handleDelete = (name, website) => {
+  //   alert(`Delete Agency : ${name}  ${website}`);
+  //   swipeableRef.current.close();
+  // };
+
+  // const rightSwipeActions = (name, website) => (
+  //   <View style={{justifyContent: 'center', alignItems: 'flex-end'}}>
+  //     <CustomButton
+  //       title="Delete"
+  //       width={wp(20)}
+  //       color={colors.danger}
+  //       onPress={() => handleDelete(name, website)}
+  //     />
+  //   </View>
+  // );
+
+  const AgencyComponent = ({name, website, onPress}) => (
+    <Pressable style={styles.agencyView} onPress={onPress}>
+      <View style={styles.agencyDetailsView}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={{
+              uri: TEMP_IMAGE,
+            }}
+            style={styles.logo}
+          />
+        </View>
+        <View style={{paddingHorizontal: Spacing.hs}}>
+          <RegularText color={colors.black}>{name}</RegularText>
+          <SmallText>{website}</SmallText>
+        </View>
+      </View>
+    </Pressable>
+  );
+
+  const handleSwitchAgency = agencyUrl => {
+    setShowLoader(true);
+    const newActiveAppSettings = appSettings.find(
+      setting => setting.agencyUrl === agencyUrl,
+    );
+    dispatch(
+      switchAgency(
+        newActiveAppSettings,
+        wallet,
+        onSwitchSuccess,
+        onSwitchError,
+      ),
+    );
   };
 
-  const rightSwipeActions = (name, website) => (
-    <View style={{justifyContent: 'center', alignItems: 'flex-end'}}>
-      <CustomButton
-        title="Delete"
-        width={wp(20)}
-        color={colors.danger}
-        onPress={() => handleDelete(name, website)}
-      />
-    </View>
-  );
-
-  const AgencyComponent = ({name, website}) => (
-    <Swipeable
-      renderRightActions={() => rightSwipeActions(name, website)}
-      shouldCancelWhenOutside={true}
-      ref={swipeableRef}>
-      <View style={styles.agencyView}>
-        <View style={styles.agencyDetailsView}>
-          <View style={styles.logoContainer}>
-            <Image
-              source={{
-                uri: TEMP_IMAGE,
-              }}
-              style={styles.logo}
-            />
-          </View>
-          <View style={{paddingHorizontal: Spacing.hs}}>
-            <RegularText color={colors.black}>{name}</RegularText>
-            <SmallText>{website}</SmallText>
-          </View>
-        </View>
-        <Pressable
-          style={{paddingHorizontal: Spacing.hs / 2}}
-          onPress={() => swipeableRef.current.openRight()}
-          hitSlop={40}>
-          <MoreDotsIcon />
-        </Pressable>
-      </View>
-    </Swipeable>
-  );
+  const onSwitchSuccess = newActiveAppSettings => {
+    dispatch({type: 'SET_ACTIVE_APP_SETTINGS', payload: newActiveAppSettings});
+    setShowLoader(false);
+    navigation.navigate("HomeScreen")
+  };
+  const onSwitchError = e => {
+    console.log(e, 'e');
+    setShowLoader(false);
+  };
 
   return (
     <>
@@ -73,17 +111,40 @@ const AgencyScreen = ({navigation}) => {
         title="Agency"
         rightIcon={<AddCircleIcon />}
         onBackPress={() => navigation.pop()}
-        onRightIconPress={() => navigation.navigate('LinkAgencyQRScreen')}
+        onRightIconPress={() =>
+          navigation.navigate('LinkAgencyQRScreen', {
+            // fromAgencies: true,
+            from: 'agencies',
+            data: {
+              name: userData.name,
+              phone: userData.phone,
+              wallet_address: userData.wallet_address,
+              email: userData.email,
+              address: userData.address,
+              // govt_id,
+              // govt_id_image: userData.govt_id_image,
+              // photo: userData.photo[0],
+            },
+          })
+        }
+      />
+      <CustomLoader
+        show={showLoader}
+        message="Switching agency. Please wait..."
       />
       <View style={styles.container}>
-        <AgencyComponent
-          name="Rahat Vendor"
-          website="rahat-vendor.agency.com"
-        />
-        <AgencyComponent
-          name="Unicef Nepal"
-          website="unicef-nepal.agency.com"
-        />
+        {appSettings?.map((settings, i) => (
+          <AgencyComponent
+            key={i}
+            name={`${settings.agency.name} ${
+              activeAppSettings.agencyUrl === settings.agencyUrl
+                ? '(Active)'
+                : ''
+            }`}
+            website={settings.agencyUrl}
+            onPress={() => handleSwitchAgency(settings.agencyUrl)}
+          />
+        ))}
       </View>
     </>
   );

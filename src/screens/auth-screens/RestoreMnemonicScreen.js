@@ -21,6 +21,7 @@ import {
 import {useDispatch} from 'react-redux';
 import {getWallet} from '../../redux/actions/wallet';
 import {getUserByWalletAddress} from '../../redux/actions/auth';
+import CustomLoader from '../../components/CustomLoader';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -53,14 +54,16 @@ const RestoreMnemonicScreen = ({navigation}) => {
 
   useEffect(() => {
     if (isSubmitting) {
-      dispatch(
-        getWallet(
-          'restoreUsingMnemonic',
-          getWalletSuccess,
-          handleError,
-          mnemonic.trim(),
-        ),
-      );
+      setTimeout(() => {
+        dispatch(
+          getWallet(
+            'restoreUsingMnemonic',
+            getWalletSuccess,
+            handleError,
+            mnemonic.trim(),
+          ),
+        );
+      }, 1000);
     }
   }, [isSubmitting]);
 
@@ -90,7 +93,10 @@ const RestoreMnemonicScreen = ({navigation}) => {
   };
 
   const getWalletSuccess = wallet => {
-    dispatch(getUserByWalletAddress(wallet.address, () => {}, handleError));
+    setValues({...values, isSubmitting: false});
+    // dispatch(getUserByWalletAddress(wallet.address, () => {}, handleError));
+    // navigation.navigate('LinkAgencyQRScreen', {fromRestore: true});
+    navigation.navigate('LinkAgencyQRScreen', {from: 'restore'});
   };
 
   // const getUserSuccess = () => {
@@ -107,6 +113,10 @@ const RestoreMnemonicScreen = ({navigation}) => {
           popupType={popupType}
           messageType={messageType}
           message={popupMessage}
+        />
+        <CustomLoader
+          show={isSubmitting}
+          message="Restoring your wallet. This might take a while, please wait..."
         />
         <View style={styles.textView}>
           <RegularText>Please enter 12 word mnemonics</RegularText>
@@ -142,12 +152,13 @@ const RestoreMnemonicScreen = ({navigation}) => {
             title="Submit"
             color={colors.green}
             onPress={handleSubmit}
-            isSubmitting={isSubmitting}
+            // isSubmitting={isSubmitting}
             disabled={isSubmitting}
           />
           <CustomButton
             disabled={!isSubmitting}
             title="Cancel"
+            outlined
             color={colors.danger}
             onPress={() => navigation.pop()}
           />
