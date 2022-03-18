@@ -13,8 +13,10 @@ import {
   SmallText,
 } from '../../components';
 import {storeUserData} from '../../redux/actions/auth';
+import {useTranslation} from 'react-i18next';
 
 const RegisterSuccessScreen = ({navigation, route}) => {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const {wallet} = useSelector(state => state.wallet);
   const {data} = route?.params;
@@ -33,7 +35,7 @@ const RegisterSuccessScreen = ({navigation, route}) => {
   const WordComponent = ({count, secret}) => (
     <View style={styles.wordView}>
       <SmallText noPadding style={{paddingTop: Spacing.vs / 2}}>
-        Word: {count}
+        {t('Word')}: {`${t(count)}`}
       </SmallText>
       <RegularText color={colors.black}>{secret}</RegularText>
     </View>
@@ -53,14 +55,15 @@ const RegisterSuccessScreen = ({navigation, route}) => {
   return (
     <>
       <CustomHeader
-        title="Backup Wallet"
+        title={t('Backup Wallet')}
         hideBackButton={!!data}
         onBackPress={() => navigation.pop()}
       />
       <ScrollView style={styles.container}>
         <SmallText>
-          Here is your 12 words secret. Please write down these words in
-          sequence (using the word number) and store safely
+          {t(
+            'Here is your 12 words secret. Please write down these words in sequence (using the word number) and store safely',
+          )}
         </SmallText>
 
         {secretWords.map((item, index) => (
@@ -68,7 +71,7 @@ const RegisterSuccessScreen = ({navigation, route}) => {
         ))}
 
         <CustomButton
-          title="I have written it down"
+          title={t('I have written it down')}
           onPress={handleButtonClick}
           style={styles.button}
         />

@@ -15,12 +15,13 @@ import {
 import CustomLoader from '../../components/CustomLoader';
 import SwitchAgencyModal from '../../components/SwitchAgencyModal';
 import {getUserByWalletAddress, switchAgency} from '../../redux/actions/auth';
-
+import {useTranslation} from 'react-i18next';
 import {TokenService} from '../../services/chain';
 
 const RedeemScreen = ({navigation, route}) => {
   // const agencyName = route.params?.agencyName;
   const dispatch = useDispatch();
+  const {t} = useTranslation();
   const {balance, wallet} = useSelector(state => state.wallet);
   const {appSettings, activeAppSettings, userData} = useSelector(
     state => state.auth,
@@ -42,7 +43,7 @@ const RedeemScreen = ({navigation, route}) => {
     );
     if (temp[0]?.status === 'new') {
       RNToasty.Show({
-        title: 'Agency has not approved your account',
+        title: `${t('Your account has not been approved')}`,
         duration: 1,
       });
       navigation.pop();
@@ -54,11 +55,11 @@ const RedeemScreen = ({navigation, route}) => {
     let timeStamp = new Date(timeElapsed);
 
     if (amount === '' || amount === '0') {
-      setErrorMessage('Enter amount to redeem');
+      setErrorMessage(`${t('Enter amount to redeem')}`);
       return;
     }
     if (amount > balance) {
-      setErrorMessage('Amount cannot be greater than balance');
+      setErrorMessage(`${t('Amount cannot be greater than balance')}`);
       return;
     }
     setValues({...values, isSubmitting: true});
@@ -92,7 +93,7 @@ const RedeemScreen = ({navigation, route}) => {
       ...values,
       showSwitchAgencyModal: false,
       showLoader: true,
-      loaderMessage: 'Switching agency. Please wait...',
+      loaderMessage: `${t('Switching agency.')} ${t('Please wait...')}`,
     });
     const newActiveAppSettings = appSettings.find(
       setting => setting.agencyUrl === agencyUrl,
@@ -118,7 +119,7 @@ const RedeemScreen = ({navigation, route}) => {
 
   return (
     <>
-      <CustomHeader title="Redeem" onBackPress={() => navigation.pop()} />
+      <CustomHeader title={t('Redeem')} onBackPress={() => navigation.pop()} />
       <SwitchAgencyModal
         activeAgency={activeAppSettings}
         agencies={appSettings}
@@ -166,7 +167,7 @@ const RedeemScreen = ({navigation, route}) => {
             </Pressable>
           </View>
           <CustomTextInput
-            placeholder="Enter amount"
+            placeholder={t('Enter amount')}
             value={amount}
             onChangeText={text => {
               setAmount(text);
@@ -178,13 +179,13 @@ const RedeemScreen = ({navigation, route}) => {
           />
         </View>
         <CustomButton
-          title="Switch Agency"
+          title={t('Switch Agency')}
           disabled={isSubmitting}
           outlined
           onPress={() => setValues({...values, showSwitchAgencyModal: true})}
         />
         <CustomButton
-          title="Redeem"
+          title={t('Redeem')}
           color={colors.green}
           onPress={handleRedeem}
           style={{marginBottom: Spacing.vs * 2}}

@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {View, Text, StatusBar, ActivityIndicator} from 'react-native';
+import React, {useEffect, useState, useRef} from 'react';
+import {View, Text, StatusBar, ActivityIndicator, AppState} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import AuthStack from './AuthStack';
 import {useDispatch, useSelector} from 'react-redux';
@@ -10,24 +10,51 @@ import {getAppSettings, getUserByWalletAddress} from '../redux/actions/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Logo} from '../../assets/images';
 import colors from '../../constants/colors';
-import networkUrls from '../../constants/networkUrls';
-
-// let TEST_NETWORK_URL = 'https://testnetwork.esatya.io';
-// let PRODUCTION_NETWORK_URL = 'https://chain.esatya.io';
-
-let NETWORK_URL =
-  networkUrls.ENV === 'development'
-    ? networkUrls.TEST_NETWORK_URL
-    : networkUrls.PRODUCTION_NETWORK_URL;
+import LockScreen from '../screens/app-screens/LockScreen';
+import {useTranslation} from 'react-i18next';
 
 const Routes = () => {
   const dispatch = useDispatch();
-  const {userData, wallet, activeAgencyUrl} = useSelector(state => state.auth);
+  const {t, i18n} = useTranslation();
+  const {
+    userData,
+    wallet,
+    activeAgencyUrl,
+    lockScreen,
+    rahatPasscode,
+    backupToDriveStatus,
+  } = useSelector(state => state.auth);
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'background') {
+        rahatPasscode !== '' &&
+          !backupToDriveStatus &&
+          dispatch({type: 'LOCK_APP'});
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [rahatPasscode, backupToDriveStatus]);
+
+  useEffect(() => {
+    AsyncStorage.getItem('activeLanguage')
+      .then(res => {
+        console.log(res, "res")
+        if (res !== null) {
+          const activeLanguage = JSON.parse(res);
+          i18n.changeLanguage(activeLanguage);
+        }
+      })
+      .catch(e => {});
+  }, []);
+
+  useEffect(() => {
     // dispatch(getAppSettings());
-    const keys = ['walletInfo', 'storedAppSettings'];
+    const keys = ['walletInfo', 'storedAppSettings', 'activeLanguage'];
 
     if (!wallet) {
       AsyncStorage.multiGet(keys)
@@ -45,6 +72,7 @@ const Routes = () => {
               walletInfo.privateKey,
               provider,
             );
+            dispatch({type: 'SET_WALLET_INFO', payload: walletInfo});
             dispatch(setWallet(walletRandom));
             dispatch({
               type: 'SET_ACTIVE_APP_SETTINGS',
@@ -130,7 +158,13 @@ const Routes = () => {
   }
   return (
     <NavigationContainer>
-      {userData === null ? <AuthStack /> : <AppStack />}
+      {userData === null && !lockScreen ? (
+        <AuthStack />
+      ) : userData !== null && lockScreen ? (
+        <LockScreen />
+      ) : (
+        <AppStack />
+      )}
     </NavigationContainer>
   );
 };

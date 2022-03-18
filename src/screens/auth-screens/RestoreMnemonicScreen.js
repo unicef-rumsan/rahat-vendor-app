@@ -22,6 +22,7 @@ import {useDispatch} from 'react-redux';
 import {getWallet} from '../../redux/actions/wallet';
 import {getUserByWalletAddress} from '../../redux/actions/auth';
 import CustomLoader from '../../components/CustomLoader';
+import {useTranslation} from 'react-i18next';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -31,6 +32,7 @@ if (Platform.OS === 'android') {
 let TOTAL_WORDS = 12;
 
 const RestoreMnemonicScreen = ({navigation}) => {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const [values, setValues] = useState({
     showPopup: false,
@@ -74,8 +76,8 @@ const RestoreMnemonicScreen = ({navigation}) => {
       setValues({
         showPopup: true,
         popupType: 'alert',
-        messageType: 'Info',
-        popupMessage: `Please fill all the ${TOTAL_WORDS} secret words`,
+        messageType: `${t('Info')}`,
+        popupMessage: `${t('Please fill all the 12 secret words')}`,
       });
       return;
     }
@@ -105,7 +107,10 @@ const RestoreMnemonicScreen = ({navigation}) => {
 
   return (
     <>
-      <CustomHeader title="Restore" onBackPress={() => navigation.pop()} />
+      <CustomHeader
+        title={t('Restore wallet')}
+        onBackPress={() => navigation.pop()}
+      />
       <ScrollView style={styles.container}>
         <CustomPopup
           show={showPopup}
@@ -115,18 +120,20 @@ const RestoreMnemonicScreen = ({navigation}) => {
           message={popupMessage}
         />
         <CustomLoader
-          show={isSubmitting}
-          message="Restoring your wallet. This might take a while, please wait..."
+          show={false}
+          message={t(
+            'Restoring your wallet. This might take a while, please wait...',
+          )}
         />
         <View style={styles.textView}>
-          <RegularText>Please enter 12 word mnemonics</RegularText>
-          <SmallText>One word in each box</SmallText>
+          <RegularText>{t('Please enter 12 word mnemonics')}</RegularText>
+          <SmallText>{t('One word in each box')}</SmallText>
         </View>
 
         {Array.from({length: 12}).map((_, index) => (
           <CustomTextInput
             key={index}
-            placeholder={`Word ${index + 1}`}
+            placeholder={`${t('Word')} ${t(index + 1)}`}
             onChangeText={text =>
               setValues({
                 ...values,
@@ -141,7 +148,9 @@ const RestoreMnemonicScreen = ({navigation}) => {
                 ? () => inputRef.current[index + 1].focus()
                 : null
             }
-            error={values[`word${index + 1}`] === '' ? 'Required' : null}
+            error={
+              values[`word${index + 1}`] === '' ? `${t('required')}` : null
+            }
             blurOnSubmit={index + 1 === TOTAL_WORDS ? true : false}
             autoCapitalize="none"
           />
@@ -149,7 +158,7 @@ const RestoreMnemonicScreen = ({navigation}) => {
 
         <View style={styles.buttonsView}>
           <CustomButton
-            title="Submit"
+            title={t('Submit')}
             color={colors.green}
             onPress={handleSubmit}
             // isSubmitting={isSubmitting}
@@ -157,7 +166,7 @@ const RestoreMnemonicScreen = ({navigation}) => {
           />
           <CustomButton
             disabled={!isSubmitting}
-            title="Cancel"
+            title={t('Cancel')}
             outlined
             color={colors.danger}
             onPress={() => navigation.pop()}

@@ -18,7 +18,7 @@ import {getUserByWalletAddress} from '../../redux/actions/auth';
 const CheckApprovalScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const {userData, activeAppSettings} = useSelector(state => state.auth);
-  console.log(activeAppSettings, "active")
+  console.log(activeAppSettings, 'active');
   const [values, setValues] = useState({
     // isApproved: false,
     isLoading: true,
@@ -40,7 +40,10 @@ const CheckApprovalScreen = ({navigation}) => {
   const onSuccess = data => {
     if (data?.agencies[0].status === 'active') {
       setValues({...values, isLoading: false});
-      RNToasty.Show({title: 'Your account has been approved', duration: 1});
+      RNToasty.Show({
+        title: `${t('Your account has been approved')}`,
+        duration: 1,
+      });
       navigation.pop();
     } else {
       setValues({...values, isLoading: false});
@@ -53,7 +56,10 @@ const CheckApprovalScreen = ({navigation}) => {
 
   return (
     <>
-      <CustomHeader title="Approval" onBackPress={() => navigation.pop()} />
+      <CustomHeader
+        title={t('Approval')}
+        onBackPress={() => navigation.pop()}
+      />
       <View style={styles.container}>
         {isLoading ? (
           <>
@@ -62,11 +68,11 @@ const CheckApprovalScreen = ({navigation}) => {
         ) : (
           <>
             <PoppinsMedium color={colors.yellow}>
-              Please wait for approval from agency.
+              {t('Please wait for approval from agency.')}
             </PoppinsMedium>
             <Card>
               <SmallText color={colors.black}>
-                Please contact your agency for approval
+                {t('Please contact your agency for approval')}
               </SmallText>
               <View
                 style={{flexDirection: 'row', justifyContent: 'space-between'}}>
@@ -75,7 +81,7 @@ const CheckApprovalScreen = ({navigation}) => {
               </View>
               <CustomButton
                 width={widthPercentageToDP(80)}
-                title="Back To Home"
+                title={t('Back To Home')}
                 color={colors.green}
                 onPress={() => navigation.pop()}
               />

@@ -33,6 +33,7 @@ import {getWallet} from '../../redux/actions/wallet';
 import {registerVendor} from '../../redux/actions/auth';
 import CustomLoader from '../../components/CustomLoader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useTranslation} from 'react-i18next';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -85,6 +86,7 @@ const RenderPageIndicator = ({activePage, agreeTC}) => (
 
 const SignupScreen = ({navigation}) => {
   const dispatch = useDispatch();
+  const {t} = useTranslation();
   const [activePage, setActivePage] = useState(0);
   const [pageTitle, setPageTitle] = useState('');
   const [agreeTC, setAgreeTC] = useState(false);
@@ -126,16 +128,16 @@ const SignupScreen = ({navigation}) => {
   useEffect(() => {
     switch (activePage) {
       case 1:
-        setPageTitle('Profile Photo');
+        setPageTitle(`${t('Profile Photo')}`);
         break;
       case 2:
-        setPageTitle('Identity Photo');
+        setPageTitle(`${t('Identity Photo')}`);
         break;
       case 3:
-        setPageTitle('Terms and Conditions');
+        setPageTitle(`${t('Terms and Conditions')}`);
         break;
       default:
-        setPageTitle('Register');
+        setPageTitle(`${t('Register')}`);
         break;
     }
   }, [activePage]);
@@ -154,7 +156,7 @@ const SignupScreen = ({navigation}) => {
     setValues({
       ...values,
       isSubmitting: true,
-      loaderMessage: 'Creating your wallet. Please wait...',
+      loaderMessage: `${t('Creating your wallet.')} ${t('Please wait...')}`,
     });
   };
 
@@ -175,17 +177,8 @@ const SignupScreen = ({navigation}) => {
 
     navigation.replace('LinkAgencyQRScreen', {
       data,
-      // fromSignup: true,
-      from: "signup"
+      from: 'signup',
     });
-    // console.log(data);
-    // setValues({
-    //   ...values,
-    //   loaderMessage: 'Setting up your rahat account. Please wait',
-    // });
-    // setTimeout(() => {
-    //   dispatch(registerVendor(data, onRegisterSuccess, onRegisterError));
-    // }, 200);
   };
 
   const onWalletCreateError = e => {
@@ -194,24 +187,24 @@ const SignupScreen = ({navigation}) => {
     setValues({...values, isSubmitting: false});
   };
 
-  const onRegisterSuccess = data => {
-    console.log(data, "data")
-    navigation.replace('RegisterSuccessScreen', {data});
-  };
+  // const onRegisterSuccess = data => {
+  //   console.log(data, 'data');
+  //   navigation.replace('RegisterSuccessScreen', {data});
+  // };
 
-  const onRegisterError = e => {
-    AsyncStorage.clear()
-      .then(() => {
-        console.log(e.response);
-        console.log(e);
-        const errorMessage = e.response ? e.response : e.message;
-        alert(errorMessage, 'register error');
-        setValues({...values, isSubmitting: false});
-      })
-      .catch(e => {
-        console.log(e, 'asycn clear error');
-      });
-  };
+  // const onRegisterError = e => {
+  //   AsyncStorage.clear()
+  //     .then(() => {
+  //       console.log(e.response);
+  //       console.log(e);
+  //       const errorMessage = e.response ? e.response : e.message;
+  //       alert(errorMessage, 'register error');
+  //       setValues({...values, isSubmitting: false});
+  //     })
+  //     .catch(e => {
+  //       console.log(e, 'asycn clear error');
+  //     });
+  // };
 
   const handleTextChange = (value, name) => {
     setValues({
@@ -240,16 +233,20 @@ const SignupScreen = ({navigation}) => {
     <View style={styles().pageView}>
       <View>
         <CustomTextInput
-          placeholder="Name"
+          placeholder={t('Name')}
           value={name}
           onChangeText={value => handleTextChange(value, 'name')}
-          error={registerErrorFlag === 1 && name === '' && 'Name is required'}
+          error={
+            registerErrorFlag === 1 &&
+            name === '' &&
+            `${t('Name')} ${t('is required')}`
+          }
           onSubmitEditing={() => inputRef.current['phone'].focus()}
           returnKeyType="next"
           blurOnSubmit={false}
         />
         <CustomTextInput
-          placeholder="Phone Number"
+          placeholder={t('Phone Number')}
           keyboardType="phone-pad"
           value={phone}
           maxLength={15}
@@ -262,7 +259,7 @@ const SignupScreen = ({navigation}) => {
             registerErrorFlag === 1 &&
             phone === '' &&
             // ?
-            'Phone Number is required'
+            `${t('Phone Number')} ${t('is required')}`
             // :
             // registerErrorFlag === 1 &&
             //   phone.match(/9[0-9]{9}/) === null &&
@@ -271,17 +268,17 @@ const SignupScreen = ({navigation}) => {
         />
 
         <CustomTextInput
-          placeholder="Email"
+          placeholder={t('Email')}
           value={email}
           onChangeText={value => handleTextChange(value, 'email')}
           error={
             registerErrorFlag === 1 && email === ''
-              ? 'Email is required'
+              ? `${t('Email')} ${t('is required')}`
               : registerErrorFlag === 1 &&
                 !email.match(
                   /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
                 ) &&
-                'Please enter valid email'
+                `${t('Please enter valid email')}`
           }
           returnKeyType="next"
           autoCapitalize="none"
@@ -292,7 +289,7 @@ const SignupScreen = ({navigation}) => {
         />
 
         <CustomTextInput
-          placeholder="Address"
+          placeholder={t('Address')}
           value={address}
           ref={input => (inputRef.current['address'] = input)}
           // onSubmitEditing={() => inputRef.current['govt_id'].focus()}
@@ -300,7 +297,9 @@ const SignupScreen = ({navigation}) => {
           // blurOnSubmit={false}
           onChangeText={value => handleTextChange(value, 'address')}
           error={
-            registerErrorFlag === 1 && address === '' && 'Address is required'
+            registerErrorFlag === 1 &&
+            address === '' &&
+            `${t('Address')} ${t('is required')}`
           }
         />
 
@@ -320,7 +319,7 @@ const SignupScreen = ({navigation}) => {
         /> */}
       </View>
       <CustomButton
-        title="Next"
+        title={t('Next')}
         style={styles().button}
         onPress={onRegisterNext}
       />
@@ -361,18 +360,18 @@ const SignupScreen = ({navigation}) => {
   const profilePicturePage = () => (
     <View style={styles().pageView}>
       <CustomImageView
-        title="Upload Profile Picture"
+        title={t('Upload Profile Picture')}
         type="profileImage"
         imageSource={profileImageUrl}
       />
       <View style={styles().buttonsView}>
         <CustomButton
-          title="Next"
+          title={t('Next')}
           onPress={() => setActivePage(prev => prev + 1)}
           disabled={profileImageUrl !== '' ? false : true}
         />
         <CustomButton
-          title="Previous"
+          title={t('Previous')}
           color={colors.gray}
           outlined
           onPress={() => {
@@ -387,23 +386,23 @@ const SignupScreen = ({navigation}) => {
   const identityPicturePage = () => (
     <View style={styles().pageView}>
       <CustomImageView
-        title="Upload Id Front Picture"
+        title={t('Upload Id Front Picture')}
         type="idFrontImage"
         imageSource={idFrontImageUrl}
       />
       <CustomImageView
-        title="Upload Id Back Picture"
+        title={t('Upload Id Back Picture')}
         type="idBackImage"
         imageSource={idBackImageUrl}
       />
       <View style={styles().buttonsView}>
         <CustomButton
-          title="Next"
+          title={t('Next')}
           onPress={() => setActivePage(prev => prev + 1)}
           disabled={idFrontImageUrl !== '' ? false : true}
         />
         <CustomButton
-          title="Previous"
+          title={t('Previous')}
           color={colors.gray}
           outlined
           onPress={() => setActivePage(prev => prev - 1)}
@@ -416,12 +415,14 @@ const SignupScreen = ({navigation}) => {
     <View style={{flex: 1, justifyContent: 'space-between'}}>
       <View>
         <SmallText noPadding>
-          1. Vendor will use the Rahat vendor application to provide goods to
-          the beneficiaries.
+          {t(
+            '1. Vendor will use the Rahat vendor application to provide goods to the beneficiaries.',
+          )}
         </SmallText>
         <SmallText noPadding>
-          2. The vendor will be reimbursed only after redeeming the tokens back
-          to aid agency.
+          {t(
+            '2. The vendor will be reimbursed only after redeeming the tokens back to aid agency.',
+          )}
         </SmallText>
       </View>
       <View>
@@ -437,17 +438,17 @@ const SignupScreen = ({navigation}) => {
             tintColor={colors.blue}
             tintColors={{true: colors.blue, false: colors.gray}}
           />
-          <SmallText>I accept all terms and conditions.</SmallText>
+          <SmallText>{t('I accept all terms and conditions.')}</SmallText>
         </View>
         <View style={styles().buttonsView}>
           <CustomButton
-            title="Continue"
+            title={t('Continue')}
             onPress={handleSubmit}
             disabled={!agreeTC || isSubmitting ? true : false}
             // isSubmitting={isSubmitting}
           />
           <CustomButton
-            title="Previous"
+            title={t('Previous')}
             disabled={isSubmitting}
             outlined
             color={colors.gray}
@@ -507,19 +508,19 @@ const SignupScreen = ({navigation}) => {
       <View style={styles(showModal).centeredModalView}>
         <View style={styles().modalView}>
           <CustomButton
-            title="Take a Photo"
+            title={t('Take a Photo')}
             color={colors.green}
             width={wp(80)}
             onPress={handleTakePhoto}
           />
           <CustomButton
-            title="Choose from Gallery"
+            title={t('Choose from Gallery')}
             color={colors.green}
             width={wp(80)}
             onPress={handleChooseFromGallery}
           />
           <CustomButton
-            title="Cancel"
+            title={t('Cancel')}
             outlined
             color={colors.gray}
             width={wp(80)}

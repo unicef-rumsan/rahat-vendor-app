@@ -27,12 +27,13 @@ import {
 } from '../../components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
-
+import {useTranslation} from 'react-i18next';
 let PASSCODE_LENGTH = 4;
 let CELL_COUNT = 4;
 
 const PasscodeScreen = ({navigation}) => {
   const dispatch = useDispatch();
+  const {t} = useTranslation();
   const [popupStates, setPopupStates] = useState({
     showPopup: false,
     popupType: '',
@@ -94,8 +95,8 @@ const PasscodeScreen = ({navigation}) => {
       setPopupStates({
         ...popupStates,
         showPopup: true,
-        messageType: 'Info',
-        message: 'New and confirm passcode does not match',
+        messageType: `${t('Info')}`,
+        message: `${t('New and confirm passcode does not match')}`,
         popupType: 'alert',
       });
       return;
@@ -107,11 +108,11 @@ const PasscodeScreen = ({navigation}) => {
       .then(() => {
         setIsSubmitting(false);
         dispatch({type: 'SET_RAHAT_PASSCODE', passcode});
-        RNToasty.Show({title: 'Passcode setup successful'});
+        RNToasty.Show({title: `${t('Passcode setup successfully')}`});
         navigation.navigate('HomeScreen');
       })
       .catch(e => {
-        alert('Something went wrong. Please try again later.');
+        alert(`${t('Something went wrong. Please try again')}`);
       });
   };
 
@@ -125,7 +126,7 @@ const PasscodeScreen = ({navigation}) => {
       <View style={styles.container}>
         <CustomLoader
           show={isSubmitting}
-          message="Setting up your passcode. Please wait"
+          message={`${t('Setting up your passcode.')} ${t('Please wait...')}`}
         />
 
         <CustomPopup
@@ -139,13 +140,13 @@ const PasscodeScreen = ({navigation}) => {
         <View>
           <View style={styles.info}>
             <RegularText color={colors.black}>
-              Rahat passcode can be used to:
+              {t('Rahat passcode can be used to')}:
             </RegularText>
-            <SmallText>Unlock Rahat Vendor App</SmallText>
+            <SmallText>{t('Unlock Rahat Vendor App')}</SmallText>
           </View>
           <View style={styles.inputView}>
             <RegularText style={{paddingVertical: Spacing.vs}}>
-              New Rahat Passcode
+              {`${t('New')} ${'Rahat Passcode'}`}
             </RegularText>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <CodeField
@@ -176,7 +177,7 @@ const PasscodeScreen = ({navigation}) => {
           </View>
           <View style={styles.inputView}>
             <RegularText style={{paddingVertical: Spacing.vs}}>
-              Confirm Rahat Passcode
+              {`${t('Confirm')} ${'Rahat Passcode'}`}
             </RegularText>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <CodeField
@@ -221,7 +222,7 @@ const PasscodeScreen = ({navigation}) => {
           </View> */}
         </View>
         <CustomButton
-          title="Set Passcode"
+          title={t('Set Passcode')}
           disabled={
             confirmPasscode.length === 4 && passcode.length === 4 ? false : true
           }

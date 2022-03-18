@@ -1,37 +1,43 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {useTranslation} from 'react-i18next';
+import {StyleSheet, View} from 'react-native';
 import colors from '../../../constants/colors';
 import {Spacing} from '../../../constants/utils';
 import {CustomHeader, RegularText, SmallText} from '../../components';
 
 const AboutScreen = ({navigation}) => {
+  const {t} = useTranslation();
   return (
     <>
-      <CustomHeader title="About Us" onBackPress={() => navigation.pop()} />
+      <CustomHeader
+        title={t('About Us')}
+        onBackPress={() => navigation.pop()}
+      />
       <View style={styles.container}>
         <View style={styles.aboutView}>
-          <RegularText>What Is Rahat ?</RegularText>
+          <RegularText>{t('What Is Rahat?')}</RegularText>
           <SmallText style={styles.description}>
-            Rahat (relief in Nepali) is an open source blockchain-based token
-            cash and voucher assistance platform.
+            {t(
+              'Rahat (relief in Nepali) is an open source blockchain-based token cash and voucher assistance platform.',
+            )}
           </SmallText>
           <SmallText style={styles.description}>
-            Rahat manages and monitors the flow of transactions in token
-            distribution projects maintaining end to end transparency for
-            humanitarian agencies who need a transparent, efficient and cheaper
-            way to distribute cash or goods in emergency response.
+            {t(
+              'Rahat manages and monitors the flow of transactions in token distribution projects maintaining end to end transparency for humanitarian agencies who need a transparent, efficient and cheaper way to distribute cash or goods in emergency response.',
+            )}
           </SmallText>
         </View>
         <View style={styles.aboutView}>
-          <RegularText>Our Mission</RegularText>
+          <RegularText>{t('Our Mission')}</RegularText>
           <SmallText style={styles.description}>
-            We aim to make humanitarian aid distribution efficient and
-            transparent to support marginalized communities.
+            {t(
+              'We aim to make humanitarian aid distribution efficient and transparent to support marginalized communities.',
+            )}
           </SmallText>
           <SmallText style={styles.description}>
-            Rahat strengthens financial inclusion for vulnerable community
-            members and helps them receive cash transfers through local vendors
-            in their communities.
+            {t(
+              'Rahat strengthens financial inclusion for vulnerable community members and helps them receive cash transfers through local vendors in their communities.',
+            )}
           </SmallText>
         </View>
       </View>

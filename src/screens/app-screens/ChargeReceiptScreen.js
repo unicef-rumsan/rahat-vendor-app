@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import React, {useEffect} from 'react';
+import {useTranslation} from 'react-i18next';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {RNToasty} from 'react-native-toasty';
@@ -11,6 +12,7 @@ import {CustomButton, CustomHeader, SmallText, Card} from '../../components';
 
 const ChargeReceiptScreen = ({navigation, route}) => {
   const {receiptData, from} = route.params;
+  const {t} = useTranslation();
   const ChargeDetail = ({title, detail, detailColor, onPress}) => (
     <Pressable style={styles.chargeDetail} onPress={onPress}>
       <SmallText>{title}</SmallText>
@@ -52,7 +54,7 @@ const ChargeReceiptScreen = ({navigation, route}) => {
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
-    RNToasty.Show({title: 'Copied to clipboard', duration: 0});
+    RNToasty.Show({title: `${t('Copied to clipboard')}`, duration: 0});
   };
 
   return (
@@ -61,33 +63,33 @@ const ChargeReceiptScreen = ({navigation, route}) => {
       <View style={styles.container}>
         <Card>
           <ChargeDetail
-            title="Charge To"
+            title={t('Charge To')}
             detail={receiptData?.chargeTo}
             onPress={() => copyToClipboard(receiptData?.chargeTo)}
           />
           <ChargeDetail
-            title="Status"
-            detail="Success"
+            title={t('Status')}
+            detail={t('Success')}
             detailColor={colors.green}
           />
           <ChargeDetail
-            title="To"
+            title={t('To')}
             detail={receiptData?.to}
             detailColor={colors?.blue}
             onPress={() => copyToClipboard(receiptData?.to)}
           />
 
-          <ChargeDetail title="Date" detail={receiptData?.timeStamp} />
-          <ChargeDetail title="Amount" detail={receiptData?.amount} />
+          <ChargeDetail title={t('Date')} detail={receiptData?.timeStamp} />
+          <ChargeDetail title={t('Amount')} detail={receiptData?.amount} />
           {receiptData?.remarks !== undefined && (
             <ChargeDetail
-              title="Remarks"
+              title={t('Remarks')}
               detail={receiptData?.remarks === '' ? '-' : receiptData?.remarks}
             />
           )}
         </Card>
         <CustomButton
-          title="Back To Home"
+          title={t('Back To Home')}
           color={colors.green}
           onPress={() => navigation.navigate('HomeScreen', {refresh: true})}
         />

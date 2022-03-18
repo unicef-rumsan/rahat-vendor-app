@@ -19,11 +19,13 @@ import {
 import {Card, CustomHeader, RegularText, SmallText} from '../../components';
 import {useSelector} from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
-import { RNToasty } from 'react-native-toasty';
+import {RNToasty} from 'react-native-toasty';
 import Clipboard from '@react-native-clipboard/clipboard';
+import {useTranslation} from 'react-i18next';
 
 const ProfileScreen = ({navigation}) => {
   const {userData} = useSelector(state => state.auth);
+  const {t} = useTranslation();
   const ProfileDetail = ({icon, title}) => (
     <View style={styles.detailView}>
       {icon}
@@ -33,13 +35,13 @@ const ProfileScreen = ({navigation}) => {
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
-    RNToasty.Show({title: 'Copied to clipboard', duration: 0});
+    RNToasty.Show({title: `${t('Copied to clipboard')}`, duration: 0});
   };
 
   return (
     <>
       <CustomHeader
-        title="Profile"
+        title={t('Profile')}
         onBackPress={() => navigation.pop()}
         // rightIcon={<EditIcon />}
 
@@ -89,8 +91,9 @@ const ProfileScreen = ({navigation}) => {
                 center
                 color={colors.lightGray}
                 style={{fontSize: FontSize.xsmall, paddingTop: Spacing.vs}}>
-                This QR Code (address) is your unique identity. Use this to
-                receive digital documents, assets or verify your identity.
+                {t(
+                  'This QR Code (address) is your unique identity. Use this to receive digital documents, assets or verify your identity.',
+                )}
               </SmallText>
             </View>
           </Card>

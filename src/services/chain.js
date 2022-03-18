@@ -44,15 +44,17 @@ const getAgencyDetails = async (agencyAddress, tokenAddress) => {
 const RahatService = (agencyAddress, wallet, tokenAddress) => {
   return {
     async getContract() {
-      const agency = await getAgencyDetails(agencyAddress,tokenAddress);
+      const agency = await getAgencyDetails(agencyAddress, tokenAddress);
       return agency.rahatContract.connect(wallet);
     },
     async chargeCustomer(phone, amount) {
       const contract = await this.getContract();
-      //let benBalance = await contract.tokenBalance(phone);
-      // if (amount > benBalance.toNumber()) {
-      // 	// waring token amount is greater than remaining blance
-      // }
+      let benBalance = await contract.tokenBalance(phone);
+      if (amount > benBalance.toNumber()) {
+        // error token amount is greater than remaining blance
+        // alert('token amount is greater than remaining blance');
+        return;
+      }
       const tx = await contract.createClaim(Number(phone), Number(amount));
       return tx.wait();
     },

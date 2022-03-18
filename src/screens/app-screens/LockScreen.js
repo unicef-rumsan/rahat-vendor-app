@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {Pressable, StyleSheet, Text, View, Keyboard} from 'react-native';
 import colors from '../../../constants/colors';
 import {FontSize, Spacing} from '../../../constants/utils';
 import CustomHeader from '../../components/CustomHeader';
@@ -25,11 +25,13 @@ import {
   PoppinsMedium,
 } from '../../components';
 import {useDispatch, useSelector} from 'react-redux';
+import {useTranslation} from 'react-i18next';
 
 let PASSCODE_LENGTH = 4;
 let CELL_COUNT = 4;
 
 const LockScreen = ({navigation}) => {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const {rahatPasscode} = useSelector(state => state.auth);
 
@@ -65,23 +67,12 @@ const LockScreen = ({navigation}) => {
 
   const handleConfirm = async () => {
     if (passcode !== rahatPasscode) {
-      return RNToasty.Error({title: 'Incorrect rahat passcode', duration: 1});
+      return RNToasty.Error({
+        title: `${'Incorrect rahat passcode'}`,
+        duration: 1,
+      });
     }
-
-    navigation.navigate('Tabs');
-
-    // setIsSubmitting(true);
-
-    // AsyncStorage.setItem('passcode', JSON.stringify(passcode))
-    //   .then(() => {
-    //     setIsSubmitting(false);
-    //     dispatch({type: 'SET_RAHAT_PASSCODE', passcode});
-    //     RNToasty.Show({title: 'Passcode setup successful'});
-    //     navigation.navigate('HomeScreen');
-    //   })
-    //   .catch(e => {
-    //     alert('Something went wrong. Please try again later.');
-    //   });
+    dispatch({type: 'UNLOCK_APP'});
   };
 
   return (
@@ -89,22 +80,32 @@ const LockScreen = ({navigation}) => {
       <View style={styles.container}>
         <CustomLoader
           show={isSubmitting}
-          message="Setting up your passcode. Please wait"
+          message={`${'Setting up your passcode.'} ${t('Please wait...')}`}
         />
         <View>
-          <PoppinsMedium color={colors.blue} fontSize={FontSize.xlarge}>
-            Confirm Rahat Passcode to unlock app
+          <PoppinsMedium
+            color={colors.blue}
+            fontSize={FontSize.xlarge}
+            style={{textAlign: 'center'}}>
+            Unlock your app
           </PoppinsMedium>
-          <RegularText style={{paddingVertical: Spacing.vs}}>
-            Rahat Passcode
+          <RegularText
+            style={{paddingVertical: Spacing.vs, textAlign: 'center'}}>
+            {t("Please enter your Rahat passcode to unlock your app")}
           </RegularText>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
             <CodeField
               {...props}
               ref={ref}
               value={passcode}
               onChangeText={setPasscode}
               cellCount={CELL_COUNT}
+              autoFocus
               rootStyle={styles.codeFieldRoot}
               keyboardType="number-pad"
               textContentType="password"
@@ -126,7 +127,7 @@ const LockScreen = ({navigation}) => {
           </View>
           <View style={styles.buttonView}>
             <CustomButton
-              title="Confirm"
+              title={t("Confirm")}
               disabled={passcode.length === 4 ? false : true}
               onPress={handleConfirm}
             />
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingBottom: Spacing.vs * 2,
     paddingTop: Spacing.vs * 3,
   },

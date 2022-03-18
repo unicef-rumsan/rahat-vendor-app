@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 import {
   Keyboard,
   SafeAreaView,
@@ -28,6 +29,7 @@ if (Platform.OS === 'android') {
 }
 
 const VerifyOTPScreen = ({navigation, route}) => {
+  const {t} = useTranslation();
   const {wallet} = useSelector(state => state.wallet);
   const {activeAppSettings} = useSelector(state => state.auth);
   const {phone, amount, remarks} = route.params;
@@ -51,7 +53,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
 
     setIsSubmitting(true);
     if (otp === '') {
-      alert("Please enter otp sent to customer's phone");
+      alert(`${t("Please enter otp sent to customer's phone")}`);
       return;
     }
     try {
@@ -73,7 +75,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
         agencyUrl: activeAppSettings.agencyUrl,
         remarks,
       };
-      RNToasty.Success({title: 'Success', duration: 1});
+      RNToasty.Success({title: `${t('Success')}`, duration: 1});
       setIsSubmitting(false);
       navigation.replace('ChargeReceiptScreen', {
         receiptData,
@@ -88,7 +90,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
 
   return (
     <>
-      <CustomHeader title="Verify OTP" hideBackButton />
+      <CustomHeader title={t('Verify OTP')} hideBackButton />
       <View style={styles.container}>
         {/* <SafeAreaView style={styles.header}>
           <PoppinsMedium style={{fontSize: FontSize.large}}>
@@ -108,12 +110,12 @@ const VerifyOTPScreen = ({navigation, route}) => {
             OTP from SMS (ask from customer)
           </RegularText>
           <CustomTextInput
-            placeholder="Enter OTP"
+            placeholder={t('Enter OTP')}
             keyboardType="numeric"
             onChangeText={setOtp}
           />
           <CustomButton
-            title="Verify"
+            title={t('Verify')}
             color={colors.green}
             onPress={onSubmit}
             width={widthPercentageToDP(80)}

@@ -1,4 +1,5 @@
 import React from 'react';
+import {useTranslation} from 'react-i18next';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import colors from '../../../constants/colors';
 import {Spacing} from '../../../constants/utils';
@@ -11,14 +12,17 @@ import {
 
 const StatementScreen = ({navigation, route}) => {
   const {balance, transactions} = route.params;
-
+  const {t} = useTranslation();
   return (
     <>
-      <CustomHeader title="Statement" onBackPress={() => navigation.pop()} />
+      <CustomHeader
+        title={t('Statement')}
+        onBackPress={() => navigation.pop()}
+      />
       <ScrollView style={styles.container}>
         <Card>
           <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-            <RegularText>Token Balance</RegularText>
+            <RegularText>{t('Token Balance')}</RegularText>
             <RegularText color={colors.black}>{balance}</RegularText>
           </View>
         </Card>

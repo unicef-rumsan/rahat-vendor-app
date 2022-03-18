@@ -1,10 +1,12 @@
 import React, {forwardRef} from 'react';
+import {useTranslation} from 'react-i18next';
 import {StyleSheet, Text, View, TextInput} from 'react-native';
 import colors from '../../constants/colors';
 import {FontSize, Spacing} from '../../constants/utils';
 import SmallText from './SmallText';
 
 const CustomTextInput = forwardRef((props, ref) => {
+  const {t} = useTranslation();
   return (
     <View style={{marginBottom: props.error ? Spacing.vs / 2 : Spacing.vs}}>
       <TextInput
@@ -19,7 +21,7 @@ const CustomTextInput = forwardRef((props, ref) => {
           noPadding
           color={colors.danger}
           style={{paddingHorizontal: Spacing.hs, paddingTop: Spacing.vs / 5}}>
-          {props.error}
+          {t(props.error)}
         </SmallText>
       )}
     </View>

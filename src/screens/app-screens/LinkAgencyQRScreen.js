@@ -27,9 +27,11 @@ import {useDispatch, useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ethers} from 'ethers';
 import {setWallet} from '../../redux/actions/wallet';
+import {useTranslation} from 'react-i18next';
 
 const LinkAgencyQRScreen = ({navigation, route}) => {
   const isFocused = useIsFocused();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const {wallet} = useSelector(state => state.wallet);
 
@@ -55,7 +57,7 @@ const LinkAgencyQRScreen = ({navigation, route}) => {
     setValues({
       ...values,
       isSubmitting: true,
-      loaderMessage: 'Fetching agency details. Please wait',
+      loaderMessage: `${t('Fetching agency details.')} ${t('Please wait...')}`,
     });
     dispatch(
       getAppSettings(agencyUrl, onGetAppSettingsSuccess, onGetAppSettingsError),
@@ -66,7 +68,9 @@ const LinkAgencyQRScreen = ({navigation, route}) => {
     setValues({
       ...values,
       isSubmitting: true,
-      loaderMessage: 'Setting up your rahat account. Please wait',
+      loaderMessage: `${t('Setting up your rahat account.')} ${t(
+        'Please wait...',
+      )}`,
     });
     setTimeout(() => {
       dispatch(
@@ -83,7 +87,7 @@ const LinkAgencyQRScreen = ({navigation, route}) => {
     setValues({
       ...values,
       isSubmitting: true,
-      loaderMessage: 'Linking your new agency. Please wait...',
+      loaderMessage: `${t('Linking your new agency.')} ${t('Please wait...')}`,
     });
     setTimeout(() => {
       dispatch(
@@ -101,7 +105,7 @@ const LinkAgencyQRScreen = ({navigation, route}) => {
     setValues({
       ...values,
       isSubmitting: true,
-      loaderMessage: 'Retrieving user data. Please wait...',
+      loaderMessage: `${t('Retrieving user data.')} ${t('Please wait...')}`,
     });
     setTimeout(() => {
       dispatch(
@@ -148,8 +152,8 @@ const LinkAgencyQRScreen = ({navigation, route}) => {
       isSubmitting: false,
       showPopup: true,
       popupType: 'alert',
-      messageType: 'Error',
-      message: 'Invalid agency code',
+      messageType: `${t('Error')}`,
+      message: `${t('Invalid agency code')}`,
     });
   };
 
@@ -191,19 +195,6 @@ const LinkAgencyQRScreen = ({navigation, route}) => {
         dispatch({type: 'SET_USERDATA', userData: data});
         navigation.pop();
       }
-      // if (route.params?.fromSignup) {
-      //   navigation.replace('RegisterSuccessScreen', {data});
-      // }
-      // if (route.params?.fromRestore) {
-      //   dispatch({type: 'SET_USERDATA', userData: data});
-      //   console.log('user set bhayo');
-      //   navigation.replace('Tabs');
-      // }
-      // if (route.params?.fromAgencies) {
-      //   dispatch({type: 'SET_USERDATA', userData: data});
-      //   console.log('user set bhayo');
-      //   navigation.pop();
-      // }
     } catch (e) {
       console.log(e);
     }
@@ -223,7 +214,7 @@ const LinkAgencyQRScreen = ({navigation, route}) => {
   const onLinkNewAgencyError = e => {
     const errorMessage = e.response ? e.response?.data?.message : e.message;
     alert(
-      errorMessage || 'Something went wrong. Please try again',
+      errorMessage || `${t('Something went wrong. Please try again')}`,
       'register error',
     );
     setValues({...values, isSubmitting: false});
@@ -260,24 +251,24 @@ const LinkAgencyQRScreen = ({navigation, route}) => {
           color={colors.white}
           fontSize={FontSize.large * 1.3}
           style={{textAlign: 'center'}}>
-          Link Agency
+          {t('Link Agency')}
         </PoppinsMedium>
         <PoppinsMedium
           color={colors.white}
           fontSize={FontSize.large}
           style={styles.text}>
-          Scan QR code to link agency
+          {t('Scan QR code to link agency')}
         </PoppinsMedium>
         <PoppinsMedium
           color={colors.white}
           fontSize={FontSize.small / 1.1}
           style={styles.text}>
-          Please align the QR code within the frame
+          {t('Please align the QR code within the frame')}
         </PoppinsMedium>
       </View>
       <View style={styles.buttonView}>
         <CustomButton
-          title="LINK AGENCY USING CODE"
+          title={t('LINK AGENCY USING CODE')}
           onPress={() =>
             navigation.replace('LinkAgencyCodeScreen', {
               data: route.params?.data,
@@ -294,7 +285,7 @@ const LinkAgencyQRScreen = ({navigation, route}) => {
             paddingHorizontal: Spacing.hs / 3,
             fontSize: FontSize.small,
           }}>
-          Powered By
+          {t('Powered By')}
         </RegularText>
         <RumsanLogo />
       </View>
