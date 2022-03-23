@@ -9,16 +9,13 @@ import colors from '../../../constants/colors';
 import {FontSize, Spacing} from '../../../constants/utils';
 import {RumsanLogo} from '../../../assets/icons';
 import {useIsFocused} from '@react-navigation/native';
-import {
-  PoppinsMedium,
-  RegularText,
-  CustomButton,
-  CustomPopup,
-} from '../../components';
+import {PoppinsMedium, RegularText, CustomPopup} from '../../components';
 import {ethers} from 'ethers';
+import {useTranslation} from 'react-i18next';
 
 const ScanScreen = ({navigation, route}) => {
   const isFocused = useIsFocused();
+  const {t} = useTranslation();
   const {type} = route.params;
 
   const [values, setValues] = useState({
@@ -32,10 +29,19 @@ const ScanScreen = ({navigation, route}) => {
   const onChargeScan = res => {
     let phone, amount;
     const details = res.data.split('?');
-    const phoneDetails = details[0].split(':');
-    const amountDetails = details[1].split('=');
+    const phoneDetails = details[0]?.split(':');
+    const amountDetails = details[1]?.split('=');
+    if (phoneDetails[0] !== 'phone' || amountDetails[0] !== 'amount') {
+      return setValues({
+        ...values,
+        showPopup: true,
+        popupType: 'alert',
+        messageType: `${t('Error')}`,
+        message: `${t('Invalid QR code')}`,
+      });
+    }
     if (phoneDetails[0] === 'phone') {
-      phone = phoneDetails[1].substr(4, phoneDetails[1].length);
+      phone = phoneDetails[1].substr(4, phoneDetails[1]?.length);
     }
     if (amountDetails[0] === 'amount') {
       amount = amountDetails[1];
@@ -47,17 +53,15 @@ const ScanScreen = ({navigation, route}) => {
   };
 
   const onTransferScan = res => {
-    console.log(res, 'transfer scan');
     let data = res.data;
     const temp = ethers?.utils.isAddress(data);
-    console.log(temp, 'isAddress');
     if (!ethers?.utils.isAddress(data)) {
       setValues({
         ...values,
         showPopup: true,
         popupType: 'alert',
-        messageType: 'Error',
-        message: 'Invalid QR code',
+        messageType: `${t('Error')}`,
+        message: `${t('Invalid QR code')}`,
       });
       return;
     }
@@ -101,22 +105,17 @@ const ScanScreen = ({navigation, route}) => {
           color={colors.white}
           fontSize={FontSize.large * 1.2}
           style={{textAlign: 'center', top: 30}}>
-          Scan & {type}
+          {t('Scan')} & {type}
         </PoppinsMedium>
 
         <PoppinsMedium
           color={colors.white}
           fontSize={FontSize.small / 1.1}
           style={styles.text}>
-          Please align the QR code within the frame
+          {t('Please align the QR code within the frame')}
         </PoppinsMedium>
       </View>
-      {/* <View style={styles.buttonView}>
-        <CustomButton
-          title="Verify"
-          onPress={() => navigation.navigate('VerifyOTPScreen')}
-        />
-      </View> */}
+
       <View style={styles.poweredByView}>
         <RegularText
           color={colors.white}
@@ -125,7 +124,7 @@ const ScanScreen = ({navigation, route}) => {
             paddingHorizontal: Spacing.hs / 3,
             fontSize: FontSize.small,
           }}>
-          Powered By
+          {t('Powered By')}
         </RegularText>
         <RumsanLogo />
       </View>

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import React, {useEffect} from 'react';
+import {useTranslation} from 'react-i18next';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {RNToasty} from 'react-native-toasty';
@@ -11,6 +12,7 @@ import {CustomButton, CustomHeader, SmallText, Card} from '../../components';
 
 const TransferReceiptScreen = ({navigation, route}) => {
   const {receiptData, from} = route.params;
+  const {t} = useTranslation();
   const TransferDetail = ({title, detail, detailColor, onPress}) => (
     <Pressable style={styles.chargeDetail} onPress={onPress}>
       <SmallText>{title}</SmallText>
@@ -52,31 +54,31 @@ const TransferReceiptScreen = ({navigation, route}) => {
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
-    RNToasty.Show({title: 'Copied to clipboard', duration: 0});
+    RNToasty.Show({title: `${t('Copied to clipboard')}`, duration: 0});
   };
 
   return (
     <>
-      <CustomHeader hideBackButton title="Transfer Receipt" />
+      <CustomHeader hideBackButton title={t('Transfer Receipt')} />
       <View style={styles.container}>
         <Card>
           <TransferDetail
-            title="Status"
-            detail="Success"
+            title={t('Status')}
+            detail={t('Success')}
             detailColor={colors.green}
           />
           <TransferDetail
-            title="To"
+            title={t('To')}
             detail={receiptData.to}
             detailColor={colors.blue}
             onPress={() => copyToClipboard(receiptData.to)}
           />
 
-          <TransferDetail title="Date" detail={receiptData.timeStamp} />
-          <TransferDetail title="Amount" detail={receiptData.amount} />
+          <TransferDetail title={t('Date')} detail={receiptData.timeStamp} />
+          <TransferDetail title={t('Amount')} detail={receiptData.amount} />
         </Card>
         <CustomButton
-          title="Back To Home"
+          title={t('Back To Home')}
           color={colors.green}
           onPress={() => navigation.navigate('HomeScreen', {refresh: true})}
         />

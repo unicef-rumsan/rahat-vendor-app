@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import colors from '../../../constants/colors';
 import {Spacing} from '../../../constants/utils';
@@ -16,19 +16,28 @@ import {
   TransferTokenIcon,
   WalletIcon,
 } from '../../../assets/icons';
+import {useTranslation} from 'react-i18next';
+import LanguagePicker from '../../components/LanguagePicker';
+
+const SettingComponent = ({icon, title, onPress}) => (
+  <Pressable style={styles.rowView} onPress={onPress}>
+    {icon}
+    <RegularText style={{paddingHorizontal: Spacing.hs}}>{title}</RegularText>
+  </Pressable>
+);
 
 const SettingsScreen = ({navigation}) => {
-  const SettingComponent = ({icon, title, onPress}) => (
-    <Pressable style={styles.rowView} onPress={onPress}>
-      {icon}
-      <RegularText style={{paddingHorizontal: Spacing.hs}}>{title}</RegularText>
-    </Pressable>
-  );
+  const {t} = useTranslation();
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
 
   return (
     <>
-      <CustomHeader title="Settings" hideBackButton />
+      <CustomHeader title={t('Settings')} hideBackButton />
       <View style={styles.container}>
+        <LanguagePicker
+          show={showLanguagePicker}
+          hide={() => setShowLanguagePicker(false)}
+        />
         <>
           <RegularText
             color={colors.black}
@@ -38,7 +47,7 @@ const SettingsScreen = ({navigation}) => {
           <Card>
             <SettingComponent
               icon={<PersonIcon color={colors.gray} />}
-              title="Profile"
+              title={t('Profile')}
               onPress={() => navigation.navigate('ProfileScreen')}
             />
             {/* <SettingComponent
@@ -48,12 +57,12 @@ const SettingsScreen = ({navigation}) => {
             /> */}
             <SettingComponent
               icon={<AgencyIcon />}
-              title="Agency"
+              title={t('Agency')}
               onPress={() => navigation.navigate('AgencyScreen')}
             />
             <SettingComponent
               icon={<AboutIcon />}
-              title="About"
+              title={t('About Us')}
               onPress={() => navigation.navigate('AboutScreen')}
             />
           </Card>
@@ -62,29 +71,29 @@ const SettingsScreen = ({navigation}) => {
           <RegularText
             color={colors.black}
             style={{paddingTop: Spacing.vs / 2}}>
-            Advanced
+            {t('Advanced')}
           </RegularText>
           <Card>
             <SettingComponent
               icon={<TransferTokenIcon />}
-              title="Transfer Token"
+              title={t('Transfer Token')}
               onPress={() => navigation.navigate('TransferTokenScreen')}
             />
             <SettingComponent
               icon={<BackupWalletIcon />}
-              title="Backup Wallet"
+              title={t('Backup Wallet')}
               onPress={() => navigation.navigate('BackupWalletScreen')}
             />
             <SettingComponent
               icon={<PassCodeIcon />}
-              title="Rahat Passcode"
+              title={t('Rahat Passcode')}
               onPress={() => navigation.navigate('PasscodeScreen')}
             />
-            {/* <SettingComponent
+            <SettingComponent
               icon={<LanguageIcon />}
-              title="Language"
-              // onPress={() => alert('Soon')}
-            /> */}
+              title={t('Language')}
+              onPress={() => setShowLanguagePicker(true)}
+            />
           </Card>
         </>
       </View>

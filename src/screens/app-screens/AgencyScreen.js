@@ -1,28 +1,28 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {StyleSheet, Text, View, Image, Pressable} from 'react-native';
+import React, {useState} from 'react';
+import {StyleSheet, View, Image, Pressable} from 'react-native';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import {AddCircleIcon, Logo, MoreDotsIcon} from '../../../assets/icons';
+import {AddCircleIcon} from '../../../assets/icons';
 import colors from '../../../constants/colors';
-import {FontSize, Spacing} from '../../../constants/utils';
-import Swipeable from 'react-native-gesture-handler/Swipeable';
+import {Spacing} from '../../../constants/utils';
+import {useDispatch, useSelector} from 'react-redux';
+import {switchAgency} from '../../redux/actions/auth';
+import {useTranslation} from 'react-i18next';
 import {
   CustomHeader,
   RegularText,
   SmallText,
-  CustomButton,
+  CustomLoader,
 } from '../../components';
-import {useDispatch, useSelector} from 'react-redux';
-import {switchAgency} from '../../redux/actions/auth';
-import CustomLoader from '../../components/CustomLoader';
 
 const TEMP_IMAGE =
   'https://cdn.freelogovectors.net/wp-content/uploads/2016/12/un-logo.png';
 
 const AgencyScreen = ({navigation}) => {
   const dispatch = useDispatch();
+  const {t} = useTranslation();
   const {userData, appSettings, activeAppSettings} = useSelector(
     state => state.auth,
   );
@@ -98,7 +98,7 @@ const AgencyScreen = ({navigation}) => {
   const onSwitchSuccess = newActiveAppSettings => {
     dispatch({type: 'SET_ACTIVE_APP_SETTINGS', payload: newActiveAppSettings});
     setShowLoader(false);
-    navigation.navigate("HomeScreen")
+    navigation.navigate('HomeScreen');
   };
   const onSwitchError = e => {
     console.log(e, 'e');
@@ -123,14 +123,14 @@ const AgencyScreen = ({navigation}) => {
               address: userData.address,
               // govt_id,
               // govt_id_image: userData.govt_id_image,
-              // photo: userData.photo[0],
+              photo: userData.photo[0],
             },
           })
         }
       />
       <CustomLoader
         show={showLoader}
-        message="Switching agency. Please wait..."
+        message={`${t('Switching agency.')} ${t('Please wait...')}`}
       />
       <View style={styles.container}>
         {appSettings?.map((settings, i) => (
@@ -138,7 +138,7 @@ const AgencyScreen = ({navigation}) => {
             key={i}
             name={`${settings.agency.name} ${
               activeAppSettings.agencyUrl === settings.agencyUrl
-                ? '(Active)'
+                ? `${t('(Active)')}`
                 : ''
             }`}
             website={settings.agencyUrl}

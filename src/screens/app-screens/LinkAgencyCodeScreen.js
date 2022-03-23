@@ -29,6 +29,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ethers} from 'ethers';
 import {setWallet} from '../../redux/actions/wallet';
 import {useBackHandler} from '@react-native-community/hooks';
+import {useTranslation} from 'react-i18next';
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
@@ -36,6 +37,7 @@ if (Platform.OS === 'android') {
 
 const LinkAgencyCodeScreen = ({navigation, route}) => {
   console.log(route.params, 'params');
+  const {t} = useTranslation();
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const {wallet} = useSelector(state => state.wallet);
@@ -74,7 +76,7 @@ const LinkAgencyCodeScreen = ({navigation, route}) => {
     setValues({
       ...values,
       isSubmitting: true,
-      loaderMessage: 'Fetching agency details. Please wait',
+      loaderMessage: `${t('Fetching agency details.')} ${t('Please wait...')}`,
     });
     dispatch(
       getAppSettings(agencyUrl, onGetAppSettingsSuccess, onGetAppSettingsError),
@@ -85,7 +87,9 @@ const LinkAgencyCodeScreen = ({navigation, route}) => {
     setValues({
       ...values,
       isSubmitting: true,
-      loaderMessage: 'Setting up your rahat account. Please wait',
+      loaderMessage: `${t('Setting up your rahat account.')} ${t(
+        'Please wait...',
+      )}`,
     });
     setTimeout(() => {
       dispatch(
@@ -102,7 +106,7 @@ const LinkAgencyCodeScreen = ({navigation, route}) => {
     setValues({
       ...values,
       isSubmitting: true,
-      loaderMessage: 'Linking your new agency. Please wait...',
+      loaderMessage: `${t('Linking your new agency.')} ${t('Please wait...')}`,
     });
     setTimeout(() => {
       dispatch(
@@ -120,7 +124,7 @@ const LinkAgencyCodeScreen = ({navigation, route}) => {
     setValues({
       ...values,
       isSubmitting: true,
-      loaderMessage: 'Retrieving user data. Please wait...',
+      loaderMessage: `${t('Retrieving user data.')} ${t('Please wait...')}`,
     });
     setTimeout(() => {
       dispatch(
@@ -158,8 +162,8 @@ const LinkAgencyCodeScreen = ({navigation, route}) => {
       isSubmitting: false,
       showPopup: true,
       popupType: 'alert',
-      messageType: 'Error',
-      message: 'Invalid agency code',
+      messageType: `${t('Error')}`,
+      message: `${t('Invalid agency code')}`,
     });
   };
 
@@ -220,7 +224,7 @@ const LinkAgencyCodeScreen = ({navigation, route}) => {
   const onLinkNewAgencyError = e => {
     const errorMessage = e.response ? e.response?.data?.message : e.message;
     alert(
-      errorMessage || 'Something went wrong. Please try again',
+      errorMessage || `${t('Something went wrong. Please try again')}`,
       'register error',
     );
     setValues({...values, isSubmitting: false});
@@ -230,7 +234,7 @@ const LinkAgencyCodeScreen = ({navigation, route}) => {
     <View style={styles.container}>
       <SafeAreaView style={styles.header}>
         <PoppinsMedium style={{fontSize: FontSize.large}}>
-          Link Agency
+          {t('Link Agency')}
         </PoppinsMedium>
       </SafeAreaView>
       <CustomLoader show={isSubmitting} message={loaderMessage} />
@@ -251,10 +255,10 @@ const LinkAgencyCodeScreen = ({navigation, route}) => {
           <RegularText
             fontSize={FontSize.medium}
             style={{paddingBottom: Spacing.vs}}>
-            Link agency using code:{' '}
+            {t('Link agency using code:')}
           </RegularText>
           <CustomTextInput
-            placeholder="Enter Code"
+            placeholder={t('Enter Code')}
             keyboardType="url"
             autoCapitalize="none"
             onChangeText={value => setValues({...values, agencyUrl: value})}
@@ -263,7 +267,7 @@ const LinkAgencyCodeScreen = ({navigation, route}) => {
 
         <View>
           <CustomButton
-            title="LINK AGENCY WITH QR SCAN"
+            title={t('LINK AGENCY WITH QR SCAN')}
             onPress={() =>
               navigation.replace('LinkAgencyQRScreen', {
                 data: route.params?.data,
@@ -272,7 +276,7 @@ const LinkAgencyCodeScreen = ({navigation, route}) => {
             }
             outlined
           />
-          <CustomButton title="Continue" onPress={handleLinkAgency} />
+          <CustomButton title={t('Continue')} onPress={handleLinkAgency} />
         </View>
       </View>
     </View>

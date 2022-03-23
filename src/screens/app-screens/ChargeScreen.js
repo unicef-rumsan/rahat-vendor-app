@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 import {Keyboard, Pressable, StatusBar, StyleSheet, View} from 'react-native';
 import {
   heightPercentageToDP,
@@ -29,6 +30,7 @@ if (Platform.OS === 'android') {
 
 const ChargeScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
+  const {t} = useTranslation();
   const {wallet} = useSelector(state => state.wallet);
   const {appSettings, userData, activeAppSettings} = useSelector(
     state => state.auth,
@@ -70,8 +72,8 @@ const ChargeScreen = ({navigation, route}) => {
         ...values,
         showPopup: true,
         popupType: 'alert',
-        messageType: 'Alert',
-        message: 'Your account has not been approved',
+        messageType: `${'Alert'}`,
+        message: `${t('Your account has not been approved')}`,
       });
     }
   }, [activeAppSettings]);
@@ -100,23 +102,35 @@ const ChargeScreen = ({navigation, route}) => {
         : amount;
 
     if (tempPhone === '' || tempAmount === '') {
-      alert('Phone number and amount are required');
+      alert(`${t('Phone number and amount are required')}`);
       return;
     }
 
     if (tempAmount === '0') {
-      return alert('Amount must be greater than or equal to 1');
+      return alert(`${t('Amount must be greater than or equal to 1')}`);
     }
 
     Keyboard.dismiss();
     setValues({...values, isSubmitting: true});
     try {
-      // const receipt =
-      await RahatService(
+      let charge = await RahatService(
         activeAppSettings.agency.contracts.rahat,
         wallet,
         activeAppSettings.agency.contracts.token,
       ).chargeCustomer(tempPhone, tempAmount);
+
+      if (!!!charge) {
+        return setValues({
+          ...values,
+          showPopup: true,
+          messageType: `${t('Insufficient Balance')}`,
+          popupType: 'alert',
+          message: `${t(
+            'Token amount cannot be greater than remaining balance',
+          )}`,
+        });
+      }
+
       setValues({...values, isSubmitting: false});
       navigation.navigate('VerifyOTPScreen', {
         phone: tempPhone,
@@ -135,7 +149,7 @@ const ChargeScreen = ({navigation, route}) => {
       ...values,
       showSwitchAgencyModal: false,
       showLoader: true,
-      loaderMessage: 'Switching agency. Please wait...',
+      loaderMessage: `${t('Switching agency.')} ${t('Please wait...')}`,
     });
     const newActiveAppSettings = appSettings.find(
       setting => setting.agencyUrl === agencyUrl,
@@ -162,7 +176,7 @@ const ChargeScreen = ({navigation, route}) => {
   return (
     <>
       <CustomHeader
-        title="Charge"
+        title={t('Charge')}
         hideBackButton
         // onBackPress={() => navigation.pop()}
       />
@@ -171,7 +185,11 @@ const ChargeScreen = ({navigation, route}) => {
         messageType={messageType}
         show={showPopup}
         popupType={popupType}
-        onConfirm={() => navigation.navigate('HomeScreen')}
+        onConfirm={() =>
+          messageType === `${t('Insufficient Balance')}`
+            ? setValues({...values, showPopup: false})
+            : navigation.navigate('HomeScreen')
+        }
       />
       <SwitchAgencyModal
         agencies={appSettings}
@@ -189,13 +207,13 @@ const ChargeScreen = ({navigation, route}) => {
           <RegularText
             color={colors.black}
             style={{paddingBottom: Spacing.vs, fontSize: FontSize.medium}}>
-            Charge Customer :
+            {t('Charge Customer')}:
           </RegularText>
           <View style={{flexDirection: 'row'}}>
             {/* {route?.params?.phone ? ( */}
             {scanPhone ? (
               <CustomTextInput
-                placeholder="Customer Identifier"
+                placeholder={t('Customer Identifier')}
                 keyboardType="numeric"
                 style={{width: widthPercentageToDP(64)}}
                 // value={route?.params?.phone?.slice(4)}
@@ -205,7 +223,7 @@ const ChargeScreen = ({navigation, route}) => {
               />
             ) : (
               <CustomTextInput
-                placeholder="Customer Identifier"
+                placeholder={t('Customer Identifier')}
                 keyboardType="phone-pad"
                 style={{width: widthPercentageToDP(64)}}
                 value={phone}
@@ -234,21 +252,21 @@ const ChargeScreen = ({navigation, route}) => {
           scanAmount !== 'null' &&
           scanAmount !== undefined ? (
             <CustomTextInput
-              placeholder="Enter amount"
+              placeholder={t('Enter amount')}
               keyboardType="numeric"
               value={scanAmount}
               editable={false}
             />
           ) : (
             <CustomTextInput
-              placeholder="Enter amount"
+              placeholder={t('Enter amount')}
               keyboardType="numeric"
               value={amount}
               onChangeText={value => handleTextChange(value, 'amount')}
             />
           )}
           <CustomTextInput
-            placeholder="Remarks"
+            placeholder={t('Remarks')}
             value={remarks}
             editable={!isSubmitting}
             onChangeText={value => handleTextChange(value, 'remarks')}
@@ -257,19 +275,20 @@ const ChargeScreen = ({navigation, route}) => {
           <SmallText
             style={{fontSize: FontSize.small / 1.4}}
             color={colors.lightGray}>
-            Important: Please double check the phone number and amount before
-            charging. Transactions cannot be reversed.
+            {t(
+              'Important: Please double check the phone number and amount before charging. Transactions cannot be reversed.',
+            )}
           </SmallText>
 
           <CustomButton
-            title="Switch Agency"
+            title={t('Switch Agency')}
             width={widthPercentageToDP(80)}
             disabled={isSubmitting}
             outlined
             onPress={() => setValues({...values, showSwitchAgencyModal: true})}
           />
           <CustomButton
-            title="Charge"
+            title={t('Charge')}
             color={colors.green}
             width={widthPercentageToDP(80)}
             onPress={onSubmit}

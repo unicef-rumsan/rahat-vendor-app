@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import React, {useEffect} from 'react';
+import {useTranslation} from 'react-i18next';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {RNToasty} from 'react-native-toasty';
@@ -11,6 +12,7 @@ import {CustomButton, CustomHeader, SmallText, Card} from '../../components';
 
 const RedeemReceiptScreen = ({navigation, route}) => {
   const {receiptData, from} = route.params;
+  const {t} = useTranslation();
   const RedeemDetail = ({title, detail, detailColor, onPress}) => (
     <Pressable style={styles.chargeDetail} onPress={onPress}>
       <SmallText>{title}</SmallText>
@@ -52,31 +54,31 @@ const RedeemReceiptScreen = ({navigation, route}) => {
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
-    RNToasty.Show({title: 'Copied to clipboard', duration: 0});
+    RNToasty.Show({title: `${t('Copied to clipboard')}`, duration: 0});
   };
 
   return (
     <>
-      <CustomHeader hideBackButton title="Redeem Receipt" />
+      <CustomHeader hideBackButton title={`${t('Redeem')} ${t('Receipt')}`} />
       <View style={styles.container}>
         <Card>
           <RedeemDetail
-            title="Status"
-            detail="Success"
+            title={t('Status')}
+            detail={t('Success')}
             detailColor={colors.green}
           />
           <RedeemDetail
-            title="To"
+            title={t('To')}
             detail={receiptData.to}
             detailColor={colors.blue}
             onPress={() => copyToClipboard(receiptData.to)}
           />
 
-          <RedeemDetail title="Date" detail={receiptData.timeStamp} />
-          <RedeemDetail title="Amount" detail={receiptData.amount} />
+          <RedeemDetail title={t('Date')} detail={receiptData.timeStamp} />
+          <RedeemDetail title={t('Amount')} detail={receiptData.amount} />
         </Card>
         <CustomButton
-          title="Back To Home"
+          title={t('Back To Home')}
           color={colors.green}
           onPress={() => navigation.navigate('HomeScreen', {refresh: true})}
         />

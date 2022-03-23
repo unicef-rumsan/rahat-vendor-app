@@ -89,7 +89,8 @@ const AppStack = () => {
   const {lockScreen} = useSelector(state => state.auth);
   return (
     <Stack.Navigator
-      initialRouteName={lockScreen ? 'LockScreen' : 'Tabs'}
+      initialRouteName={'Tabs'}
+      // initialRouteName={lockScreen ? 'LockScreen' : 'Tabs'}
       screenOptions={{headerShown: false, animation: 'fade'}}>
       <Stack.Screen name="Tabs" component={Tabs} />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />

@@ -31,6 +31,7 @@ import SwitchAgencyModal from '../../components/SwitchAgencyModal';
 import CustomLoader from '../../components/CustomLoader';
 import {getUserByWalletAddress, switchAgency} from '../../redux/actions/auth';
 import {ethers} from 'ethers';
+import {useTranslation} from 'react-i18next';
 
 let BACK_COUNT = 0;
 
@@ -53,6 +54,7 @@ const Header = ({title, onRightIconPress, userData}) => (
 
 const HomeScreen = ({navigation, route}) => {
   const refresh = route?.params?.refresh;
+  const {t} = useTranslation();
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const {userData, appSettings, activeAppSettings} = useSelector(
@@ -83,7 +85,7 @@ const HomeScreen = ({navigation, route}) => {
       if (BACK_COUNT < 1) {
         BACK_COUNT++;
         RNToasty.Show({
-          title: 'Press BACK again to exit app',
+          title: `${t('Press BACK again to exit app')}`,
           position: 'center',
         });
         setTimeout(() => {
@@ -111,17 +113,18 @@ const HomeScreen = ({navigation, route}) => {
     try {
       const transactions = await AsyncStorage.getItem('transactions');
       const parsedTransactions = JSON.parse(transactions);
-      const filteredTransactions = parsedTransactions.filter(
+      const filteredTransactions = parsedTransactions?.filter(
         item => item.agencyUrl === activeAppSettings.agencyUrl,
       );
 
-      // setValues(values => ({...values, transactions: parsedTransactions}));
-      setValues(values => ({...values, transactions: filteredTransactions}));
+      setValues(values => ({
+        ...values,
+        transactions: filteredTransactions || [],
+      }));
     } catch (e) {
       console.log(e);
     }
   };
-
 
   useEffect(() => {
     let isMounted = true;
@@ -164,7 +167,7 @@ const HomeScreen = ({navigation, route}) => {
   return (
     <>
       <Header
-        title="Home"
+        title={t('Home')}
         onRightIconPress={() => navigation.navigate('ProfileScreen')}
         userData={userData}
       />
@@ -183,7 +186,7 @@ const HomeScreen = ({navigation, route}) => {
 
         <CustomLoader
           show={showLoader}
-          message="Switching agency. Please wait..."
+          message={`${t('Switching agency.')} ${t('Please wait...')}`}
         />
 
         <Card>
@@ -205,7 +208,7 @@ const HomeScreen = ({navigation, route}) => {
               )}
             </View>
             <CustomButton
-              title="Redeem"
+              title={t('Redeem')}
               borderRadius={20}
               width={widthPercentageToDP(30)}
               capitalizeText
@@ -223,7 +226,6 @@ const HomeScreen = ({navigation, route}) => {
               //   setValues({...values, showSwitchAgencyModal: true})
               // }
             />
-          
           </View>
         </Card>
 
@@ -236,22 +238,22 @@ const HomeScreen = ({navigation, route}) => {
                 fontSize: FontSize.medium,
                 paddingVertical: Spacing.vs / 2,
               }}>
-              Please contact your agency for approval
+              {t('Please contact your agency for approval')}
             </RegularText>
             <CustomButton
               width={widthPercentageToDP(80)}
-              title="Check for approval"
+              title={t('Check for approval')}
               color={colors.green}
               onPress={() => navigation.navigate('CheckApprovalScreen')}
             />
           </Card>
         )}
 
-        {transactions.length !== 0 && (
+        {transactions?.length !== 0 && (
           <>
             <View style={styles.recentTxnHeader}>
               <RegularText color={colors.black}>
-                Recent Transactions
+                {t('Recent Transactions')}
               </RegularText>
               <Pressable
                 onPress={() =>
@@ -260,7 +262,7 @@ const HomeScreen = ({navigation, route}) => {
                     balance,
                   })
                 }>
-                <RegularText color={colors.blue}>VIEW ALL</RegularText>
+                <RegularText color={colors.blue}>{t("VIEW ALL")}</RegularText>
               </Pressable>
             </View>
             <Card>

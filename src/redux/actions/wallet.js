@@ -13,7 +13,7 @@ let NETWORK_URL =
     : networkUrls.PRODUCTION_NETWORK_URL;
 
 export const getWallet =
-  (type, onSuccess, onError, mnemonic) => async dispatch => {
+  (type, onSuccess, onError, mnemonic, walletFromDrive) => async dispatch => {
     // let provider = new ethers.providers.JsonRpcProvider(NETWORK_URL);
     let wallet, connectedWallet;
     if (type === 'create') {
@@ -37,6 +37,10 @@ export const getWallet =
       }
     }
 
+    if (type === 'restoreUsingDrive') {
+      wallet = walletFromDrive;
+    }
+
     const walletInfo = {
       _isSigner: wallet._isSigner,
       mnemonic: wallet._mnemonic().phrase,
@@ -51,12 +55,41 @@ export const getWallet =
           type: 'SET_WALLET',
           wallet: wallet,
         });
+        dispatch({
+          type: 'SET_WALLET_INFO',
+          payload: walletInfo,
+        });
         onSuccess(wallet);
       })
       .catch(e => {
         onError(e);
         console.log('error:', e);
       });
+  };
+
+export const restoreUsingDrive =
+  (walletInfo, onSuccess, onError) => async dispatch => {
+    try {
+      let wallet;
+      wallet = new ethers.Wallet(walletInfo.privateKey);
+      AsyncStorage.setItem('walletInfo', JSON.stringify(walletInfo))
+        .then(() => {
+          dispatch({
+            type: 'SET_WALLET',
+            wallet: wallet,
+          });
+          dispatch({
+            type: 'SET_WALLET_INFO',
+            payload: walletInfo,
+          });
+          onSuccess(wallet);
+        })
+        .catch(e => {
+          onError(e);
+        });
+    } catch (e) {
+      onError(e);
+    }
   };
 
 export const setWallet = wallet => async dispatch => {
