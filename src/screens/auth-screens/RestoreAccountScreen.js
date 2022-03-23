@@ -23,6 +23,7 @@ import {restoreUsingDrive} from '../../redux/actions/wallet';
 import {decryptionHelper} from '../../../constants/helper';
 import {GOOGLE_WEB_CLIENT_ID} from '@env';
 import {useTranslation} from 'react-i18next';
+import PasscodeModal from '../../components/PasscodeModal';
 
 GoogleSignin.configure({
   scopes: [
@@ -52,6 +53,8 @@ const RestoreAccountScreen = ({navigation}) => {
     popupType: '',
     popupMessageType: '',
     popupMessage: '',
+    showPasscodeModal: false,
+    passcode: '',
   });
 
   const {
@@ -61,10 +64,12 @@ const RestoreAccountScreen = ({navigation}) => {
     popupMessageType,
     popupType,
     showPopup,
+    showPasscodeModal,
+    passcode,
   } = values;
 
   const onSuccess = () => {
-    setValues({...values, showLoader: false});
+    setValues({...values, showLoader: false, showPasscodeModal: false});
     navigation.navigate('LinkAgencyQRScreen', {from: 'restore'});
   };
 
@@ -85,7 +90,7 @@ const RestoreAccountScreen = ({navigation}) => {
     setValues(values => ({
       ...values,
       showLoader: true,
-      loaderMessage: 'Restoring your wallet. Please wait...',
+      loaderMessage: `${t('Restoring your wallet. Please wait...')}`,
     }));
     try {
       let binaryFileData, encryptedData;
@@ -96,17 +101,28 @@ const RestoreAccountScreen = ({navigation}) => {
       const walletInfo = await decryptionHelper(
         encryptedData.cipher,
         encryptedData.iv,
+        passcode,
       );
       dispatch(restoreUsingDrive(walletInfo, onSuccess, onError));
     } catch (e) {
-      console.log(e);
+      let errorMessage = '';
+      if (
+        e?.message ===
+        'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT'
+      ) {
+        errorMessage = `${t('Invalid Passcode. Please try again')}`;
+      }
       setValues(values => ({
         ...values,
         showLoader: false,
+        showPasscodeModal: false,
         showPopup: true,
         popupType: 'alert',
         popupMessageType: 'Error',
-        popupMessage: 'Something went wrong',
+        popupMessage:
+          errorMessage !== ''
+            ? errorMessage
+            : `${t('Something went wrong. Please try again')}`,
       }));
     }
   };
@@ -115,7 +131,7 @@ const RestoreAccountScreen = ({navigation}) => {
     setValues(values => ({
       ...values,
       showLoader: true,
-      loaderMessage: 'Checking your drive for backup files',
+      loaderMessage: `${t('Checking your drive for backup files')}`,
     }));
     try {
       gdrive.accessToken = (await GoogleSignin.getTokens()).accessToken;
@@ -132,7 +148,9 @@ const RestoreAccountScreen = ({navigation}) => {
           showPopup: true,
           popupType: 'alert',
           popupMessageType: 'Info',
-          popupMessage: 'Sorry, Your drive does not contain rahat backup file.',
+          popupMessage: `${t(
+            'Sorry, Your drive does not contain rahat backup file.',
+          )}`,
         }));
       }
 
@@ -147,7 +165,7 @@ const RestoreAccountScreen = ({navigation}) => {
         showPopup: true,
         popupType: 'alert',
         popupMessageType: 'Error',
-        popupMessage: 'Something went wrong. Plese try again later',
+        popupMessage: `${t('Something went wrong. Please try again')}`,
       }));
     }
   };
@@ -165,53 +183,73 @@ const RestoreAccountScreen = ({navigation}) => {
         showPopup: true,
         popupType: 'alert',
         popupMessageType: 'Error',
-        popupMessage: 'Something went wrong. Plese try again later',
       }));
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // user cancelled the login flow
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        // operation (f.e. sign in) is in progress already
+        setValues(values => ({
+          ...values,
+          popupMessage: `${t('Signin Cancelled')}`,
+        }));
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // play services not available or outdated
+        setValues(values => ({
+          ...values,
+          popupMessage: `${t('Play services not available')}`,
+        }));
       } else {
-        // some other error happened
+        setValues(values => ({
+          ...values,
+          popupMessage: `${t('Something went wrong. Please try again')}`,
+        }));
       }
     }
   };
 
   return (
-    <View style={styles.container}>
-      <CustomLoader show={showLoader} message={loaderMessage} />
-
-      <CustomPopup
-        show={showPopup}
-        popupType={popupType}
-        messageType={popupMessageType}
-        message={popupMessage}
-        onConfirm={() => setValues({...values, showPopup: false})}
+    <>
+      <PasscodeModal
+        show={showPasscodeModal}
+        title="Passcode"
+        text="Enter 6 digit passcode to restore your wallet"
+        buttonDisabled={passcode.length === 6 ? false : true}
+        onChangeText={text => setValues({...values, passcode: text})}
+        hide={() => setValues({...values, showPasscodeModal: false})}
+        onConfirm={() => {
+          setValues({...values, showPasscodeModal: false});
+          googleSignin();
+        }}
       />
+      <View style={styles.container}>
+        <CustomLoader show={showLoader} message={loaderMessage} />
 
-      <View />
-      <View style={{justifyContent: 'center', alignItems: 'center'}}>
-        <Logo />
-        <SmallText center style={{paddingTop: Spacing.vs * 2}}>
-          {t(
-            'Supporting vulnerable communities with a simple and efficient relief distribution platform.',
-          )}
-        </SmallText>
-      </View>
-      <View style={{marginBottom: Spacing.vs * 2}}>
-        <CustomButton
-          title={t('RESTORE USING SEED PHRASE')}
-          onPress={() => navigation.navigate('RestoreMnemonicScreen')}
+        <CustomPopup
+          show={showPopup}
+          popupType={popupType}
+          messageType={popupMessageType}
+          message={popupMessage}
+          onConfirm={() => setValues({...values, showPopup: false})}
         />
-        <CustomButton
-          title={t('RESTORE USING GOOGLE DRIVE')}
-          color={colors.green}
-          onPress={googleSignin}
-        />
+
+        <View />
+        <View style={{justifyContent: 'center', alignItems: 'center'}}>
+          <Logo />
+          <SmallText center style={{paddingTop: Spacing.vs * 2}}>
+            {t(
+              'Supporting vulnerable communities with a simple and efficient relief distribution platform.',
+            )}
+          </SmallText>
+        </View>
+        <View style={{marginBottom: Spacing.vs * 2}}>
+          <CustomButton
+            title={t('RESTORE USING SEED PHRASE')}
+            onPress={() => navigation.navigate('RestoreMnemonicScreen')}
+          />
+          <CustomButton
+            title={t('RESTORE USING GOOGLE DRIVE')}
+            color={colors.green}
+            onPress={() => setValues({...values, showPasscodeModal: true})}
+          />
+        </View>
       </View>
-    </View>
+    </>
   );
 };
 

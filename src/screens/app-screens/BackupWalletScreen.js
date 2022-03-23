@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View, ScrollView} from 'react-native';
+import {StyleSheet, Text, View, ScrollView, Keyboard} from 'react-native';
 import colors from '../../../constants/colors';
 import {Spacing} from '../../../constants/utils';
 import {
@@ -23,6 +23,7 @@ import {
 import {encryptionHelper} from '../../../constants/helper';
 import {GOOGLE_WEB_CLIENT_ID} from '@env';
 import {useTranslation} from 'react-i18next';
+import PasscodeModal from '../../components/PasscodeModal';
 
 GoogleSignin.configure({
   scopes: [
@@ -46,6 +47,8 @@ const BackupWalletScreen = ({navigation}) => {
     popupType: '',
     popupMessageType: '',
     popupMessage: '',
+    showPasscodeModal: false,
+    passcode: '',
   });
 
   const {
@@ -55,6 +58,8 @@ const BackupWalletScreen = ({navigation}) => {
     popupMessageType,
     popupType,
     showPopup,
+    showPasscodeModal,
+    passcode,
   } = values;
 
   useEffect(() => {
@@ -68,7 +73,7 @@ const BackupWalletScreen = ({navigation}) => {
     }));
 
     try {
-      let encryptedData = await encryptionHelper(walletInfo);
+      let encryptedData = await encryptionHelper(walletInfo, passcode);
       if (encryptedData.cipher) {
         await gdrive.files
           .newMultipartUploader()
@@ -137,7 +142,7 @@ const BackupWalletScreen = ({navigation}) => {
         showPopup: true,
         popupType: 'alert',
         popupMessageType: `${t('Error')}`,
-        popupMessage: `${t('Something went wrong. Plese try again later')}`,
+        popupMessage: `${t('Something went wrong. Please try again')}`,
       }));
     }
   };
@@ -158,18 +163,29 @@ const BackupWalletScreen = ({navigation}) => {
         showPopup: true,
         popupType: 'alert',
         popupMessageType: `${t('Error')}`,
-        popupMessage: `${t('Something went wrong. Plese try again later')}`,
       }));
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // user cancelled the login flow
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        // operation (f.e. sign in) is in progress already
+        setValues(values => ({
+          ...values,
+          popupMessage: `${t('Signin Cancelled')}`,
+        }));
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        // play services not available or outdated
+        setValues(values => ({
+          ...values,
+          popupMessage: `${t('Play services not available')}`,
+        }));
       } else {
-        // some other error happened
+        setValues(values => ({
+          ...values,
+          popupMessage: `${t('Something went wrong. Please try again')}`,
+        }));
       }
     }
+  };
+
+  const handleSetupPasscode = text => {
+    setValues({...values, passcode: text});
+    text.length === 6 && Keyboard.dismiss();
   };
 
   return (
@@ -187,6 +203,21 @@ const BackupWalletScreen = ({navigation}) => {
           messageType={popupMessageType}
           message={popupMessage}
           onConfirm={() => setValues({...values, showPopup: false})}
+        />
+
+        <PasscodeModal
+          show={showPasscodeModal}
+          title={t('Setup Passcode')}
+          text={t(
+            'You will need this 6 digit passcode to restore your wallet using google drive',
+          )}
+          buttonDisabled={passcode.length === 6 ? false : true}
+          onChangeText={handleSetupPasscode}
+          hide={() => setValues({...values, showPasscodeModal: false})}
+          onConfirm={() => {
+            setValues({...values, showPasscodeModal: false});
+            googleSignin();
+          }}
         />
 
         <View style={styles.aboutView}>
@@ -227,7 +258,8 @@ const BackupWalletScreen = ({navigation}) => {
           <CustomButton
             color={colors.blue}
             title={t('Backup to Google Drive')}
-            onPress={googleSignin}
+            // onPress={googleSignin}
+            onPress={() => setValues({...values, showPasscodeModal: true})}
           />
         </View>
       </ScrollView>
