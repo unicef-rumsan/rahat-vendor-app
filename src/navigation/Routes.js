@@ -12,6 +12,7 @@ import {Logo} from '../../assets/images';
 import colors from '../../constants/colors';
 import LockScreen from '../screens/app-screens/LockScreen';
 import {useTranslation} from 'react-i18next';
+import { getCombinedPackages } from '../../constants/helper';
 
 const Routes = () => {
   const dispatch = useDispatch();
@@ -43,7 +44,6 @@ const Routes = () => {
   useEffect(() => {
     AsyncStorage.getItem('activeLanguage')
       .then(res => {
-        console.log(res, "res")
         if (res !== null) {
           const activeLanguage = JSON.parse(res);
           i18n.changeLanguage(activeLanguage);
@@ -54,13 +54,31 @@ const Routes = () => {
 
   useEffect(() => {
     // dispatch(getAppSettings());
-    const keys = ['walletInfo', 'storedAppSettings', 'activeLanguage'];
+    const keys = [
+      'walletInfo',
+      'storedAppSettings',
+      'packages',
+      'transactions',
+    ];
 
     if (!wallet) {
       AsyncStorage.multiGet(keys)
         .then(res => {
           const walletInfo = JSON.parse(res[0][1]);
           const storedAppSettings = JSON.parse(res[1][1]);
+          const storedPackages = JSON.parse(res[2][1]);
+          const storedTransactions = JSON.parse(res[3][1]);
+          let combineStoredPackages = getCombinedPackages(storedPackages);
+
+          if (storedPackages !== null) {
+            dispatch({type: 'SET_PACKAGES', packages: combineStoredPackages});
+          }
+          if (storedTransactions !== null) {
+            dispatch({
+              type: 'SET_TRANSACTIONS',
+              transactions: storedTransactions,
+            });
+          }
 
           if (walletInfo !== null) {
             let activeAppSetting = storedAppSettings[0];

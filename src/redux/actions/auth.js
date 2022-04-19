@@ -11,7 +11,6 @@ export const registerVendor =
       );
       success(response.data, agencySettings);
     } catch (e) {
-      console.log(e.response);
 
       error(e);
     }
@@ -50,7 +49,6 @@ export const switchAgency =
         agencySettings?.networkUrl,
       );
       let connectedWallet = wallet.connect(provider);
-      console.log(connectedWallet, 'connected wallet');
       dispatch({type: 'SET_USERDATA', userData: response.data});
       dispatch({type: 'SET_WALLET', wallet: connectedWallet});
       success(agencySettings);

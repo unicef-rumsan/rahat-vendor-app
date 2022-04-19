@@ -1,5 +1,6 @@
 package com.rahatvendor;
-
+import com.facebook.react.bridge.JSIModulePackage; // <- add
+import com.swmansion.reanimated.ReanimatedJSIModulePackage; // <- add
 import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
@@ -10,6 +11,8 @@ import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+
+
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -33,7 +36,12 @@ public class MainApplication extends Application implements ReactApplication {
         protected String getJSMainModuleName() {
           return "index";
         }
+        @Override
+        protected JSIModulePackage getJSIModulePackage() {
+          return new ReanimatedJSIModulePackage(); // <- add
+        }
       };
+
 
   @Override
   public ReactNativeHost getReactNativeHost() {

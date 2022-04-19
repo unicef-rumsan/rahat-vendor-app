@@ -32,7 +32,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
   const {t} = useTranslation();
   const {wallet} = useSelector(state => state.wallet);
   const {activeAppSettings} = useSelector(state => state.auth);
-  const {phone, amount, remarks} = route.params;
+  const {phone, remarks, type, packageDetail, amount} = route?.params;
   const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeStamp, setTimeStamp] = useState('');
@@ -50,6 +50,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
 
   const onSubmit = async () => {
     Keyboard.dismiss();
+    // let tokenId = route.params?.tokenId;
 
     setIsSubmitting(true);
     if (otp === '') {
@@ -57,21 +58,39 @@ const VerifyOTPScreen = ({navigation, route}) => {
       return;
     }
     try {
-      const receipt = await RahatService(
+      const rahatService = RahatService(
         activeAppSettings.agency.contracts.rahat,
         wallet,
-        activeAppSettings.agency.contracts.token,
-      ).verifyCharge(phone, otp);
+        activeAppSettings.agency.contracts.rahat_erc20,
+        activeAppSettings.agency.contracts.rahat_erc1155,
+      );
 
-      // console.log(receipt);
+      let receipt;
+
+      if (type === 'erc20') {
+        receipt = await rahatService.verifyChargeForERC20(phone, otp);
+      }
+
+      if (type === 'erc1155') {
+        receipt = await rahatService.verifyChargeForERC1155(
+          phone,
+          otp,
+          packageDetail.tokenId,
+        );
+      }
+
       const receiptData = {
         timeStamp,
         transactionHash: receipt.transactionHash,
         to: receipt.to,
         status: 'success',
         chargeTo: phone,
-        amount: amount,
-        type: 'charge',
+        amount: type === 'erc20' ? amount : packageDetail.amount,
+        transactionType: 'charge',
+        balanceType: type === 'erc20' ? 'token' : 'package',
+        packageName: packageDetail?.packageName || null,
+        imageUri: packageDetail?.imageUri || null,
+        tokenId: packageDetail?.tokenId || null,
         agencyUrl: activeAppSettings.agencyUrl,
         remarks,
       };
@@ -80,6 +99,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
       navigation.replace('ChargeReceiptScreen', {
         receiptData,
         from: 'verifyOtp',
+        packageDetail,
       });
     } catch (e) {
       console.log(e);
@@ -113,6 +133,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
             placeholder={t('Enter OTP')}
             keyboardType="numeric"
             onChangeText={setOtp}
+            onSubmitEditing={onSubmit}
           />
           <CustomButton
             title={t('Verify')}

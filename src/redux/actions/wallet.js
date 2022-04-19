@@ -1,16 +1,16 @@
 import {ethers} from 'ethers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {TokenService} from '../../services/chain';
-
+import {ERC1155_Service, TokenService} from '../../services/chain';
+import * as api from '../api';
 // let TEST_NETWORK_URL = 'https://testnetwork.esatya.io';
 // let PRODUCTION_NETWORK_URL = 'https://chain.esatya.io';
 
-import networkUrls from '../../../constants/networkUrls';
+// import networkUrls from '../../../constants/networkUrls';
 
-let NETWORK_URL =
-  networkUrls.ENV === 'development'
-    ? networkUrls.TEST_NETWORK_URL
-    : networkUrls.PRODUCTION_NETWORK_URL;
+// let NETWORK_URL =
+//   networkUrls.ENV === 'development'
+//     ? networkUrls.TEST_NETWORK_URL
+//     : networkUrls.PRODUCTION_NETWORK_URL;
 
 export const getWallet =
   (type, onSuccess, onError, mnemonic, walletFromDrive) => async dispatch => {
@@ -97,17 +97,70 @@ export const setWallet = wallet => async dispatch => {
 };
 
 export const getWalletBalance =
-  (agencyAddress, wallet, tokenAddress) => async dispatch => {
+  (agencyAddress, wallet, tokenAddress, nftAddress) => async dispatch => {
     try {
       let tokenBalance = await TokenService(
         agencyAddress,
         wallet,
         tokenAddress,
+        nftAddress,
       ).getBalance(wallet.address);
       dispatch({type: 'SET_BALANCE', balance: tokenBalance.toNumber()});
       // success();
     } catch (e) {
       alert(e);
+      // error(e);
+    }
+  };
+export const getPackageBatchBalance =
+  (
+    agencyAddress,
+    tokenAddress,
+    nftAddress,
+    wallet,
+    vendor_address,
+    tokenIds,
+    success,
+    isMounted,
+  ) =>
+  async dispatch => {
+    try {
+      const blnc = await ERC1155_Service(
+        agencyAddress,
+        tokenAddress,
+        nftAddress,
+        wallet,
+      ).getBatchBalance(vendor_address, tokenIds);
+      let tokenQtys = [];
+      if (blnc?.length) {
+        blnc.forEach((item, index) => {
+          tokenQtys.push(item.toNumber());
+        });
+      }
+      success(tokenQtys);
+    } catch (e) {
+      alert(e);
+      // error(e);
+    }
+  };
+
+export const getPackageBalanceInFiat =
+  (tokenIds, tokenQtys, onSuccess, onError) => async dispatch => {
+    try {
+      const response = await api.apiGetPackageBalanceInFiat({
+        tokenIds,
+        tokenQtys,
+      });
+      dispatch({
+        type: 'SET_PACKAGE_BALANCE',
+        packageBalance: response?.data?.grandTotal,
+        packageBalanceCurrency: response?.data?.currency,
+      });
+      onSuccess && onSuccess(response?.data?.grandTotal, tokenIds, tokenQtys);
+    } catch (e) {
+      alert(e);
+      onError && onError();
+
       // error(e);
     }
   };

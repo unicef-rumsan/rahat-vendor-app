@@ -79,7 +79,7 @@ const BackupWalletScreen = ({navigation}) => {
           .newMultipartUploader()
           .setData(JSON.stringify(encryptedData), MimeTypes.BINARY)
           .setRequestBody({
-            name: 'rahat_backup',
+            name: 'rahat_v2_backup',
           })
           .execute();
         setValues(values => ({
@@ -117,7 +117,7 @@ const BackupWalletScreen = ({navigation}) => {
       gdrive.accessToken = (await GoogleSignin.getTokens()).accessToken;
       let data = await gdrive.files.list({
         q: new ListQueryBuilder()
-          .e('name', 'rahat_backup')
+          .e('name', 'rahat_v2_backup')
           .and()
           .e('mimeType', 'application/octet-stream'),
       });

@@ -6,34 +6,30 @@ import {
   View,
   Pressable,
   ScrollView,
+  Image,
 } from 'react-native';
 import {FontSize, Spacing} from '../../constants/utils';
 import RegularText from './RegularText';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import colors from '../../constants/colors';
-import PoppinsMedium from './PoppinsMedium';
-import CustomButton from './CustomButton';
 import {
-  heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
 import {useTranslation} from 'react-i18next';
-import {English, Nepali} from '../../assets/icons/flags';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const languages = [
-  {name: 'en', label: 'English', icon: <English />},
-  {name: 'np', label: 'नेपाली', icon: <Nepali />},
+  {name: 'en', label: 'English', flagName: 'gb'},
+  {name: 'np', label: 'नेपाली', flagName: 'np'},
 ];
 
 const LanguagePicker = ({show, hide}) => {
   const {i18n} = useTranslation(); //i18n instance
 
-  const LanguageItem = ({name, label, icon}) => (
+  const LanguageItem = ({name, label, flagName}) => (
     <Pressable
       style={{
         flexDirection: 'row',
         justifyContent: 'space-around',
-        alignItems: 'center',
+        // alignItems: 'center',
         width: widthPercentageToDP(50),
         marginBottom: Spacing.vs,
       }}
@@ -42,7 +38,11 @@ const LanguagePicker = ({show, hide}) => {
         await AsyncStorage.setItem('activeLanguage', JSON.stringify(name));
         hide();
       }}>
-      {icon}
+      {/* {icon} */}
+      <Image
+        source={{uri: `https://flagcdn.com/w40/${flagName}.png`}}
+        style={{height: 30, width: 40, resizeMode: 'contain'}}
+      />
       <RegularText
         style={{
           color: i18n.language === name ? colors.blue : colors.black,
@@ -75,7 +75,7 @@ const LanguagePicker = ({show, hide}) => {
                   key={item.name}
                   name={item.name}
                   label={item.label}
-                  icon={item.icon}
+                  flagName={item.flagName}
                 />
               ))}
             </View>

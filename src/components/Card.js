@@ -12,13 +12,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     marginHorizontal: Spacing.hs / 5,
     marginVertical: Spacing.vs,
-    paddingVertical: Spacing.vs,
+    paddingVertical: Spacing.vs ,
     paddingHorizontal: Spacing.hs,
   },
 });
 
 const Card = props => {
-  return <View style={{...styles.card, ...props.style}}>{props.children}</View>;
+  return <View style={{...styles.card, ...props.style, }}>{props.children}</View>;
 };
 
 export default Card;

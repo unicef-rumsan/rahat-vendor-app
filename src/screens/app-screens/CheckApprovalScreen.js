@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import { useTranslation } from 'react-i18next';
 import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import {RNToasty} from 'react-native-toasty';
@@ -17,8 +18,8 @@ import {getUserByWalletAddress} from '../../redux/actions/auth';
 
 const CheckApprovalScreen = ({navigation}) => {
   const dispatch = useDispatch();
+  const {t} = useTranslation();
   const {userData, activeAppSettings} = useSelector(state => state.auth);
-  console.log(activeAppSettings, 'active');
   const [values, setValues] = useState({
     // isApproved: false,
     isLoading: true,

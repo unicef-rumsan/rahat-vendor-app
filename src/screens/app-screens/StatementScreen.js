@@ -13,6 +13,7 @@ import {
 const StatementScreen = ({navigation, route}) => {
   const {balance, transactions} = route.params;
   const {t} = useTranslation();
+
   return (
     <>
       <CustomHeader
@@ -31,27 +32,32 @@ const StatementScreen = ({navigation, route}) => {
             <IndividualStatement
               lastItem={index === transactions.length - 1 ? true : false}
               key={index}
+              balanceType={item.balanceType}
+              transactionType={item.transactionType}
+              icon={item?.packages ? item.packages[0]?.imageUri : item.imageUri}
               title={
-                item.type === 'charge'
-                  ? `${item.type} to ...${item.chargeTo?.slice(
+                item.transactionType === 'charge'
+                  ? `${item.transactionType} to ...${item.chargeTo?.slice(
                       item?.chargeTo?.length - 4,
                       item?.chargeTo?.length,
                     )}`
-                  : item.type === 'transfer'
-                  ? `${item.type} to ...${item.to?.slice(
+                  : item.transactionType === 'transfer'
+                  ? `${item.transactionType} to ...${item.to?.slice(
                       item?.to?.length - 4,
                       item?.to?.length,
                     )}`
+                  : item.transactionType === 'redeem' &&
+                    item.balanceType === 'package'
+                  ? 'redeem package'
                   : 'redeem token'
               }
-              type={item.type}
               amount={item.amount}
               date={item.timeStamp}
               onPress={() =>
                 navigation.navigate(
-                  item.type === 'charge'
+                  item.transactionType === 'charge'
                     ? 'ChargeReceiptScreen'
-                    : item.type === 'transfer'
+                    : item.transactionType === 'transfer'
                     ? 'TransferReceiptScreen'
                     : 'RedeemReceiptScreen',
                   {

@@ -1,5 +1,7 @@
 import Aes from 'react-native-aes-crypto';
 import {ENCRYPTION_CODE, ENCRYPTION_SALT} from '@env';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const generateKey = (password, salt, cost, length) =>
   Aes.pbkdf2(password, salt, cost, length);
@@ -39,4 +41,118 @@ const decryptionHelper = async (cipher, iv, code) => {
     });
 };
 
-export {encryptionHelper, decryptionHelper};
+const truncateString = str => {
+  if (str.length > 50) {
+    return str.slice(0, 25) + '...';
+  } else {
+    return str;
+  }
+};
+
+const getPackageDetail = async (obj, type) => {
+  let tokenIds =
+    type === 'totalERCBalance' ? obj.tokenIds.map(t => t.toNumber()) : obj;
+
+  try {
+    let packages = [];
+    await Promise.all(
+      tokenIds.map(async (item, index) => {
+        const response = await axios.get(
+          `https://agency-nft.rahat.io/api/v1/nft/token/${item}`,
+        );
+        const data = response.data;
+        const balance =
+          type === 'totalERCBalance' ? obj.balances[index].toNumber() : 1;
+        const pkg = {
+          tokenId: data.tokenId,
+          name: data.name,
+          symbol: data.symbol,
+          description:
+            data.metadata && data.metadata.description
+              ? data.metadata.description
+              : '',
+          value:
+            data.metadata && data.metadata.fiatValue
+              ? data.metadata.fiatValue
+              : '',
+          imageUri:
+            data.metadata && data.metadata.packageImgURI
+              ? data.metadata.packageImgURI
+              : '',
+          balance,
+        };
+        packages = [...packages, pkg];
+      }),
+    );
+    return packages;
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+const getPackages = async (data, dataType) => {
+  try {
+    let packages = await getPackageDetail(data, dataType);
+    let temp = [];
+    packages?.map(res => {
+      if (temp.length > 0) {
+        if (temp.some(i => i.tokenId === res.tokenId)) {
+          temp.map(tempItem => {
+            if (res.tokenId === tempItem.tokenId) {
+              return (tempItem.balance = tempItem.balance + res.balance);
+            }
+          });
+          return;
+        }
+      }
+      temp = [...temp, res];
+    });
+    return temp;
+  } catch (e) {
+    alert(e);
+  }
+};
+
+const getCombinedPackages = packages => {
+  let temp = [];
+  packages?.map(res => {
+    if (temp.length > 0) {
+      if (temp.some(i => i.tokenId === res.tokenId)) {
+        temp.map(tempItem => {
+          if (res.tokenId === tempItem.tokenId) {
+            return (tempItem.amount = tempItem.amount + res.amount);
+          }
+        });
+        return;
+      }
+    }
+    temp = [...temp, res];
+  });
+  return temp;
+};
+
+const getActiveAgencyTransactions = async (activeAppSettings, transactions) => {
+  try {
+    // const transactions = await AsyncStorage.getItem('transactions');
+    if (transactions?.length) {
+      // const parsedTransactions = JSON.parse(transactions);
+      const filteredTransactions = transactions?.filter(
+        item => item.agencyUrl === activeAppSettings.agencyUrl,
+      );
+      return filteredTransactions;
+    }
+    return [];
+  } catch (e) {
+    alert(e);
+  }
+};
+
+export {
+  encryptionHelper,
+  decryptionHelper,
+  truncateString,
+  getPackageDetail,
+  getPackages,
+  getActiveAgencyTransactions,
+  getCombinedPackages
+};

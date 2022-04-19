@@ -112,7 +112,7 @@ const AgencyScreen = ({navigation}) => {
         rightIcon={<AddCircleIcon />}
         onBackPress={() => navigation.pop()}
         onRightIconPress={() =>
-          navigation.navigate('LinkAgencyQRScreen', {
+          navigation.navigate('LinkAgencyScreen', {
             // fromAgencies: true,
             from: 'agencies',
             data: {

@@ -16,7 +16,13 @@ import {
   LocationIcon,
   EditIcon,
 } from '../../../assets/icons';
-import {Card, CustomHeader, RegularText, SmallText} from '../../components';
+import {
+  Card,
+  CustomHeader,
+  IndividualSettingView,
+  RegularText,
+  SmallText,
+} from '../../components';
 import {useSelector} from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import {RNToasty} from 'react-native-toasty';
@@ -26,12 +32,12 @@ import {useTranslation} from 'react-i18next';
 const ProfileScreen = ({navigation}) => {
   const {userData} = useSelector(state => state.auth);
   const {t} = useTranslation();
-  const ProfileDetail = ({icon, title}) => (
-    <View style={styles.detailView}>
-      {icon}
-      <RegularText style={{paddingHorizontal: Spacing.hs}}>{title}</RegularText>
-    </View>
-  );
+  // const ProfileDetail = ({icon, title}) => (
+  //   <View style={styles.detailView}>
+  //     {icon}
+  //     <RegularText style={{paddingHorizontal: Spacing.hs}}>{title}</RegularText>
+  //   </View>
+  // );
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
@@ -60,9 +66,21 @@ const ProfileScreen = ({navigation}) => {
             paddingHorizontal: Spacing.hs * 2,
             paddingTop: Spacing.vs * 2,
           }}> */}
-        <ProfileDetail icon={<PersonIcon />} title={userData?.name} />
-        <ProfileDetail icon={<PhoneIcon />} title={userData?.phone} />
-        <ProfileDetail icon={<LocationIcon />} title={userData?.address} />
+        <IndividualSettingView
+          icon={<PersonIcon />}
+          title={userData?.name}
+          style={{paddingHorizontal: Spacing.hs * 2}}
+        />
+        <IndividualSettingView
+          icon={<PhoneIcon />}
+          title={userData?.phone}
+          style={{paddingHorizontal: Spacing.hs * 2}}
+        />
+        <IndividualSettingView
+          icon={<LocationIcon />}
+          title={userData?.address}
+          style={{paddingHorizontal: Spacing.hs * 2}}
+        />
 
         <View
           style={{paddingHorizontal: Spacing.hs, marginVertical: Spacing.vs}}>
@@ -111,12 +129,12 @@ const styles = StyleSheet.create({
     // flex: 1,
     backgroundColor: colors.white,
   },
-  detailView: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: Spacing.vs,
-    paddingHorizontal: Spacing.hs * 2,
-  },
+  // detailView: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  //   paddingTop: Spacing.vs,
+  //   paddingHorizontal: Spacing.hs * 2,
+  // },
   image: {
     height: 150,
     width: 150,

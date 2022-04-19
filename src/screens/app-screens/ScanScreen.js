@@ -48,7 +48,7 @@ const ScanScreen = ({navigation, route}) => {
     }
 
     if (phone !== undefined && amount !== undefined) {
-      navigation.navigate('ChargeScreen', {phone, amount});
+      navigation.navigate('ChargeDrawerScreen', {phone, amount});
     }
   };
 

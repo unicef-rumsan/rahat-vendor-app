@@ -1,7 +1,10 @@
 import React from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
-import {AngleRightIcon, DollorIcon, RedeemIcon} from '../../assets/icons';
+import {Pressable, StyleSheet, View, Image} from 'react-native';
+import {
+  heightPercentageToDP,
+  widthPercentageToDP,
+} from 'react-native-responsive-screen';
+import {AngleRightIcon} from '../../assets/icons';
 import colors from '../../constants/colors';
 import {FontSize, Spacing} from '../../constants/utils';
 import RegularText from './RegularText';
@@ -10,11 +13,13 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 const IndividualStatement = ({
   title,
-  type,
+  transactionType,
   amount,
   date,
   onPress,
   lastItem,
+  balanceType,
+  icon,
 }) => (
   <Pressable
     onPress={onPress}
@@ -24,19 +29,25 @@ const IndividualStatement = ({
       width: widthPercentageToDP(80),
     }}>
     <View style={[styles.rowView, {paddingBottom: lastItem ? 0 : Spacing.vs}]}>
-      {/* {type === 'charge' ? <DollorIcon /> : <RedeemIcon />} */}
-      <MaterialCommunityIcons
-        style={{paddingRight: Spacing.hs}}
-        name={
-          type === 'charge'
-            ? 'currency-usd-circle'
-            : type === 'transfer'
-            ? 'bank-transfer'
-            : 'gift-outline'
-        }
-        color={type === 'charge' ? colors.green : colors.blue}
-        size={type === 'redeem' ? 28 : 32}
-      />
+      {balanceType === 'package' ? (
+        <Image
+          source={{uri: `https://ipfs.rumsan.com/ipfs/${icon}`}}
+          style={styles.packageIcon}
+        />
+      ) : (
+        <MaterialCommunityIcons
+          style={{paddingRight: Spacing.hs}}
+          name={
+            transactionType === 'charge'
+              ? 'currency-usd-circle'
+              : transactionType === 'transfer'
+              ? 'bank-transfer'
+              : 'gift-outline'
+          }
+          color={transactionType === 'charge' ? colors.green : colors.blue}
+          size={transactionType === 'redeem' ? 28 : 32}
+        />
+      )}
 
       <View style={{width: widthPercentageToDP(40)}}>
         <RegularText fontSize={FontSize.medium}>{title}</RegularText>
@@ -60,5 +71,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
+  },
+  packageIcon: {
+    height: heightPercentageToDP(5),
+    width: widthPercentageToDP(9),
+    borderRadius: 10,
+    marginRight: Spacing.hs ,
   },
 });

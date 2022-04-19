@@ -8,7 +8,6 @@ import {
   Dimensions,
   Pressable,
   Image,
-  TouchableOpacity,
 } from 'react-native';
 import {ExpandingDot} from 'react-native-animated-pagination-dots';
 import colors from '../../../constants/colors';
@@ -17,11 +16,9 @@ import RightArrow from '../../../assets/icons/RightArrow';
 import {Spacing} from '../../../constants/utils';
 import {CustomButton, RegularText, SmallText} from '../../components';
 import {
-  heightPercentageToDP,
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTranslation} from 'react-i18next';
 import LanguagePicker from '../../components/LanguagePicker';
 import {English, Nepali} from '../../../assets/icons/flags';
@@ -164,7 +161,7 @@ const styles = StyleSheet.create({
   languageButton: {
     // backgroundColor: '#66b6d2',
     borderRadius: 30,
-    height: heightPercentageToDP(6),
+    height: hp(6),
     paddingHorizontal: Spacing.hs / 2,
     paddingVertical: Spacing.vs / 2,
     alignItems: 'center',

@@ -97,8 +97,8 @@ const RestoreMnemonicScreen = ({navigation}) => {
   const getWalletSuccess = wallet => {
     setValues({...values, isSubmitting: false});
     // dispatch(getUserByWalletAddress(wallet.address, () => {}, handleError));
-    // navigation.navigate('LinkAgencyQRScreen', {fromRestore: true});
-    navigation.navigate('LinkAgencyQRScreen', {from: 'restore'});
+    // navigation.navigate('LinkAgencyScreen', {fromRestore: true});
+    navigation.navigate('LinkAgencyScreen', {from: 'restore'});
   };
 
   // const getUserSuccess = () => {
@@ -120,7 +120,7 @@ const RestoreMnemonicScreen = ({navigation}) => {
           message={popupMessage}
         />
         <CustomLoader
-          show={false}
+          show={isSubmitting}
           message={t(
             'Restoring your wallet. This might take a while, please wait...',
           )}

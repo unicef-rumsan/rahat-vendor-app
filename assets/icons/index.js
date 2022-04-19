@@ -22,6 +22,11 @@ import MoreDotsIcon from './MoreDots';
 import RumsanLogo from './RumsanLogo';
 import QRIcon from './QRIcon';
 import EyeIcon from './Eye';
+import GearIcon from './Gear';
+import PackageImageIcon from "./PackageImage"
+import AssetsIcon from "./Assets"
+import GiftIcon from "./Gift"
+// import MoreVerticalIcon from './MoreVertical'
 
 export {
   HomeIcon,
@@ -48,4 +53,8 @@ export {
   RumsanLogo,
   QRIcon,
   EyeIcon,
+  GearIcon,
+  PackageImageIcon,
+  AssetsIcon,
+  GiftIcon
 };

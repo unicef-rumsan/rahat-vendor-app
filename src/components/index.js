@@ -7,7 +7,9 @@ import IndividualStatement from './IndividualStatement';
 import PoppinsMedium from './PoppinsMedium';
 import RegularText from './RegularText';
 import SmallText from './SmallText';
-import CustomLoader from './CustomLoader'
+import CustomLoader from './CustomLoader';
+import IndividualSettingView from './IndividualSettingView';
+import SwitchAgencyModal from './SwitchAgencyModal';
 
 export {
   Card,
@@ -19,6 +21,7 @@ export {
   PoppinsMedium,
   RegularText,
   SmallText,
-  CustomLoader
-
+  CustomLoader,
+  IndividualSettingView,
+  SwitchAgencyModal
 };
