@@ -175,7 +175,7 @@ const SignupScreen = ({navigation}) => {
       photo: profileImageUrl,
     };
 
-    navigation.replace('LinkAgencyQRScreen', {
+    navigation.replace('LinkAgencyScreen', {
       data,
       from: 'signup',
     });

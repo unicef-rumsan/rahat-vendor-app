@@ -20,7 +20,6 @@ const RegisterSuccessScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
   const {wallet} = useSelector(state => state.wallet);
   const {data} = route?.params;
-  console.log(wallet, 'wallet from register success');
   const secretWords = wallet?._mnemonic().phrase.split(' ');
 
   useBackHandler(() => {

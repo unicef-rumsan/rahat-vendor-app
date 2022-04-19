@@ -27,6 +27,8 @@ const CustomButton = ({
   borderRadius,
   capitalizeText,
   fontFamily,
+  fontSize,
+  paddingVertical,
 }) => {
   return (
     <View
@@ -61,11 +63,13 @@ const CustomButton = ({
             {outlined ? (
               <Text
                 style={[
-                  styles.outlinedButtonText,
+                  // styles.outlinedButtonText,
                   {
                     color: color || colors.blue,
                     textTransform: capitalizeText ? 'capitalize' : 'uppercase',
                     fontFamily: fontFamily ? fontFamily : 'Poppins-Medium',
+                    fontSize: fontSize || FontSize.medium,
+                    paddingVertical: paddingVertical || Spacing.vs / 3,
                   },
                 ]}>
                 {title || ''}

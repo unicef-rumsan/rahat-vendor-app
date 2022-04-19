@@ -8,8 +8,7 @@ import {
   RestoreMnemonicScreen,
   SignupScreen,
 } from '../screens/auth-screens';
-import {LinkAgencyQRScreen} from '../screens/app-screens';
-import LinkAgencyCodeScreen from '../screens/app-screens/LinkAgencyCodeScreen';
+import {LinkAgencyScreen} from '../screens/app-screens';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,11 +25,7 @@ const AuthStack = () => {
         name="RegisterSuccessScreen"
         component={RegisterSuccessScreen}
       />
-      <Stack.Screen name="LinkAgencyQRScreen" component={LinkAgencyQRScreen} />
-      <Stack.Screen
-        name="LinkAgencyCodeScreen"
-        component={LinkAgencyCodeScreen}
-      />
+      <Stack.Screen name="LinkAgencyScreen" component={LinkAgencyScreen} />
 
       <Stack.Screen
         name="RestoreAccountScreen"

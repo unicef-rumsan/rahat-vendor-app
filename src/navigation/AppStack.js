@@ -6,11 +6,9 @@ import {
   AgencyScreen,
   BackupWalletScreen,
   ChargeReceiptScreen,
-  ChargeScreen,
   CheckApprovalScreen,
   HomeScreen,
-  LinkAgencyQRScreen,
-  LinkAgencyCodeScreen,
+  LinkAgencyScreen,
   PasscodeScreen,
   PaymentMethodScreen,
   PaymentProcessScreen,
@@ -21,20 +19,34 @@ import {
   TransferTokenScreen,
   VerifyOTPScreen,
   BackupMnemonicScreen,
+  ChargeDrawerScreen,
+  ChargeScreen,
+  ChargeTokenScreen,
+  ChargePackageScreen,
+  RedeemTokenScreen,
+  RedeemPackageScreen,
+  RedeemReceiptScreen,
+  TransferReceiptScreen,
+  LockScreen,
+  AssetsScreen,
+  PackageDetailScreen,
 } from '../screens/app-screens';
 import colors from '../../constants/colors';
-import {ChargeIcon, HomeIcon, SettingsIcon} from '../../assets/icons';
-import RedeemScreen from '../screens/app-screens/RedeemScreen';
-import RedeemReceiptScreen from '../screens/app-screens/RedeemReceiptScreen';
-import LockScreen from '../screens/app-screens/LockScreen';
-import { useSelector } from 'react-redux';
-import TransferReceiptScreen from '../screens/app-screens/TransferRecieptScreen';
+import {
+  ChargeIcon,
+  HomeIcon,
+  AssetsIcon,
+} from '../../assets/icons';
+import {useSelector} from 'react-redux';
+import {Spacing} from '../../constants/utils';
+import {useTranslation} from 'react-i18next';
 
 const TabStack = createBottomTabNavigator();
 
 const Stack = createNativeStackNavigator();
 
 const Tabs = () => {
+  const {t} = useTranslation();
   return (
     <TabStack.Navigator
       initialRouteName="HomeScreen"
@@ -42,24 +54,32 @@ const Tabs = () => {
         headerShown: false,
         tabBarActiveTintColor: colors.blue,
         tabBarInactiveTintColor: colors.gray,
-        tabBarStyle: {height: 65},
+        tabBarStyle: {height: 55},
         unmountOnBlur: true,
+        tabBarShowLabel: true,
+
+        tabBarIconStyle: {
+          marginTop: Spacing.vs / 4,
+          marginBottom: 0,
+          backgroundColor: 'black',
+        },
+        tabBarLabelStyle: {paddingBottom: Spacing.vs / 4, paddingTop: 0},
       }}>
       <TabStack.Screen
         name="HomeScreen"
         component={HomeScreen}
         options={{
-          tabBarShowLabel: false,
+          tabBarLabel: `${t('Home')}`,
           tabBarIcon: ({color, size}) => {
             return <HomeIcon color={color} />;
           },
         }}
       />
       <TabStack.Screen
-        name="ChargeScreen"
-        component={ChargeScreen}
+        name="ChargeDrawerScreen"
+        component={ChargeDrawerScreen}
         options={{
-          tabBarShowLabel: false,
+          tabBarLabel: `${t('Charge')}`,
           tabBarIcon: ({color, size}) => {
             return <ChargeIcon color={color} />;
           },
@@ -67,17 +87,17 @@ const Tabs = () => {
         listeners={({navigation}) => ({
           tabPress: e => {
             e.preventDefault();
-            navigation.navigate('ChargeScreen', {phone: null});
+            navigation.navigate('ChargeDrawerScreen', {phone: null});
           },
         })}
       />
       <TabStack.Screen
-        name="SettingsScreen"
-        component={SettingsScreen}
+        name="AssetsScreen"
+        component={AssetsScreen}
         options={{
-          tabBarShowLabel: false,
+          tabBarLabel: `${t('Assets')}`,
           tabBarIcon: ({color, size}) => {
-            return <SettingsIcon color={color} />;
+            return <AssetsIcon color={color} />;
           },
         }}
       />
@@ -93,13 +113,17 @@ const AppStack = () => {
       // initialRouteName={lockScreen ? 'LockScreen' : 'Tabs'}
       screenOptions={{headerShown: false, animation: 'fade'}}>
       <Stack.Screen name="Tabs" component={Tabs} />
+      <Stack.Screen name="ChargeScreen" component={ChargeScreen} />
+      <Stack.Screen name="ChargeTokenScreen" component={ChargeTokenScreen} />
+      <Stack.Screen
+        name="ChargePackageScreen"
+        component={ChargePackageScreen}
+      />
+
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
       <Stack.Screen name="AgencyScreen" component={AgencyScreen} />
-      <Stack.Screen name="LinkAgencyQRScreen" component={LinkAgencyQRScreen} />
-      <Stack.Screen
-        name="LinkAgencyCodeScreen"
-        component={LinkAgencyCodeScreen}
-      />
+      <Stack.Screen name="LinkAgencyScreen" component={LinkAgencyScreen} />
+
       <Stack.Screen name="AboutScreen" component={AboutScreen} />
       <Stack.Screen name="BackupWalletScreen" component={BackupWalletScreen} />
       <Stack.Screen
@@ -109,12 +133,14 @@ const AppStack = () => {
       <Stack.Screen name="VerifyOTPScreen" component={VerifyOTPScreen} />
       <Stack.Screen name="ScanScreen" component={ScanScreen} />
 
-      <Stack.Screen name="RedeemScreen" component={RedeemScreen} />
+      <Stack.Screen name="RedeemTokenScreen" component={RedeemTokenScreen} />
+      <Stack.Screen name="RedeemPackageScreen" component={RedeemPackageScreen} />
       <Stack.Screen
         name="RedeemReceiptScreen"
         component={RedeemReceiptScreen}
       />
 
+      <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
       <Stack.Screen
         name="ChargeReceiptScreen"
         component={ChargeReceiptScreen}
@@ -142,6 +168,10 @@ const AppStack = () => {
       />
       <Stack.Screen name="PasscodeScreen" component={PasscodeScreen} />
       <Stack.Screen name="LockScreen" component={LockScreen} />
+      <Stack.Screen
+        name="PackageDetailScreen"
+        component={PackageDetailScreen}
+      />
     </Stack.Navigator>
   );
 };

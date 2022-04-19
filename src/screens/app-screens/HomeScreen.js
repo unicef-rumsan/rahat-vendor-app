@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   BackHandler,
@@ -14,16 +14,34 @@ import {
   View,
 } from 'react-native';
 import colors from '../../../constants/colors';
-import {Logo} from '../../../assets/icons';
+import {
+  DollorIcon,
+  GearIcon,
+  GiftIcon,
+  Logo,
+  MoreDotsIcon,
+  PersonIcon,
+  SettingsIcon,
+} from '../../../assets/icons';
 import {FontSize, Spacing} from '../../../constants/utils';
 
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 import IndividualStatement from '../../components/IndividualStatement';
 
-import {Card, SmallText, RegularText, CustomButton} from '../../components';
-import {useDispatch, useSelector} from 'react-redux';
+import {
+  Card,
+  SmallText,
+  RegularText,
+  CustomButton,
+  IndividualSettingView,
+} from '../../components';
+import {batch, useDispatch, useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {getWalletBalance} from '../../redux/actions/wallet';
+import {
+  getPackageBalanceInFiat,
+  getPackageBatchBalance,
+  getWalletBalance,
+} from '../../redux/actions/wallet';
 import {useBackHandler} from '@react-native-community/hooks';
 import {RNToasty} from 'react-native-toasty';
 import {useIsFocused} from '@react-navigation/native';
@@ -32,22 +50,21 @@ import CustomLoader from '../../components/CustomLoader';
 import {getUserByWalletAddress, switchAgency} from '../../redux/actions/auth';
 import {ethers} from 'ethers';
 import {useTranslation} from 'react-i18next';
+import CustomBottomSheet from '../../components/CustomBottomSheet';
+import ProfileDetailView from '../../components/IndividualSettingView';
+import {
+  getActiveAgencyTransactions,
+  getPackages,
+} from '../../../constants/helper';
 
 let BACK_COUNT = 0;
 
-const Header = ({title, onRightIconPress, userData}) => (
+const Header = ({title, onRightIconPress}) => (
   <SafeAreaView style={styles.headerContainer}>
     <Logo />
     <Text style={styles.headerTitle}>{title}</Text>
-
     <Pressable onPress={onRightIconPress} hitSlop={50}>
-      <Image
-        source={{
-          uri: `https://ipfs.rumsan.com/ipfs/${userData.photo[0]}`,
-        }}
-        style={styles.headerRightIcon}
-        resizeMode="center"
-      />
+      <MoreDotsIcon />
     </Pressable>
   </SafeAreaView>
 );
@@ -57,21 +74,38 @@ const HomeScreen = ({navigation, route}) => {
   const {t} = useTranslation();
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
+  const bottomSheetModalRef = useRef(null);
+  const snapPoints = useMemo(() => ['18%', '18%'], []);
   const {userData, appSettings, activeAppSettings} = useSelector(
     state => state.auth,
   );
+  const {transactions} = useSelector(state => state.wallet);
   const [userInAgencyStatus, setUserInAgencyStatus] = useState(false);
 
-  const {wallet, balance} = useSelector(state => state.wallet);
+  const {wallet, balance, packageBalance, packageBalanceCurrency, packages} =
+    useSelector(state => state.wallet);
 
   const [values, setValues] = useState({
     refreshing: false,
-    transactions: [],
+    activeAgencyTransactions: [],
     showSwitchAgencyModal: false,
     showLoader: false,
+    showBottomSheet: false,
+    bottomSheetContent: '',
+    tokenIds: null,
+    batchBalance: null,
   });
 
-  const {refreshing, transactions, showSwitchAgencyModal, showLoader} = values;
+  const {
+    refreshing,
+    activeAgencyTransactions,
+    showSwitchAgencyModal,
+    showLoader,
+    showBottomSheet,
+    bottomSheetContent,
+    tokenIds,
+    batchBalance,
+  } = values;
 
   useEffect(() => {
     let temp = userData.agencies?.filter(
@@ -99,27 +133,84 @@ const HomeScreen = ({navigation, route}) => {
     }
   }, []);
 
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
+
   const getBalance = () => {
     dispatch(
       getWalletBalance(
         activeAppSettings?.agency?.contracts?.rahat,
         wallet,
-        activeAppSettings?.agency?.contracts?.token,
+        activeAppSettings?.agency?.contracts?.rahat_erc20,
+        activeAppSettings?.agency?.contracts?.rahat_erc1155,
       ),
     );
   };
 
-  const getTransactions = async () => {
-    try {
-      const transactions = await AsyncStorage.getItem('transactions');
-      const parsedTransactions = JSON.parse(transactions);
-      const filteredTransactions = parsedTransactions?.filter(
-        item => item.agencyUrl === activeAppSettings.agencyUrl,
-      );
+  useEffect(() => {
+    if (tokenIds?.length && batchBalance?.length) {
+      dispatch(getPackageBalanceInFiat(tokenIds, batchBalance));
+    }
+    if (tokenIds?.length === 0 && batchBalance?.length === 0) {
+      dispatch({
+        type: 'SET_PACKAGE_BALANCE',
+        packageBalance: 0,
+        packageBalanceCurrency: '',
+      });
+    }
+  }, [tokenIds, batchBalance]);
 
+  const getPackageBatchBalanceSuccess = res => {
+    setValues(values => ({...values, batchBalance: res}));
+  };
+
+  const getTransactions = async () => {
+    let tempTransactions = await getActiveAgencyTransactions(
+      activeAppSettings,
+      transactions,
+    );
+    setValues(values => ({
+      ...values,
+      activeAgencyTransactions: tempTransactions || [],
+    }));
+  };
+
+  const getPackageBalance = async () => {
+    try {
+      let tokenIdsForBalance = [];
+      let tokenIdsForPackages = [];
+      let activeTransactions = await getActiveAgencyTransactions(
+        activeAppSettings,
+        transactions,
+      );
+      activeTransactions.forEach(item => {
+        if (item.tokenId) {
+          tokenIdsForPackages = [...tokenIdsForPackages, item.tokenId];
+        }
+        if (item.tokenId && !tokenIdsForBalance.includes(item.tokenId)) {
+          tokenIdsForBalance = [...tokenIdsForBalance, item.tokenId];
+        }
+      });
+      const walletAddress = tokenIdsForBalance.map(() => wallet.address);
+      dispatch(
+        getPackageBatchBalance(
+          activeAppSettings?.agency?.contracts?.rahat,
+          activeAppSettings?.agency?.contracts?.rahat_erc20,
+          activeAppSettings?.agency?.contracts?.rahat_erc1155,
+          wallet,
+          walletAddress,
+          tokenIdsForBalance,
+          getPackageBatchBalanceSuccess,
+        ),
+      );
+      dispatch({
+        type: 'SET_PACKAGE_TOKEN_IDS',
+        packageTokenIds: tokenIdsForPackages,
+      });
       setValues(values => ({
         ...values,
-        transactions: filteredTransactions || [],
+        tokenIds: tokenIdsForBalance,
       }));
     } catch (e) {
       console.log(e);
@@ -131,6 +222,7 @@ const HomeScreen = ({navigation, route}) => {
     if (isMounted || refresh) {
       getBalance();
       getTransactions();
+      getPackageBalance();
     }
     return () => (isMounted = false);
   }, [route]);
@@ -138,6 +230,7 @@ const HomeScreen = ({navigation, route}) => {
   const onRefresh = () => {
     getBalance();
     getTransactions();
+    getPackageBalance();
   };
 
   const handleSwitchAgency = agencyUrl => {
@@ -160,17 +253,66 @@ const HomeScreen = ({navigation, route}) => {
     setValues({...values, showLoader: false, showSwitchAgencyModal: false});
   };
   const onSwitchError = e => {
-    console.log(e, 'e');
     setValues({...values, showLoader: false, showSwitchAgencyModal: false});
   };
+
+  const renderBottomSheet = () => (
+    <CustomBottomSheet
+      ref={bottomSheetModalRef}
+      snapPoints={snapPoints}
+      enablePanDownToClose>
+      {bottomSheetContent === 'more' ? (
+        <>
+          <IndividualSettingView
+            icon={<PersonIcon color={colors.gray} />}
+            title={'Profile'}
+            onPress={() => {
+              bottomSheetModalRef.current?.dismiss();
+              navigation.navigate('ProfileScreen');
+            }}
+          />
+          <IndividualSettingView
+            icon={<GearIcon color={colors.gray} />}
+            title={'Settings'}
+            onPress={() => {
+              bottomSheetModalRef.current?.dismiss();
+              navigation.navigate('SettingsScreen');
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <IndividualSettingView
+            icon={<DollorIcon color={colors.gray} />}
+            title={'Token'}
+            onPress={() => {
+              bottomSheetModalRef.current?.dismiss();
+              navigation.navigate('RedeemTokenScreen');
+            }}
+          />
+          <IndividualSettingView
+            icon={<GiftIcon color={colors.gray} />}
+            title={'Packages'}
+            onPress={() => {
+              bottomSheetModalRef.current?.dismiss();
+              navigation.navigate('RedeemPackageScreen');
+            }}
+          />
+        </>
+      )}
+    </CustomBottomSheet>
+  );
 
   return (
     <>
       <Header
         title={t('Home')}
-        onRightIconPress={() => navigation.navigate('ProfileScreen')}
-        userData={userData}
+        onRightIconPress={() => {
+          setValues({...values, bottomSheetContent: 'more'});
+          handlePresentModalPress();
+        }}
       />
+
       <ScrollView
         style={styles.container}
         refreshControl={
@@ -183,30 +325,15 @@ const HomeScreen = ({navigation, route}) => {
           onPress={handleSwitchAgency}
           hide={() => setValues({...values, showSwitchAgencyModal: false})}
         />
-
         <CustomLoader
           show={showLoader}
           message={`${t('Switching agency.')} ${t('Please wait...')}`}
         />
-
         <Card>
-          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-            <View>
-              <SmallText noPadding color={colors.blue}>
-                {activeAppSettings.agency.name}
-              </SmallText>
-              <RegularText
-                color={colors.lightGray}
-                style={{paddingTop: Spacing.vs / 3}}
-                fontSize={FontSize.small * 1.2}>
-                Token Balance
-              </RegularText>
-              {balance === null ? (
-                <ActivityIndicator size={24} color={colors.blue} />
-              ) : (
-                <RegularText color={colors.gray}>{balance}</RegularText>
-              )}
-            </View>
+          <View style={[styles.rowView, {paddingBottom: Spacing.vs / 2}]}>
+            <SmallText noPadding color={colors.blue}>
+              {activeAppSettings.agency.name || 'Agency Name'}
+            </SmallText>
             <CustomButton
               title={t('Redeem')}
               borderRadius={20}
@@ -214,22 +341,48 @@ const HomeScreen = ({navigation, route}) => {
               capitalizeText
               outlined
               fontFamily={'Lora-Regular'}
-              onPress={() =>
-                // userData?.agencies[0]?.status === 'new'
-                //   ? navigation.navigate('CheckApprovalScreen')
-                //   : navigation.navigate('RedeemScreen')
-                userInAgencyStatus === 'new'
-                  ? navigation.navigate('CheckApprovalScreen')
-                  : navigation.navigate('RedeemScreen')
-              }
-              // onPress={() =>
-              //   setValues({...values, showSwitchAgencyModal: true})
-              // }
+              paddingVertical={Spacing.vs / 8}
+              fontSize={FontSize.medium}
+              onPress={() => {
+                if (userInAgencyStatus === 'new') {
+                  navigation.navigate('CheckApprovalScreen');
+                }
+                setValues({...values, bottomSheetContent: 'redeem'});
+                handlePresentModalPress();
+              }}
             />
           </View>
+          <View style={styles.rowView}>
+            <View>
+              {balance === null ? (
+                <ActivityIndicator size={24} color={colors.blue} />
+              ) : (
+                <RegularText color={colors.gray}>{balance}</RegularText>
+              )}
+              <RegularText
+                color={colors.lightGray}
+                style={{paddingTop: Spacing.vs / 3}}
+                fontSize={FontSize.small * 1.1}>
+                {t('Token Balance')}
+              </RegularText>
+            </View>
+            <View>
+              {packageBalance === null ? (
+                <ActivityIndicator size={24} color={colors.blue} />
+              ) : (
+                <RegularText color={colors.gray}>
+                  {packageBalanceCurrency} {packageBalance}
+                </RegularText>
+              )}
+              <RegularText
+                color={colors.lightGray}
+                style={{paddingTop: Spacing.vs / 3}}
+                fontSize={FontSize.small * 1.1}>
+                {t('Package')}
+              </RegularText>
+            </View>
+          </View>
         </Card>
-
-        {/* {userData?.agencies[0]?.status === 'new' && ( */}
         {userInAgencyStatus === 'new' && (
           <Card>
             <RegularText
@@ -248,7 +401,6 @@ const HomeScreen = ({navigation, route}) => {
             />
           </Card>
         )}
-
         {transactions?.length !== 0 && (
           <>
             <View style={styles.recentTxnHeader}>
@@ -262,7 +414,7 @@ const HomeScreen = ({navigation, route}) => {
                     balance,
                   })
                 }>
-                <RegularText color={colors.blue}>{t("VIEW ALL")}</RegularText>
+                <RegularText color={colors.blue}>{t('VIEW ALL')}</RegularText>
               </Pressable>
             </View>
             <Card>
@@ -279,27 +431,35 @@ const HomeScreen = ({navigation, route}) => {
                       : false
                   }
                   key={index}
+                  balanceType={item.balanceType}
+                  transactionType={item.transactionType}
+                  icon={
+                    item?.packages ? item.packages[0]?.imageUri : item.imageUri
+                  }
                   title={
-                    item.type === 'charge'
-                      ? `${item.type} to ...${item.chargeTo?.slice(
+                    item.transactionType === 'charge'
+                      ? `${item.transactionType} to ...${item.chargeTo?.slice(
                           item?.chargeTo?.length - 4,
                           item?.chargeTo?.length,
                         )}`
-                      : item.type === 'transfer'
-                      ? `${item.type} to ...${item.to?.slice(
+                      : item.transactionType === 'transfer'
+                      ? `${item.transactionType} to ...${item.to?.slice(
                           item?.to?.length - 4,
                           item?.to?.length,
                         )}`
+                      : item.transactionType === 'redeem' &&
+                        item.balanceType === 'package'
+                      ? 'redeem package'
                       : 'redeem token'
                   }
-                  type={item.type}
+                  type={item.transactionType}
                   amount={item.amount}
                   date={item.timeStamp}
                   onPress={() =>
                     navigation.navigate(
-                      item.type === 'charge'
+                      item.transactionType === 'charge'
                         ? 'ChargeReceiptScreen'
-                        : item.type === 'transfer'
+                        : item.transactionType === 'transfer'
                         ? 'TransferReceiptScreen'
                         : 'RedeemReceiptScreen',
                       {
@@ -313,6 +473,7 @@ const HomeScreen = ({navigation, route}) => {
           </>
         )}
       </ScrollView>
+      {renderBottomSheet()}
     </>
   );
 };
@@ -326,7 +487,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.hs,
     backgroundColor: colors.white,
-    paddingTop: Spacing.vs,
+    paddingTop: Spacing.vs * 1.5,
   },
   headerTitle: {fontFamily: 'Lora-Regular', fontSize: FontSize.regular},
   headerRightIcon: {height: 80, width: 30, borderRadius: 100},

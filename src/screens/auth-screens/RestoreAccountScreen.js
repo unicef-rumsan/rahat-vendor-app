@@ -70,7 +70,7 @@ const RestoreAccountScreen = ({navigation}) => {
 
   const onSuccess = () => {
     setValues({...values, showLoader: false, showPasscodeModal: false});
-    navigation.navigate('LinkAgencyQRScreen', {from: 'restore'});
+    navigation.navigate('LinkAgencyScreen', {from: 'restore'});
   };
 
   const onError = e => {
@@ -137,7 +137,7 @@ const RestoreAccountScreen = ({navigation}) => {
       gdrive.accessToken = (await GoogleSignin.getTokens()).accessToken;
       let data = await gdrive.files.list({
         q: new ListQueryBuilder()
-          .e('name', 'rahat_backup')
+          .e('name', 'rahat_v2_backup')
           .and()
           .e('mimeType', 'application/octet-stream'),
       });
