@@ -12,8 +12,7 @@ import {Spacing} from '../../../../constants/utils';
 import {CustomButton, CustomHeader, SmallText, Card} from '../../../components';
 
 const RedeemReceiptScreen = ({navigation, route}) => {
-  const {receiptData, from} = route.params;
-  const dispatch = useDispatch();
+  const {receiptData} = route.params;
   const {t} = useTranslation();
   const RedeemDetail = ({title, detail, detailColor, onPress}) => (
     <Pressable style={styles.chargeDetail} onPress={onPress}>
@@ -43,34 +42,6 @@ const RedeemReceiptScreen = ({navigation, route}) => {
     </Pressable>
   );
 
-  const storeReceipt = async () => {
-    try {
-      const transactions = await AsyncStorage.getItem('transactions');
-      if (transactions !== null) {
-        const parsedTransaction = JSON.parse(transactions);
-        const newTransactionArray = [receiptData, ...parsedTransaction];
-        await AsyncStorage.setItem(
-          'transactions',
-          JSON.stringify(newTransactionArray),
-        );
-        dispatch({type: 'SET_TRANSACTIONS', transactions: newTransactionArray});
-      }
-      if (transactions === null) {
-        const temp = [receiptData];
-        await AsyncStorage.setItem('transactions', JSON.stringify(temp));
-        dispatch({type: 'SET_TRANSACTIONS', transactions: temp});
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  useEffect(() => {
-    if (from === 'redeemScreen') {
-      storeReceipt();
-    }
-  }, []);
-
   const copyToClipboard = string => {
     Clipboard.setString(string);
     RNToasty.Show({title: `${t('Copied to clipboard')}`, duration: 0});
@@ -88,17 +59,17 @@ const RedeemReceiptScreen = ({navigation, route}) => {
           />
           <RedeemDetail
             title={t('To')}
-            detail={receiptData.to}
+            detail={receiptData?.to}
             detailColor={colors.blue}
-            onPress={() => copyToClipboard(receiptData.to)}
+            onPress={() => copyToClipboard(receiptData?.to)}
           />
 
-          <RedeemDetail title={t('Date')} detail={receiptData.timeStamp} />
-          <RedeemDetail title={t('Amount')} detail={receiptData.amount} />
+          <RedeemDetail title={t('Date')} detail={receiptData?.timeStamp} />
+          <RedeemDetail title={t('Amount')} detail={receiptData?.amount} />
           {receiptData?.packages && (
             <RedeemDetail
               title={t('Packages (QTY)')}
-              detail={receiptData.packages}
+              detail={receiptData?.packages}
             />
           )}
         </Card>
@@ -125,7 +96,6 @@ const styles = StyleSheet.create({
   chargeDetail: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // paddingBottom: Spacing.vs / 3 ,
   },
   detailText: {width: wp(37), textAlign: 'right'},
 });

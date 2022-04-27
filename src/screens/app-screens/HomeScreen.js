@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   BackHandler,
@@ -23,9 +23,9 @@ import {
   PersonIcon,
   SettingsIcon,
 } from '../../../assets/icons';
-import {FontSize, Spacing} from '../../../constants/utils';
+import { FontSize, Spacing } from '../../../constants/utils';
 
-import {widthPercentageToDP} from 'react-native-responsive-screen';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
 import IndividualStatement from '../../components/IndividualStatement';
 
 import {
@@ -35,31 +35,23 @@ import {
   CustomButton,
   IndividualSettingView,
 } from '../../components';
-import {batch, useDispatch, useSelector} from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   getPackageBalanceInFiat,
   getPackageBatchBalance,
   getWalletBalance,
 } from '../../redux/actions/wallet';
-import {useBackHandler} from '@react-native-community/hooks';
-import {RNToasty} from 'react-native-toasty';
-import {useIsFocused} from '@react-navigation/native';
-import SwitchAgencyModal from '../../components/SwitchAgencyModal';
+import { useBackHandler } from '@react-native-community/hooks';
+import { RNToasty } from 'react-native-toasty';
+import { useIsFocused } from '@react-navigation/native';
 import CustomLoader from '../../components/CustomLoader';
-import {getUserByWalletAddress, switchAgency} from '../../redux/actions/auth';
-import {ethers} from 'ethers';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import CustomBottomSheet from '../../components/CustomBottomSheet';
-import ProfileDetailView from '../../components/IndividualSettingView';
-import {
-  getActiveAgencyTransactions,
-  getPackages,
-} from '../../../constants/helper';
+import { getPackageDetail } from '../../../constants/helper';
 
 let BACK_COUNT = 0;
 
-const Header = ({title, onRightIconPress}) => (
+const Header = ({ title, onRightIconPress }) => (
   <SafeAreaView style={styles.headerContainer}>
     <Logo />
     <Text style={styles.headerTitle}>{title}</Text>
@@ -69,43 +61,34 @@ const Header = ({title, onRightIconPress}) => (
   </SafeAreaView>
 );
 
-const HomeScreen = ({navigation, route}) => {
+const HomeScreen = ({ navigation, route }) => {
   const refresh = route?.params?.refresh;
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const bottomSheetModalRef = useRef(null);
   const snapPoints = useMemo(() => ['18%', '18%'], []);
-  const {userData, appSettings, activeAppSettings} = useSelector(
-    state => state.auth,
-  );
-  const {transactions} = useSelector(state => state.wallet);
+  const { userData } = useSelector(state => state.auth);
+  const { activeAppSettings } = useSelector(state => state.agency);
   const [userInAgencyStatus, setUserInAgencyStatus] = useState(false);
 
-  const {wallet, balance, packageBalance, packageBalanceCurrency, packages} =
-    useSelector(state => state.wallet);
+  const {
+    wallet,
+    tokenBalance,
+    packageBalance,
+    packageBalanceCurrency,
+    transactions,
+    storedTokenIds,
+  } = useSelector(state => state.wallet);
 
   const [values, setValues] = useState({
     refreshing: false,
-    activeAgencyTransactions: [],
-    showSwitchAgencyModal: false,
     showLoader: false,
     showBottomSheet: false,
     bottomSheetContent: '',
-    tokenIds: null,
-    batchBalance: null,
   });
 
-  const {
-    refreshing,
-    activeAgencyTransactions,
-    showSwitchAgencyModal,
-    showLoader,
-    showBottomSheet,
-    bottomSheetContent,
-    tokenIds,
-    batchBalance,
-  } = values;
+  const { refreshing, showLoader, bottomSheetContent } = values;
 
   useEffect(() => {
     let temp = userData.agencies?.filter(
@@ -148,9 +131,14 @@ const HomeScreen = ({navigation, route}) => {
     );
   };
 
-  useEffect(() => {
+  const getPackageBatchBalanceSuccess = async (tokenIds, batchBalance) => {
     if (tokenIds?.length && batchBalance?.length) {
       dispatch(getPackageBalanceInFiat(tokenIds, batchBalance));
+      const packages = await getPackageDetail(
+        { tokenIds, balances: batchBalance },
+        'getPackages',
+      );
+      dispatch({ type: 'SET_PACKAGES', packages });
     }
     if (tokenIds?.length === 0 && batchBalance?.length === 0) {
       dispatch({
@@ -159,61 +147,42 @@ const HomeScreen = ({navigation, route}) => {
         packageBalanceCurrency: '',
       });
     }
-  }, [tokenIds, batchBalance]);
-
-  const getPackageBatchBalanceSuccess = res => {
-    setValues(values => ({...values, batchBalance: res}));
-  };
-
-  const getTransactions = async () => {
-    let tempTransactions = await getActiveAgencyTransactions(
-      activeAppSettings,
-      transactions,
-    );
-    setValues(values => ({
-      ...values,
-      activeAgencyTransactions: tempTransactions || [],
-    }));
   };
 
   const getPackageBalance = async () => {
     try {
-      let tokenIdsForBalance = [];
-      let tokenIdsForPackages = [];
-      let activeTransactions = await getActiveAgencyTransactions(
-        activeAppSettings,
-        transactions,
+      let activeStoredTokenIds = storedTokenIds?.find(
+        item => item?.agencyUrl === activeAppSettings?.agencyUrl,
       );
-      activeTransactions.forEach(item => {
-        if (item.tokenId) {
-          tokenIdsForPackages = [...tokenIdsForPackages, item.tokenId];
-        }
-        if (item.tokenId && !tokenIdsForBalance.includes(item.tokenId)) {
-          tokenIdsForBalance = [...tokenIdsForBalance, item.tokenId];
-        }
-      });
-      const walletAddress = tokenIdsForBalance.map(() => wallet.address);
-      dispatch(
-        getPackageBatchBalance(
-          activeAppSettings?.agency?.contracts?.rahat,
-          activeAppSettings?.agency?.contracts?.rahat_erc20,
-          activeAppSettings?.agency?.contracts?.rahat_erc1155,
-          wallet,
-          walletAddress,
-          tokenIdsForBalance,
-          getPackageBatchBalanceSuccess,
-        ),
-      );
-      dispatch({
-        type: 'SET_PACKAGE_TOKEN_IDS',
-        packageTokenIds: tokenIdsForPackages,
-      });
-      setValues(values => ({
-        ...values,
-        tokenIds: tokenIdsForBalance,
-      }));
+      if (activeStoredTokenIds?.tokenIds?.length) {
+        const walletAddress = activeStoredTokenIds?.tokenIds?.map(
+          () => wallet.address,
+        );
+        dispatch(
+          getPackageBatchBalance(
+            activeAppSettings?.agency?.contracts?.rahat,
+            activeAppSettings?.agency?.contracts?.rahat_erc20,
+            activeAppSettings?.agency?.contracts?.rahat_erc1155,
+            wallet,
+            walletAddress,
+            activeStoredTokenIds?.tokenIds,
+            getPackageBatchBalanceSuccess,
+          ),
+        );
+      } else {
+        dispatch({
+          type: 'SET_PACKAGE_BALANCE',
+          packageBalance: 0,
+          packageBalanceCurrency: '',
+        });
+      }
     } catch (e) {
       console.log(e);
+      dispatch({
+        type: 'SET_PACKAGE_BALANCE',
+        packageBalance: 0,
+        packageBalanceCurrency: '',
+      });
     }
   };
 
@@ -221,39 +190,18 @@ const HomeScreen = ({navigation, route}) => {
     let isMounted = true;
     if (isMounted || refresh) {
       getBalance();
-      getTransactions();
       getPackageBalance();
     }
     return () => (isMounted = false);
   }, [route]);
 
+  useEffect(() => {
+    getPackageBalance();
+  }, [storedTokenIds]);
+
   const onRefresh = () => {
     getBalance();
-    getTransactions();
     getPackageBalance();
-  };
-
-  const handleSwitchAgency = agencyUrl => {
-    setValues({...values, showSwitchAgencyModal: false, showLoader: true});
-    const newActiveAppSettings = appSettings.find(
-      setting => setting.agencyUrl === agencyUrl,
-    );
-    dispatch(
-      switchAgency(
-        newActiveAppSettings,
-        wallet,
-        onSwitchSuccess,
-        onSwitchError,
-      ),
-    );
-  };
-
-  const onSwitchSuccess = newActiveAppSettings => {
-    dispatch({type: 'SET_ACTIVE_APP_SETTINGS', payload: newActiveAppSettings});
-    setValues({...values, showLoader: false, showSwitchAgencyModal: false});
-  };
-  const onSwitchError = e => {
-    setValues({...values, showLoader: false, showSwitchAgencyModal: false});
   };
 
   const renderBottomSheet = () => (
@@ -308,7 +256,7 @@ const HomeScreen = ({navigation, route}) => {
       <Header
         title={t('Home')}
         onRightIconPress={() => {
-          setValues({...values, bottomSheetContent: 'more'});
+          setValues({ ...values, bottomSheetContent: 'more' });
           handlePresentModalPress();
         }}
       />
@@ -318,19 +266,12 @@ const HomeScreen = ({navigation, route}) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-        <SwitchAgencyModal
-          show={showSwitchAgencyModal}
-          activeAgency={activeAppSettings}
-          agencies={appSettings}
-          onPress={handleSwitchAgency}
-          hide={() => setValues({...values, showSwitchAgencyModal: false})}
-        />
         <CustomLoader
           show={showLoader}
           message={`${t('Switching agency.')} ${t('Please wait...')}`}
         />
         <Card>
-          <View style={[styles.rowView, {paddingBottom: Spacing.vs / 2}]}>
+          <View style={[styles.rowView, { paddingBottom: Spacing.vs / 2 }]}>
             <SmallText noPadding color={colors.blue}>
               {activeAppSettings.agency.name || 'Agency Name'}
             </SmallText>
@@ -347,21 +288,21 @@ const HomeScreen = ({navigation, route}) => {
                 if (userInAgencyStatus === 'new') {
                   navigation.navigate('CheckApprovalScreen');
                 }
-                setValues({...values, bottomSheetContent: 'redeem'});
+                setValues({ ...values, bottomSheetContent: 'redeem' });
                 handlePresentModalPress();
               }}
             />
           </View>
           <View style={styles.rowView}>
             <View>
-              {balance === null ? (
+              {tokenBalance === null ? (
                 <ActivityIndicator size={24} color={colors.blue} />
               ) : (
-                <RegularText color={colors.gray}>{balance}</RegularText>
+                <RegularText color={colors.gray}>{tokenBalance}</RegularText>
               )}
               <RegularText
                 color={colors.lightGray}
-                style={{paddingTop: Spacing.vs / 3}}
+                style={{ paddingTop: Spacing.vs / 3 }}
                 fontSize={FontSize.small * 1.1}>
                 {t('Token Balance')}
               </RegularText>
@@ -376,7 +317,7 @@ const HomeScreen = ({navigation, route}) => {
               )}
               <RegularText
                 color={colors.lightGray}
-                style={{paddingTop: Spacing.vs / 3}}
+                style={{ paddingTop: Spacing.vs / 3 }}
                 fontSize={FontSize.small * 1.1}>
                 {t('Package')}
               </RegularText>
@@ -427,41 +368,41 @@ const HomeScreen = ({navigation, route}) => {
                         ? true
                         : false
                       : index === 2
-                      ? true
-                      : false
+                        ? true
+                        : false
                   }
                   key={index}
-                  balanceType={item.balanceType}
-                  transactionType={item.transactionType}
+                  balanceType={item?.balanceType}
+                  transactionType={item?.transactionType}
                   icon={
-                    item?.packages ? item.packages[0]?.imageUri : item.imageUri
+                    item?.packages ? item.packages[0]?.imageUri : item?.imageUri
                   }
                   title={
-                    item.transactionType === 'charge'
-                      ? `${item.transactionType} to ...${item.chargeTo?.slice(
-                          item?.chargeTo?.length - 4,
-                          item?.chargeTo?.length,
-                        )}`
-                      : item.transactionType === 'transfer'
-                      ? `${item.transactionType} to ...${item.to?.slice(
+                    item?.transactionType === 'charge'
+                      ? `${item?.transactionType} to ...${item.chargeTo?.slice(
+                        item?.chargeTo?.length - 4,
+                        item?.chargeTo?.length,
+                      )}`
+                      : item?.transactionType === 'transfer'
+                        ? `${item?.transactionType} to ...${item.to?.slice(
                           item?.to?.length - 4,
                           item?.to?.length,
                         )}`
-                      : item.transactionType === 'redeem' &&
-                        item.balanceType === 'package'
-                      ? 'redeem package'
-                      : 'redeem token'
+                        : item?.transactionType === 'redeem' &&
+                          item?.balanceType === 'package'
+                          ? 'redeem package'
+                          : 'redeem token'
                   }
-                  type={item.transactionType}
-                  amount={item.amount}
-                  date={item.timeStamp}
+                  type={item?.transactionType}
+                  amount={item?.amount}
+                  date={item?.timeStamp}
                   onPress={() =>
                     navigation.navigate(
-                      item.transactionType === 'charge'
+                      item?.transactionType === 'charge'
                         ? 'ChargeReceiptScreen'
-                        : item.transactionType === 'transfer'
-                        ? 'TransferReceiptScreen'
-                        : 'RedeemReceiptScreen',
+                        : item?.transactionType === 'transfer'
+                          ? 'TransferReceiptScreen'
+                          : 'RedeemReceiptScreen',
                       {
                         receiptData: item,
                       },
@@ -487,10 +428,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.hs,
     backgroundColor: colors.white,
-    paddingTop: Spacing.vs * 1.5,
+    paddingTop: Spacing.vs * 2,
   },
-  headerTitle: {fontFamily: 'Lora-Regular', fontSize: FontSize.regular},
-  headerRightIcon: {height: 80, width: 30, borderRadius: 100},
+  headerTitle: { fontFamily: 'Lora-Regular', fontSize: FontSize.regular },
+  headerRightIcon: { height: 80, width: 30, borderRadius: 100 },
   container: {
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,

@@ -1,5 +1,6 @@
-import React, {useEffect, useState} from 'react';
-import {useTranslation} from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Keyboard,
   SafeAreaView,
@@ -8,11 +9,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
-import {RNToasty} from 'react-native-toasty';
-import {useSelector} from 'react-redux';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
+import { RNToasty } from 'react-native-toasty';
+import { useDispatch, useSelector } from 'react-redux';
 import colors from '../../../constants/colors';
-import {FontSize, Spacing} from '../../../constants/utils';
+import { FontSize, Spacing } from '../../../constants/utils';
 import {
   PoppinsMedium,
   CustomButton,
@@ -20,38 +21,79 @@ import {
   RegularText,
   CustomHeader,
   Card,
+  CustomLoader,
 } from '../../components';
-import {RahatService} from '../../services/chain';
-
+import { RahatService } from '../../services/chain';
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const VerifyOTPScreen = ({navigation, route}) => {
-  const {t} = useTranslation();
-  const {wallet} = useSelector(state => state.wallet);
-  const {activeAppSettings} = useSelector(state => state.auth);
-  const {phone, remarks, type, packageDetail, amount} = route?.params;
+const VerifyOTPScreen = ({ navigation, route }) => {
+  const { t } = useTranslation();
+  const dispatch = useDispatch();
+  const { wallet, packages } = useSelector(state => state.wallet);
+  const { activeAppSettings } = useSelector(state => state.agency);
+  const { phone, remarks, type, packageDetail, amount } = route?.params;
   const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [timeStamp, setTimeStamp] = useState('');
 
-  useEffect(() => {
-    let mounted = true;
-    if (mounted) {
-      let timeElapsed = Date.now();
-      let today = new Date(timeElapsed);
-      setTimeStamp(today.toLocaleString());
+  const storeReceiptSuccess = receiptData => {
+    RNToasty.Success({ title: `${t('Success')}`, duration: 1 });
+    setIsSubmitting(false);
+    navigation.replace('ChargeReceiptScreen', {
+      receiptData,
+    });
+  };
+  const storeReceiptData = async receiptData => {
+    try {
+      let keys = [],
+        transactions,
+        storedTokenIds,
+        finalTransactions = [],
+        finalTokenIds = [];
+      keys = ['transactions', 'storedTokenIds']
+      response = await AsyncStorage.multiGet(keys);
+      transactions = JSON.parse(response[0][1]);
+      storedTokenIds = JSON.parse(response[1][1]);
+
+      if (receiptData.balanceType === 'package') {
+        if (storedTokenIds !== null && storedTokenIds?.length) {
+          finalTokenIds = storedTokenIds.map((item) => {
+            if (item.agencyUrl === activeAppSettings.agencyUrl) {
+              !item.tokenIds.includes(packageDetail.tokenId) && item.tokenIds.push(packageDetail.tokenId)
+            }
+            return item
+          })
+        }
+        else {
+          finalTokenIds = [{ agencyUrl: activeAppSettings.agencyUrl, tokenIds: [packageDetail.tokenId] }]
+        }
+      }
+    
+      if (transactions !== null) {
+        finalTransactions = [receiptData, ...transactions];
+      } else {
+        finalTransactions = [receiptData];
+      }
+
+      const firstPair = ['transactions', JSON.stringify(finalTransactions)];
+      const secondPair = ['storedTokenIds', JSON.stringify(finalTokenIds)];
+      await AsyncStorage.multiSet(
+        [firstPair, secondPair]
+      );
+      dispatch({ type: 'SET_TRANSACTIONS', transactions: finalTransactions });
+      dispatch({ type: 'SET_STORED_TOKEN_IDS', storedTokenIds : finalTokenIds });
+      storeReceiptSuccess(receiptData);
+    } catch (e) {
+      console.log(e);
     }
-
-    return () => (mounted = false);
-  }, []);
+  };
 
   const onSubmit = async () => {
+    let timeElapsed = Date.now();
+    let today = new Date(timeElapsed);
     Keyboard.dismiss();
-    // let tokenId = route.params?.tokenId;
-
     setIsSubmitting(true);
     if (otp === '') {
       alert(`${t("Please enter otp sent to customer's phone")}`);
@@ -65,7 +107,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
         activeAppSettings.agency.contracts.rahat_erc1155,
       );
 
-      let receipt;
+      let receipt, receiptData;
 
       if (type === 'erc20') {
         receipt = await rahatService.verifyChargeForERC20(phone, otp);
@@ -79,8 +121,8 @@ const VerifyOTPScreen = ({navigation, route}) => {
         );
       }
 
-      const receiptData = {
-        timeStamp,
+      receiptData = {
+        timeStamp: today.toLocaleString(),
         transactionHash: receipt.transactionHash,
         to: receipt.to,
         status: 'success',
@@ -88,19 +130,25 @@ const VerifyOTPScreen = ({navigation, route}) => {
         amount: type === 'erc20' ? amount : packageDetail.amount,
         transactionType: 'charge',
         balanceType: type === 'erc20' ? 'token' : 'package',
-        packageName: packageDetail?.packageName || null,
-        imageUri: packageDetail?.imageUri || null,
-        tokenId: packageDetail?.tokenId || null,
         agencyUrl: activeAppSettings.agencyUrl,
         remarks,
       };
-      RNToasty.Success({title: `${t('Success')}`, duration: 1});
-      setIsSubmitting(false);
-      navigation.replace('ChargeReceiptScreen', {
-        receiptData,
-        from: 'verifyOtp',
-        packageDetail,
-      });
+
+      if (type === 'erc1155') {
+        receiptData.packageName = packageDetail.name;
+        receiptData.imageUri = packageDetail.imageUri;
+        receiptData.tokenId = packageDetail.tokenId;
+      }
+
+      storeReceiptData(receiptData);
+
+      // RNToasty.Success({title: `${t('Success')}`, duration: 1});
+      // setIsSubmitting(false);
+      // navigation.replace('ChargeReceiptScreen', {
+      //   receiptData,
+      //   from: 'verifyOtp',
+      //   packageDetail,
+      // });
     } catch (e) {
       console.log(e);
       alert(e);
@@ -112,22 +160,12 @@ const VerifyOTPScreen = ({navigation, route}) => {
     <>
       <CustomHeader title={t('Verify OTP')} hideBackButton />
       <View style={styles.container}>
-        {/* <SafeAreaView style={styles.header}>
-          <PoppinsMedium style={{fontSize: FontSize.large}}>
-            Verify OTP
-          </PoppinsMedium>
-        </SafeAreaView> */}
-        {/* <View
-          style={{
-            flex: 1,
-            // justifyContent: 'space-between',
-            // marginBottom: Spacing.vs * 3,
-          }}> */}
+        <CustomLoader show={isSubmitting} message={t('Please wait...')} />
         <Card>
           <RegularText
             fontSize={FontSize.medium}
-            style={{paddingBottom: Spacing.vs}}>
-            OTP from SMS (ask from customer)
+            style={{ paddingBottom: Spacing.vs }}>
+            {t('OTP from SMS (ask from customer)')}
           </RegularText>
           <CustomTextInput
             placeholder={t('Enter OTP')}
@@ -140,11 +178,8 @@ const VerifyOTPScreen = ({navigation, route}) => {
             color={colors.green}
             onPress={onSubmit}
             width={widthPercentageToDP(80)}
-            isSubmitting={isSubmitting}
           />
         </Card>
-
-        {/* </View> */}
       </View>
     </>
   );

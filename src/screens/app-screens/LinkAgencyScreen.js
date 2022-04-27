@@ -206,6 +206,8 @@ const LinkAgencyScreen = ({navigation, route}) => {
         navigation.replace('Tabs');
       }
       if (route.params?.from === 'agencies') {
+        dispatch({ type: 'SET_TRANSACTIONS', transactions: [] });
+        dispatch({ type: 'SET_STORED_TOKEN_IDS', storedTokenIds: [] });
         dispatch({type: 'SET_USERDATA', userData: data});
         navigation.pop();
       }
@@ -227,6 +229,7 @@ const LinkAgencyScreen = ({navigation, route}) => {
       });
   };
   const onLinkNewAgencyError = e => {
+    console.log(e.response, "asd")
     const errorMessage = e.response ? e.response?.data?.message : e.message;
     alert(
       errorMessage || `${t('Something went wrong. Please try again')}`,

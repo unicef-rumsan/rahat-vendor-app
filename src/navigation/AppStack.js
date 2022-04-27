@@ -32,11 +32,7 @@ import {
   PackageDetailScreen,
 } from '../screens/app-screens';
 import colors from '../../constants/colors';
-import {
-  ChargeIcon,
-  HomeIcon,
-  AssetsIcon,
-} from '../../assets/icons';
+import {ChargeIcon, HomeIcon, AssetsIcon} from '../../assets/icons';
 import {useSelector} from 'react-redux';
 import {Spacing} from '../../constants/utils';
 import {useTranslation} from 'react-i18next';
@@ -57,7 +53,6 @@ const Tabs = () => {
         tabBarStyle: {height: 55},
         unmountOnBlur: true,
         tabBarShowLabel: true,
-
         tabBarIconStyle: {
           marginTop: Spacing.vs / 4,
           marginBottom: 0,
@@ -134,7 +129,10 @@ const AppStack = () => {
       <Stack.Screen name="ScanScreen" component={ScanScreen} />
 
       <Stack.Screen name="RedeemTokenScreen" component={RedeemTokenScreen} />
-      <Stack.Screen name="RedeemPackageScreen" component={RedeemPackageScreen} />
+      <Stack.Screen
+        name="RedeemPackageScreen"
+        component={RedeemPackageScreen}
+      />
       <Stack.Screen
         name="RedeemReceiptScreen"
         component={RedeemReceiptScreen}

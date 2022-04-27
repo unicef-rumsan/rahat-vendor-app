@@ -6,7 +6,7 @@ import {FontSize, Spacing} from '../../constants/utils';
 import colors from '../../constants/colors';
 import CheckBox from '@react-native-community/checkbox';
 
-const AmountWithAngleBracket = ({amount}) => (
+const AmountWithAngleBracket = ({balance}) => (
   <View style={{flexDirection: 'row', alignItems: 'center'}}>
     <RegularText
       color={colors.blue}
@@ -14,7 +14,7 @@ const AmountWithAngleBracket = ({amount}) => (
         fontSize: FontSize.medium * 1.1,
         paddingHorizontal: Spacing.hs / 2,
       }}>
-      {amount}
+      {balance}
     </RegularText>
     <AngleRightIcon />
   </View>
@@ -23,7 +23,7 @@ const AmountWithAngleBracket = ({amount}) => (
 const IndividualPackageView = ({
   icon,
   title,
-  amount,
+  balance,
   onPress,
   selectable,
   isSelected,
@@ -56,7 +56,7 @@ const IndividualPackageView = ({
         </RegularText>
       </View>
 
-      <AmountWithAngleBracket amount={amount} />
+      <AmountWithAngleBracket balance={balance} />
     </View>
   </Pressable>
 );

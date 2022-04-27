@@ -105,7 +105,7 @@ export const getWalletBalance =
         tokenAddress,
         nftAddress,
       ).getBalance(wallet.address);
-      dispatch({type: 'SET_BALANCE', balance: tokenBalance.toNumber()});
+      dispatch({type: 'SET_TOKEN_BALANCE', tokenBalance: tokenBalance.toNumber()});
       // success();
     } catch (e) {
       alert(e);
@@ -137,7 +137,7 @@ export const getPackageBatchBalance =
           tokenQtys.push(item.toNumber());
         });
       }
-      success(tokenQtys);
+      success(tokenIds,tokenQtys);
     } catch (e) {
       alert(e);
       // error(e);

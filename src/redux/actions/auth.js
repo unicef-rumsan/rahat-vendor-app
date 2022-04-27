@@ -1,5 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ethers} from 'ethers';
 import * as api from '../api';
 
 export const registerVendor =
@@ -30,28 +28,6 @@ export const getUserByWalletAddress =
       }
       dispatch({type: 'SET_USERDATA', userData: response.data});
       success(response.data, agencyUrl);
-    } catch (e) {
-      console.log(e);
-      error(e);
-    }
-  };
-export const switchAgency =
-  (agencySettings, wallet, success, error) => async dispatch => {
-    try {
-      const response = await api.apiGetUserByWalletAddress(
-        agencySettings.agencyUrl,
-        wallet.address,
-      );
-      if (response.status === 204) {
-        return error();
-      }
-      let provider = new ethers.providers.JsonRpcProvider(
-        agencySettings?.networkUrl,
-      );
-      let connectedWallet = wallet.connect(provider);
-      dispatch({type: 'SET_USERDATA', userData: response.data});
-      dispatch({type: 'SET_WALLET', wallet: connectedWallet});
-      success(agencySettings);
     } catch (e) {
       console.log(e);
       error(e);

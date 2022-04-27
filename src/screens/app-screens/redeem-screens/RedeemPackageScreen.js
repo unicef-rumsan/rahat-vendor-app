@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import {Pressable, StyleSheet, Text, View, Image} from 'react-native';
-import {RNToasty} from 'react-native-toasty';
-import {useDispatch, useSelector} from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, Image } from 'react-native';
+import { RNToasty } from 'react-native-toasty';
+import { useDispatch, useSelector } from 'react-redux';
 import colors from '../../../../constants/colors';
-import {FontSize, Spacing} from '../../../../constants/utils';
+import { FontSize, Spacing } from '../../../../constants/utils';
 import {
   CustomHeader,
   Card,
@@ -12,45 +12,42 @@ import {
 } from '../../../components';
 import CustomLoader from '../../../components/CustomLoader';
 
-import {useTranslation} from 'react-i18next';
-import {ERC1155_Service, TokenService} from '../../../services/chain';
+import { useTranslation } from 'react-i18next';
+import { ERC1155_Service, TokenService } from '../../../services/chain';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import IndividualPackageView from '../../../components/IndividualPackageView';
 import CheckBox from '@react-native-community/checkbox';
-import {getPackageBalanceInFiat} from '../../../redux/actions/wallet';
+import { getPackageBalanceInFiat } from '../../../redux/actions/wallet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const RedeemPackageScreen = ({navigation, route}) => {
-  // const agencyName = route.params?.agencyName;
+const RedeemPackageScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
-  const {t} = useTranslation();
-  const {packages, wallet, packageTokenIds} = useSelector(
+  const { t } = useTranslation();
+  const { packages, wallet } = useSelector(
     state => state.wallet,
   );
 
-  const {activeAppSettings, userData} = useSelector(state => state.auth);
-  // const [amount, setAmount] = useState('');
+  const { userData } = useSelector(state => state.auth);
+  const { activeAppSettings } = useSelector(state => state.agency);
   const [values, setValues] = useState({
     isSubmitting: false,
     showLoader: false,
     loaderMessage: '',
-    combinedPackages: [],
     selectedPackages: [],
   });
   const {
     isSubmitting,
     loaderMessage,
     showLoader,
-    combinedPackages,
     selectedPackages,
   } = values;
 
   useEffect(() => {
     let temp = userData.agencies?.filter(
-      data => data.agency === activeAppSettings.agency._id,
+      data => data.agency === activeAppSettings?.agency?._id,
     );
     if (temp[0]?.status === 'new') {
       RNToasty.Show({
@@ -61,11 +58,61 @@ const RedeemPackageScreen = ({navigation, route}) => {
     }
   }, [activeAppSettings]);
 
+  const storeReceiptSuccess = (receiptData) => {
+    RNToasty.Success({ title: `${t('Success')}`, duration: 1 });
+    setValues({ ...values, showLoader: false })
+    navigation.replace('RedeemReceiptScreen', {
+      receiptData,
+    });
+  }
+
+  const storeReceipt = async (receiptData, selectedTokenIds) => {
+    try {
+      let response, storedTokenIds = [];
+      let finalTokenIdsToStore = [], transactions = [], finalTransactions = [];
+      response = await AsyncStorage.multiGet(['transactions', 'storedTokenIds'])
+      transactions = JSON.parse(response[0][1]);
+      storedTokenIds = JSON.parse(response[1][1]);
+
+      if (storedTokenIds !== null) {
+        finalTokenIdsToStore = storedTokenIds.map((item) => {
+          if (item.agencyUrl === activeAppSettings.agencyUrl) {
+            item.tokenIds = item.tokenIds.filter(value => !selectedTokenIds.includes(value))
+          }
+          return item
+        })
+      }
+      if (transactions !== null) {
+        finalTransactions = [receiptData, ...transactions];
+      }
+      if (transactions === null) {
+        finalTransactions = [receiptData];
+      }
+
+      const firstPair = ['transactions', JSON.stringify(finalTransactions)];
+      const secondPair = ['storedTokenIds', JSON.stringify(storedTokenIds)];
+      await AsyncStorage.multiSet(
+        [firstPair, secondPair]
+      );
+      dispatch({ type: 'SET_TRANSACTIONS', transactions: finalTransactions });
+      dispatch({ type: 'SET_STORED_TOKEN_IDS', storedTokenIds: finalTokenIdsToStore });
+      storeReceiptSuccess(receiptData);
+
+    } catch (e) {
+      alert(e)
+    }
+
+  }
+
+
   const onGetBalanceinFiatSuccess = async (
     balanceInFiat,
     tokenIds,
     amounts,
   ) => {
+    console.log(balanceInFiat, tokenIds, amounts);
+    setValues(values => ({ ...values, isSubmitting: false }));
+
     let timeElapsed, timeStamp;
     timeElapsed = Date.now();
     timeStamp = new Date(timeElapsed);
@@ -79,6 +126,7 @@ const RedeemPackageScreen = ({navigation, route}) => {
         wallet.address,
         activeAppSettings?.agency?.contracts?.rahat_admin,
         tokenIds,
+        // [1],
         amounts,
         [],
       );
@@ -93,46 +141,24 @@ const RedeemPackageScreen = ({navigation, route}) => {
         packages: selectedPackages,
       };
 
-      let updatedPackageTokenIds = packageTokenIds.filter(
-        obj => tokenIds.indexOf(obj) === -1,
-      );
-      let remainingPackages = packages.filter(
-        item => selectedPackages.indexOf(item) === -1,
-      );
-
-      AsyncStorage.setItem('packages', JSON.stringify(remainingPackages))
-        .then(() => {
-          dispatch({
-            type: 'SET_PACKAGE_TOKEN_IDS',
-            packageTokenIds: updatedPackageTokenIds,
-          });
-          dispatch({
-            type: 'SET_PACKAGES',
-            packages: remainingPackages,
-          });
-          navigation.replace('RedeemReceiptScreen', {
-            receiptData,
-            from: 'redeemScreen',
-          });
-        })
-        .catch(e => alert('Error while storing updated packages'));
+      storeReceipt(receiptData, tokenIds)
     } catch (e) {
       console.log(e);
       alert(e);
-      setValues({...values, isSubmitting: false});
+      setValues({ ...values, showLoader: false });
     }
   };
 
   const onGetBalanceinFiatError = () => {
     alert('Error while getting balance in fiat');
-    setValues(values => ({...values, isSubmitting: false}));
+    setValues(values => ({ ...values, showLoader: false }));
   };
 
   const handleRedeem = async () => {
     let tokenIds = [],
       amounts = [];
 
-    setValues({...values, isSubmitting: true});
+    setValues({ ...values, showLoader: true, loaderMessage: `${t('Please wait...')}` });
 
     selectedPackages.map(item => {
       tokenIds = [...tokenIds, item.tokenId];
@@ -151,10 +177,10 @@ const RedeemPackageScreen = ({navigation, route}) => {
 
   const handlePackageSelect = (item, value) => {
     if (value) {
-      setValues({...values, selectedPackages: [...selectedPackages, item]});
+      setValues({ ...values, selectedPackages: [...selectedPackages, item] });
     } else {
       let temp = selectedPackages.filter(i => i.tokenId !== item.tokenId);
-      setValues({...values, selectedPackages: temp});
+      setValues({ ...values, selectedPackages: temp });
     }
   };
 
@@ -167,14 +193,14 @@ const RedeemPackageScreen = ({navigation, route}) => {
         <RegularText
           fontSize={FontSize.medium}
           color={colors.gray}
-          style={{paddingVertical: Spacing.vs / 2}}>
+          style={{ paddingVertical: Spacing.vs / 2 }}>
           {activeAppSettings.agency.name}
         </RegularText>
         <Card>
           <RegularText fontSize={FontSize.medium}>{t('Packages')}</RegularText>
           <View style={styles.selectAllCheckBox}>
             <CheckBox
-              style={{marginRight: Spacing.hs / 2}}
+              style={{ marginRight: Spacing.hs / 2 }}
               value={
                 packages?.length && packages.length === selectedPackages.length
                   ? true
@@ -182,11 +208,11 @@ const RedeemPackageScreen = ({navigation, route}) => {
               }
               onValueChange={value =>
                 value
-                  ? setValues({...values, selectedPackages: packages})
-                  : setValues({...values, selectedPackages: []})
+                  ? setValues({ ...values, selectedPackages: packages })
+                  : setValues({ ...values, selectedPackages: [] })
               }
               tintColor={colors.blue}
-              tintColors={{true: colors.blue, false: colors.gray}}
+              tintColors={{ true: colors.blue, false: colors.gray }}
             />
             <RegularText fontSize={FontSize.medium}>
               {t('Select All')}
@@ -209,7 +235,7 @@ const RedeemPackageScreen = ({navigation, route}) => {
                 />
               }
               title={item.name}
-              amount={item.amount}
+              balance={item.balance}
             />
           ))}
         </Card>
@@ -218,9 +244,8 @@ const RedeemPackageScreen = ({navigation, route}) => {
           title={t('Redeem')}
           color={colors.green}
           onPress={handleRedeem}
-          style={{marginBottom: Spacing.vs * 2}}
-          disabled={isSubmitting || (selectedPackages.length === 0 && true)}
-          isSubmitting={isSubmitting}
+          style={{ marginBottom: Spacing.vs * 2 }}
+          disabled={selectedPackages.length === 0 && true}
         />
       </View>
     </>
@@ -235,7 +260,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,
   },
-  inputContainer: {paddingTop: Spacing.vs, flex: 1},
+  inputContainer: { paddingTop: Spacing.vs, flex: 1 },
   packageIcon: {
     height: hp(6),
     width: wp(9),

@@ -26,9 +26,10 @@ import {
   CustomLoader,
   CustomPopup,
 } from '../../components';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {ethers} from 'ethers';
 import {useTranslation} from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -36,8 +37,9 @@ if (Platform.OS === 'android') {
 }
 
 const TransferTokenScreen = ({navigation, route}) => {
-  const {balance} = useSelector(state => state.wallet);
+  const {tokenBalance} = useSelector(state => state.wallet);
   const {t} = useTranslation();
+  const dispatch = useDispatch();
   const [values, setValues] = useState({
     destinationAddress: '',
     amount: '',
@@ -86,7 +88,7 @@ const TransferTokenScreen = ({navigation, route}) => {
   }, [route]);
 
   const handleTransferToken = () => {
-    if (balance < amount) {
+    if (tokenBalance < amount) {
       return setValues({
         ...values,
         showPopup: true,
@@ -115,7 +117,7 @@ const TransferTokenScreen = ({navigation, route}) => {
     try {
       const tokenContract = Contract({
         wallet,
-        address: activeAppSettings.agency.contracts.token,
+        address: activeAppSettings.agency.contracts.rahat_erc20,
         type: 'erc20',
       }).get();
       await tokenContract.transfer(destinationAddress, amount);
@@ -129,6 +131,37 @@ const TransferTokenScreen = ({navigation, route}) => {
     }
   };
 
+  const storeReceiptSuccess = receiptData => {
+    setValues({...values, showLoader: false});
+    navigation.replace('TransferReceiptScreen', {
+      receiptData,
+    });
+  };
+
+  const storeReceipt = async receiptData => {
+    try {
+      let transactions,
+        parsedTransactions = [],
+        finalTransactions = [];
+      transactions = await AsyncStorage.getItem('transactions');
+
+      if (transactions !== null) {
+        parsedTransactions = JSON.parse(transactions);
+        finalTransactions = [receiptData, ...parsedTransactions];
+      } else {
+        finalTransactions = [receiptData];
+      }
+      await AsyncStorage.setItem(
+        'transactions',
+        JSON.stringify(finalTransactions),
+      );
+      dispatch({type: 'SET_TRANSACTIONS', transactions: finalTransactions});
+      storeReceiptSuccess(receiptData);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   const onSuccess = () => {
     let timeElapsed = Date.now();
     let timeStamp = new Date(timeElapsed);
@@ -137,17 +170,14 @@ const TransferTokenScreen = ({navigation, route}) => {
       timeStamp: timeStamp.toLocaleString(),
       to: destinationAddress,
       amount,
-      type: 'transfer',
+      transactionType: 'transfer',
+      balanceType: 'token',
       agencyUrl: activeAppSettings.agencyUrl,
     };
-    setValues({...values, showLoader: false});
-    navigation.replace('TransferReceiptScreen', {
-      receiptData,
-      from: 'transferToken',
-    });
+    storeReceipt(receiptData);
   };
   const onError = e => {
-    console.log(e.error, 'error');
+    console.log(e, 'error');
     setValues({...values, showLoader: false});
     Alert.alert(
       'Error',

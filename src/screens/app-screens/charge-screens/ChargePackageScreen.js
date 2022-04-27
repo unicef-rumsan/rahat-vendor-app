@@ -1,14 +1,14 @@
-import React, {useEffect, useState} from 'react';
-import {useTranslation} from 'react-i18next';
-import {StatusBar, StyleSheet, View, Image} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { StatusBar, StyleSheet, View, Image, Alert } from 'react-native';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import colors from '../../../../constants/colors';
-import {FontSize, Spacing} from '../../../../constants/utils';
+import { FontSize, Spacing } from '../../../../constants/utils';
 import {
   CustomHeader,
   Card,
@@ -18,22 +18,46 @@ import {
   CustomLoader,
   SwitchAgencyModal,
 } from '../../../components';
-import {switchAgency} from '../../../redux/actions/auth';
-import {RahatService} from '../../../services/chain';
+import { toggleSwitchAgencyModal, switchAgency, switchAgencyClearError } from '../../../redux/actions/agency';
+import { RahatService } from '../../../services/chain';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const ChargePackageScreen = ({navigation, route}) => {
-  const {packageDetail, beneficiaryPhone} = route.params;
+const IndividualPackageDetail = ({ title, value }) => (
+  <View
+    style={{
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingBottom: Spacing.vs,
+    }}>
+    <SmallText noPadding color={colors.gray}>
+      {title}
+    </SmallText>
+    <SmallText
+      ellipsizeMode="tail"
+      numberOfLines={2}
+      noPadding
+      color={colors.blue}
+      style={{ width: widthPercentageToDP(30), textAlign: 'right' }}>
+      {value}
+    </SmallText>
+  </View>
+);
+
+const ChargePackageScreen = ({ navigation, route }) => {
+  const { packageDetail, beneficiaryPhone } = route.params;
   const dispatch = useDispatch();
-  const {t} = useTranslation();
-  const {wallet} = useSelector(state => state.wallet);
-  const {appSettings, userData, activeAppSettings} = useSelector(
+  const { t } = useTranslation();
+  const { wallet } = useSelector(state => state.wallet);
+  const { userData } = useSelector(
     state => state.auth,
   );
+
+  const { switchingAgency, switchAgencyLoaderMessage, switchAgencyErrorMessage, activeAppSettings, appSettings, showSwitchAgencyModal, switchAgencyError } = useSelector(state => state.agency)
+
 
   const [values, setValues] = useState({
     isSubmitting: false,
@@ -43,18 +67,15 @@ const ChargePackageScreen = ({navigation, route}) => {
     message: '',
     loaderMessage: '',
     showLoader: false,
-    showSwitchAgencyModal: false,
   });
   const {
     isSubmitting,
-
     message,
     messageType,
     popupType,
     showPopup,
     loaderMessage,
     showLoader,
-    showSwitchAgencyModal,
   } = values;
 
   useEffect(() => {
@@ -84,9 +105,7 @@ const ChargePackageScreen = ({navigation, route}) => {
       ).chargeCustomerERC1155(beneficiaryPhone, 1, packageDetail.tokenId);
 
       packageDetail.amount = 1;
-
-        console.log(packageDetail, "package detail ")
-
+      delete packageDetail.balance;
       navigation.navigate('VerifyOTPScreen', {
         phone: beneficiaryPhone,
         remarks: '',
@@ -94,18 +113,13 @@ const ChargePackageScreen = ({navigation, route}) => {
         packageDetail,
       });
     } catch (e) {
-      setValues({...values, isSubmitting: false});
+      setValues({ ...values, isSubmitting: false });
       alert(e);
     }
   };
 
   const handleSwitchAgency = agencyUrl => {
-    setValues({
-      ...values,
-      showSwitchAgencyModal: false,
-      showLoader: true,
-      loaderMessage: `${t('Switching agency.')} ${t('Please wait...')}`,
-    });
+
     const newActiveAppSettings = appSettings.find(
       setting => setting.agencyUrl === agencyUrl,
     );
@@ -113,49 +127,18 @@ const ChargePackageScreen = ({navigation, route}) => {
       switchAgency(
         newActiveAppSettings,
         wallet,
-        onSwitchSuccess,
-        onSwitchError,
       ),
     );
   };
-
-  const onSwitchSuccess = newActiveAppSettings => {
-    dispatch({type: 'SET_ACTIVE_APP_SETTINGS', payload: newActiveAppSettings});
-    setValues({...values, showLoader: false, showSwitchAgencyModal: false});
-  };
-  const onSwitchError = e => {
-    console.log(e, 'e');
-    setValues({...values, showLoader: false, showSwitchAgencyModal: false});
-  };
-
-  const IndividualPackageDetail = ({title, value}) => (
-    <View
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingBottom: Spacing.vs,
-      }}>
-      <SmallText noPadding color={colors.gray}>
-        {title}
-      </SmallText>
-      <SmallText
-        ellipsizeMode="tail"
-        numberOfLines={2}
-        noPadding
-        color={colors.blue}
-        style={{width: widthPercentageToDP(30), textAlign: 'right'}}>
-        {/* {truncateString(value)} */}
-        {value}
-      </SmallText>
-    </View>
-  );
-
   return (
     <>
       <CustomHeader
         title={t('Charge Package')}
         onBackPress={() => navigation.pop()}
       />
+      {switchAgencyError && (Alert.alert('Error', `${switchAgencyErrorMessage}`, [
+        { text: "OK", onPress: () => dispatch(switchAgencyClearError()) }
+      ]))}
       <CustomLoader show={isSubmitting} message={loaderMessage} />
       <CustomPopup
         message={message}
@@ -164,7 +147,7 @@ const ChargePackageScreen = ({navigation, route}) => {
         popupType={popupType}
         onConfirm={() =>
           messageType === `${t('Insufficient Balance')}`
-            ? setValues({...values, showPopup: false})
+            ? setValues({ ...values, showPopup: false })
             : navigation.navigate('HomeScreen')
         }
       />
@@ -173,19 +156,19 @@ const ChargePackageScreen = ({navigation, route}) => {
         activeAgency={activeAppSettings}
         show={showSwitchAgencyModal}
         onPress={handleSwitchAgency}
-        hide={() => setValues({...values, showSwitchAgencyModal: false})}
+        hide={() => dispatch(toggleSwitchAgencyModal(showSwitchAgencyModal))}
       />
       <CustomLoader show={showLoader} message={loaderMessage} />
       <View style={styles.container}>
         <SmallText
-          style={{fontSize: FontSize.small * 1.1}}
+          style={{ fontSize: FontSize.small * 1.1 }}
           noPadding
           color={colors.gray}>
           {activeAppSettings.agency.name}
         </SmallText>
 
-        <Card style={{paddingVertical: Spacing.vs * 2}}>
-          <View style={{alignItems: 'center', paddingBottom: Spacing.vs * 3}}>
+        <Card style={{ paddingVertical: Spacing.vs * 2 }}>
+          <View style={{ alignItems: 'center', paddingBottom: Spacing.vs * 3 }}>
             {/* <PackageImageIcon /> */}
             <Image
               source={{
@@ -219,15 +202,16 @@ const ChargePackageScreen = ({navigation, route}) => {
             width={widthPercentageToDP(80)}
             disabled={isSubmitting}
             outlined
-            onPress={() => setValues({...values, showSwitchAgencyModal: true})}
+            onPress={() => dispatch(toggleSwitchAgencyModal(showSwitchAgencyModal))}
+
           />
           <CustomButton
             title={t('Charge')}
             color={colors.green}
             width={widthPercentageToDP(80)}
             onPress={onSubmit}
-            // isSubmitting={isSubmitting}
-            // disabled={isSubmitting}
+          // isSubmitting={isSubmitting}
+          // disabled={isSubmitting}
           />
         </Card>
       </View>

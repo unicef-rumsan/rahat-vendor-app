@@ -20,7 +20,8 @@ if (Platform.OS === 'android') {
 
 const AssetsScreen = ({navigation, route}) => {
   const {t} = useTranslation();
-  const {packages, balance} = useSelector(state => state.wallet);
+  const {packages, tokenBalance} = useSelector(state => state.wallet);
+
 
   return (
     <>
@@ -40,7 +41,7 @@ const AssetsScreen = ({navigation, route}) => {
                 fontSize: FontSize.medium * 1.1,
                 paddingHorizontal: Spacing.hs,
               }}>
-              {balance}
+              {tokenBalance}
             </RegularText>
             {/* <AmountWithAngleBracket amount={10000} /> */}
           </Card>
@@ -71,7 +72,7 @@ const AssetsScreen = ({navigation, route}) => {
                 />
               }
               title={item.name}
-              amount={item.amount}
+              balance={item.balance}
               onPress={() =>
                 navigation.navigate('PackageDetailScreen', {
                   packageDetail: item,

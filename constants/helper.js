@@ -50,19 +50,29 @@ const truncateString = str => {
 };
 
 const getPackageDetail = async (obj, type) => {
-  let tokenIds =
-    type === 'totalERCBalance' ? obj.tokenIds.map(t => t.toNumber()) : obj;
-
+  let tokenIds;
+  if (type === 'getPackages') {
+    tokenIds = obj.tokenIds?.map(t => t);
+  } else {
+    tokenIds = obj.tokenIds?.map(t => t?.toNumber());
+  }
   try {
     let packages = [];
     await Promise.all(
-      tokenIds.map(async (item, index) => {
+      tokenIds?.map(async (item, index) => {
+        let balance;
+        if (type === 'getPackages') {
+          balance = obj.balances[index];
+        } else {
+          balance = obj.balances[index].toNumber();
+        }
         const response = await axios.get(
           `https://agency-nft.rahat.io/api/v1/nft/token/${item}`,
         );
         const data = response.data;
-        const balance =
-          type === 'totalERCBalance' ? obj.balances[index].toNumber() : 1;
+        // balance = (type = 'getPackages'
+        //   ? obj.balances[index]
+        //   : obj.balances[index].toNumber());
         const pkg = {
           tokenId: data.tokenId,
           name: data.name,
@@ -131,13 +141,12 @@ const getCombinedPackages = packages => {
   return temp;
 };
 
-const getActiveAgencyTransactions = async (activeAppSettings, transactions) => {
+const getActiveAgencyTransactions = (activeAppSettings, transactions) => {
   try {
-    // const transactions = await AsyncStorage.getItem('transactions');
     if (transactions?.length) {
-      // const parsedTransactions = JSON.parse(transactions);
+      console.log(transactions[0])
       const filteredTransactions = transactions?.filter(
-        item => item.agencyUrl === activeAppSettings.agencyUrl,
+        item => item?.agencyUrl === activeAppSettings?.agencyUrl,
       );
       return filteredTransactions;
     }
@@ -154,5 +163,5 @@ export {
   getPackageDetail,
   getPackages,
   getActiveAgencyTransactions,
-  getCombinedPackages
+  getCombinedPackages,
 };

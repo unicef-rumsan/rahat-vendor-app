@@ -28,36 +28,36 @@ const StatementScreen = ({navigation, route}) => {
           </View>
         </Card>
         <Card>
-          {transactions.map((item, index) => (
+          {transactions?.map((item, index) => (
             <IndividualStatement
               lastItem={index === transactions.length - 1 ? true : false}
               key={index}
-              balanceType={item.balanceType}
-              transactionType={item.transactionType}
-              icon={item?.packages ? item.packages[0]?.imageUri : item.imageUri}
+              balanceType={item?.balanceType}
+              transactionType={item?.transactionType}
+              icon={item?.packages ? item.packages[0]?.imageUri : item?.imageUri}
               title={
-                item.transactionType === 'charge'
+                item?.transactionType === 'charge'
                   ? `${item.transactionType} to ...${item.chargeTo?.slice(
                       item?.chargeTo?.length - 4,
                       item?.chargeTo?.length,
                     )}`
-                  : item.transactionType === 'transfer'
+                  : item?.transactionType === 'transfer'
                   ? `${item.transactionType} to ...${item.to?.slice(
                       item?.to?.length - 4,
                       item?.to?.length,
                     )}`
-                  : item.transactionType === 'redeem' &&
-                    item.balanceType === 'package'
+                  : item?.transactionType === 'redeem' &&
+                    item?.balanceType === 'package'
                   ? 'redeem package'
                   : 'redeem token'
               }
-              amount={item.amount}
-              date={item.timeStamp}
+              amount={item?.amount}
+              date={item?.timeStamp}
               onPress={() =>
                 navigation.navigate(
-                  item.transactionType === 'charge'
+                  item?.transactionType === 'charge'
                     ? 'ChargeReceiptScreen'
-                    : item.transactionType === 'transfer'
+                    : item?.transactionType === 'transfer'
                     ? 'TransferReceiptScreen'
                     : 'RedeemReceiptScreen',
                   {

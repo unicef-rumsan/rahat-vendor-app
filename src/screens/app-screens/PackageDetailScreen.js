@@ -18,6 +18,7 @@ if (Platform.OS === 'android') {
 const PackageDetailScreen = ({navigation, route}) => {
   const {t} = useTranslation();
   const {packageDetail} = route?.params;
+  console.log(packageDetail, "asd")
 
   const IndividualPackageDetail = ({title, value}) => (
     <View
@@ -63,11 +64,11 @@ const PackageDetailScreen = ({navigation, route}) => {
           />
           <IndividualPackageDetail
             title={t('Issued Quantity')}
-            value={packageDetail.amount}
+            value={packageDetail.balance}
           />
           <IndividualPackageDetail
             title={t('Worth')}
-            value={Number(packageDetail.value) * packageDetail.amount}
+            value={Number(packageDetail.value) * packageDetail.balance}
           />
         </Card>
       </View>
