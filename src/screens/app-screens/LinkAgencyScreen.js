@@ -1,14 +1,14 @@
-import React, {useState} from 'react';
-import {StyleSheet, View, StatusBar, SafeAreaView} from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, StatusBar, SafeAreaView } from 'react-native';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import {useIsFocused} from '@react-navigation/native';
-import {RumsanLogo} from '../../../assets/icons';
+import { useIsFocused } from '@react-navigation/native';
+import { RumsanLogo } from '../../../assets/icons';
 import colors from '../../../constants/colors';
-import {FontSize, Spacing} from '../../../constants/utils';
+import { FontSize, Spacing } from '../../../constants/utils';
 import {
   PoppinsMedium,
   RegularText,
@@ -20,25 +20,24 @@ import CustomLoader from '../../components/CustomLoader';
 import {
   getAppSettings,
   getRestoreUserData,
-  getUserByWalletAddress,
   registerVendor,
-  storeUserData,
 } from '../../redux/actions/auth';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ethers} from 'ethers';
-import {setWallet} from '../../redux/actions/wallet';
-import {useTranslation} from 'react-i18next';
+import { ethers } from 'ethers';
+import { setWallet } from '../../redux/actions/wallet';
+import { useTranslation } from 'react-i18next';
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const LinkAgencyScreen = ({navigation, route}) => {
+const LinkAgencyScreen = ({ navigation, route }) => {
   const isFocused = useIsFocused();
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
-  const {wallet} = useSelector(state => state.wallet);
+  const { wallet } = useSelector(state => state.wallet);
+  const { appSettings } = useSelector(state => state.agency);
 
   const [linkAgencyType, setLinkAgencyType] = useState('qr');
 
@@ -63,6 +62,15 @@ const LinkAgencyScreen = ({navigation, route}) => {
 
   const onScan = res => {
     const agencyUrl = res?.data;
+    if (appSettings?.some(item => item.agencyUrl === agencyUrl)) {
+      return setValues({
+        ...values,
+        showPopup: true,
+        popupType: "alert",
+        messageType: 'Info',
+        message: `${t('Already linked to this agency. Cannot link same agency twice.')}`
+      });
+    }
     setValues({
       ...values,
       isSubmitting: true,
@@ -107,6 +115,7 @@ const LinkAgencyScreen = ({navigation, route}) => {
     }, 200);
   };
   const linkNewAgency = agencySettings => {
+
     setValues({
       ...values,
       isSubmitting: true,
@@ -136,11 +145,19 @@ const LinkAgencyScreen = ({navigation, route}) => {
           agencySettings,
           wallet.address,
           onRegisterSuccess,
-          onRegisterError,
+          onRestoreUserDataError
         ),
       );
     }, 200);
   };
+
+  const onRestoreUserDataError = (e, agencySettings) => {
+    let errorMessage = '';
+    if (e.message === 'Not registered') {
+      errorMessage = `Sorry, the user with wallet address ${wallet?.address} is not registered in ${agencySettings?.agencyUrl}`;
+    }
+    onRegisterError({ message: errorMessage })
+  }
 
   const onGetAppSettingsSuccess = agencySettings => {
     setValues({
@@ -148,6 +165,7 @@ const LinkAgencyScreen = ({navigation, route}) => {
       isSubmitting: false,
     });
     if (agencySettings.isSetup === true) {
+      console.log(route.params?.from)
       if (route.params?.from === 'signup') {
         registerNewUser(agencySettings);
       }
@@ -187,55 +205,61 @@ const LinkAgencyScreen = ({navigation, route}) => {
           'storedAppSettings',
           JSON.stringify(newAppSettings),
         );
-        dispatch({type: 'SET_APP_SETTINGS', payload: newAppSettings});
+        dispatch({ type: 'SET_APP_SETTINGS', payload: newAppSettings });
       } else {
         let dataToStore = [agencySettings];
         await AsyncStorage.setItem(
           'storedAppSettings',
           JSON.stringify(dataToStore),
         );
-        dispatch({type: 'SET_APP_SETTINGS', payload: dataToStore});
+        dispatch({ type: 'SET_APP_SETTINGS', payload: dataToStore });
       }
-      dispatch({type: 'SET_ACTIVE_APP_SETTINGS', payload: agencySettings});
+      dispatch({ type: 'SET_ACTIVE_APP_SETTINGS', payload: agencySettings });
 
       if (route.params?.from === 'signup') {
-        navigation.replace('RegisterSuccessScreen', {data});
+        navigation.replace('RegisterSuccessScreen', { data });
       }
       if (route.params?.from === 'restore') {
-        dispatch({type: 'SET_USERDATA', userData: data});
+        dispatch({ type: 'SET_USERDATA', userData: data });
         navigation.replace('Tabs');
       }
       if (route.params?.from === 'agencies') {
         dispatch({ type: 'SET_TRANSACTIONS', transactions: [] });
         dispatch({ type: 'SET_STORED_TOKEN_IDS', storedTokenIds: [] });
-        dispatch({type: 'SET_USERDATA', userData: data});
+        dispatch({ type: 'SET_USERDATA', userData: data });
         navigation.pop();
       }
     } catch (e) {
-      console.log(e);
     }
   };
 
   const onRegisterError = e => {
-    console.log(e);
+    const errorMessage = e?.response ? e?.response?.data?.error : e?.message;
     AsyncStorage.clear()
       .then(() => {
-        const errorMessage = e.response ? e.response?.data?.error : e?.message;
-        setValues({...values, isSubmitting: false});
-        alert(errorMessage || 'Something went wrong', 'register error');
+        setValues({
+          ...values,
+          isSubmitting: false,
+          showPopup: true,
+          popupType: 'alert',
+          messageType: 'Error',
+          message: `${t(errorMessage || 'Something went wrong. Please try again.')}`
+        });
       })
       .catch(e => {
         console.log(e, 'asycn clear error');
       });
   };
   const onLinkNewAgencyError = e => {
-    console.log(e.response, "asd")
-    const errorMessage = e.response ? e.response?.data?.message : e.message;
-    alert(
-      errorMessage || `${t('Something went wrong. Please try again')}`,
-      'register error',
-    );
-    setValues({...values, isSubmitting: false});
+    const errorMessage = e?.response ? e.response?.data?.message : e?.message;
+    setValues({
+      ...values,
+      isSubmitting: false,
+      showPopup: true,
+      popupType: 'alert',
+      messageType: 'Error',
+      message: `${t(errorMessage || 'Something went wrong. Please try again.')}`
+    });
   };
 
   const LinkWithQRUI = () => (
@@ -246,9 +270,9 @@ const LinkAgencyScreen = ({navigation, route}) => {
 
       {!isSubmitting && !showPopup && (
         <QRCodeScanner
-          cameraStyle={{height: '100%'}}
+          cameraStyle={{ height: '100%' }}
           showMarker
-          markerStyle={{borderColor: 'white'}}
+          markerStyle={{ borderColor: 'white' }}
           reactivate
           onRead={onScan}
         />
@@ -258,7 +282,7 @@ const LinkAgencyScreen = ({navigation, route}) => {
         <PoppinsMedium
           color={colors.white}
           fontSize={FontSize.large * 1.3}
-          style={{textAlign: 'center'}}>
+          style={{ textAlign: 'center' }}>
           {t('Link Agency')}
         </PoppinsMedium>
         <PoppinsMedium
@@ -298,7 +322,7 @@ const LinkAgencyScreen = ({navigation, route}) => {
   const LinkWithCodeUI = () => (
     <View style={styles.linkWithCodeUIContainer}>
       <SafeAreaView style={styles.header}>
-        <PoppinsMedium style={{fontSize: FontSize.large}}>
+        <PoppinsMedium style={{ fontSize: FontSize.large }}>
           {t('Link Agency')}
         </PoppinsMedium>
       </SafeAreaView>
@@ -308,7 +332,7 @@ const LinkAgencyScreen = ({navigation, route}) => {
         popupType={popupType}
         messageType={messageType}
         message={message}
-        onConfirm={() => setValues({...values, showPopup: false})}
+        onConfirm={() => setValues({ ...values, showPopup: false })}
       />
       <View
         style={{
@@ -319,14 +343,14 @@ const LinkAgencyScreen = ({navigation, route}) => {
         <View>
           <RegularText
             fontSize={FontSize.medium}
-            style={{paddingBottom: Spacing.vs}}>
+            style={{ paddingBottom: Spacing.vs }}>
             {t('Link agency using code:')}
           </RegularText>
           <CustomTextInput
             placeholder={t('Enter Code')}
             keyboardType="url"
             autoCapitalize="none"
-            onChangeText={value => setValues({...values, agencyCode: value})}
+            onChangeText={value => setValues({ ...values, agencyCode: value })}
           />
         </View>
 
@@ -354,7 +378,7 @@ const LinkAgencyScreen = ({navigation, route}) => {
         popupType={popupType}
         messageType={messageType}
         message={message}
-        onConfirm={() => setValues({...values, showPopup: false})}
+        onConfirm={() => setValues({ ...values, showPopup: false })}
       />
       {linkAgencyType === 'qr' ? LinkWithQRUI() : LinkWithCodeUI()}
     </>
@@ -393,8 +417,8 @@ const styles = StyleSheet.create({
     top: 40,
     right: 0,
   },
-  text: {textAlign: 'center', top: 25},
-  buttonView: {position: 'absolute', bottom: 120, left: 0, right: 0},
+  text: { textAlign: 'center', top: 25 },
+  buttonView: { position: 'absolute', bottom: 120, left: 0, right: 0 },
   poweredByView: {
     position: 'absolute',
     flexDirection: 'row',

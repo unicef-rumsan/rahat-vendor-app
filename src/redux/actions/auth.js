@@ -2,6 +2,7 @@ import * as api from '../api';
 
 export const registerVendor =
   (agencySettings, userdata, success, error) => async dispatch => {
+   
     try {
       const response = await api.apiRegisterVendor(
         agencySettings.agencyUrl,
@@ -9,14 +10,13 @@ export const registerVendor =
       );
       success(response.data, agencySettings);
     } catch (e) {
-
+      console.log(e, 'register vendor error')
       error(e);
     }
   };
 
 export const storeUserData = data => async dispatch => {
   dispatch({type: 'SET_USERDATA', userData: data});
-  // success && success();
 };
 
 export const getUserByWalletAddress =
@@ -42,12 +42,11 @@ export const getRestoreUserData =
         address,
       );
       if (response.status === 204) {
-        return error();
+        return error({message: 'Not registered'}, agencySettings);
       }
-      // dispatch({type: 'SET_USERDATA', userData: response.data});
       success(response.data, agencySettings);
     } catch (e) {
-      console.log(e);
+      console.log(e, 'get restore user data');
       error(e);
     }
   };

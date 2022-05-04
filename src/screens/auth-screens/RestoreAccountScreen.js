@@ -2,11 +2,11 @@ import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {Logo} from '../../../assets/images';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { Logo } from '../../../assets/images';
 import colors from '../../../constants/colors';
-import {Spacing} from '../../../constants/utils';
+import { Spacing } from '../../../constants/utils';
 import {
   CustomButton,
   CustomLoader,
@@ -18,11 +18,11 @@ import {
   ListQueryBuilder,
   MimeTypes,
 } from '@robinbobin/react-native-google-drive-api-wrapper';
-import {useDispatch} from 'react-redux';
-import {restoreUsingDrive} from '../../redux/actions/wallet';
-import {decryptionHelper} from '../../../constants/helper';
-import {GOOGLE_WEB_CLIENT_ID} from '@env';
-import {useTranslation} from 'react-i18next';
+import { useDispatch } from 'react-redux';
+import { restoreUsingDrive } from '../../redux/actions/wallet';
+import { decryptionHelper } from '../../../constants/helper';
+import { GOOGLE_WEB_CLIENT_ID } from '@env';
+import { useTranslation } from 'react-i18next';
 import PasscodeModal from '../../components/PasscodeModal';
 
 GoogleSignin.configure({
@@ -34,10 +34,11 @@ GoogleSignin.configure({
   webClientId: GOOGLE_WEB_CLIENT_ID,
 });
 
-const RestoreAccountScreen = ({navigation}) => {
-  const {t} = useTranslation();
+const RestoreAccountScreen = ({ navigation }) => {
+  const { t } = useTranslation();
   let gdrive = new GDrive();
   const dispatch = useDispatch();
+
 
   useEffect(() => {
     let unsubscribe = GoogleSignin.signOut();
@@ -69,8 +70,8 @@ const RestoreAccountScreen = ({navigation}) => {
   } = values;
 
   const onSuccess = () => {
-    setValues({...values, showLoader: false, showPasscodeModal: false});
-    navigation.navigate('LinkAgencyScreen', {from: 'restore'});
+    setValues({ ...values, showLoader: false, showPasscodeModal: false });
+    navigation.navigate('LinkAgencyScreen', { from: 'restore' });
   };
 
   const onError = e => {
@@ -105,7 +106,8 @@ const RestoreAccountScreen = ({navigation}) => {
       );
       dispatch(restoreUsingDrive(walletInfo, onSuccess, onError));
     } catch (e) {
-      let errorMessage = '';
+      console.log(e)
+      let errorMessage = e?.message || e?.error || '';
       if (
         e?.message ===
         'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT'
@@ -120,7 +122,7 @@ const RestoreAccountScreen = ({navigation}) => {
         popupType: 'alert',
         popupMessageType: 'Error',
         popupMessage:
-          errorMessage !== ''
+          !!errorMessage
             ? errorMessage
             : `${t('Something went wrong. Please try again')}`,
       }));
@@ -128,6 +130,7 @@ const RestoreAccountScreen = ({navigation}) => {
   };
 
   const initializeGDrive = async () => {
+    gdrive.fetchTimeout = 5000;
     setValues(values => ({
       ...values,
       showLoader: true,
@@ -135,13 +138,14 @@ const RestoreAccountScreen = ({navigation}) => {
     }));
     try {
       gdrive.accessToken = (await GoogleSignin.getTokens()).accessToken;
+      gdrive.setTimeout = -1;
       let data = await gdrive.files.list({
         q: new ListQueryBuilder()
           .e('name', 'rahat_v2_backup')
           .and()
           .e('mimeType', 'application/octet-stream'),
       });
-      if (data.files?.length === 0) {
+      if (data?.files?.length === 0) {
         return setValues(values => ({
           ...values,
           showLoader: false,
@@ -158,14 +162,15 @@ const RestoreAccountScreen = ({navigation}) => {
 
       // handleBackupToDrive();
     } catch (e) {
-      console.log(e);
+      console.log(e)
+      const errorMessage = e?.message || e?.error || ''
       setValues(values => ({
         ...values,
         showLoader: false,
         showPopup: true,
         popupType: 'alert',
         popupMessageType: 'Error',
-        popupMessage: `${t('Something went wrong. Please try again')}`,
+        popupMessage: !!errorMessage ? errorMessage : `${t('Something went wrong. Please try again')}`,
       }));
     }
   };
@@ -210,10 +215,10 @@ const RestoreAccountScreen = ({navigation}) => {
         title="Passcode"
         text="Enter 6 digit passcode to restore your wallet"
         buttonDisabled={passcode.length === 6 ? false : true}
-        onChangeText={text => setValues({...values, passcode: text})}
-        hide={() => setValues({...values, showPasscodeModal: false})}
+        onChangeText={text => setValues({ ...values, passcode: text })}
+        hide={() => setValues({ ...values, showPasscodeModal: false })}
         onConfirm={() => {
-          setValues({...values, showPasscodeModal: false});
+          setValues({ ...values, showPasscodeModal: false });
           googleSignin();
         }}
       />
@@ -225,19 +230,19 @@ const RestoreAccountScreen = ({navigation}) => {
           popupType={popupType}
           messageType={popupMessageType}
           message={popupMessage}
-          onConfirm={() => setValues({...values, showPopup: false})}
+          onConfirm={() => setValues({ ...values, showPopup: false })}
         />
 
         <View />
-        <View style={{justifyContent: 'center', alignItems: 'center'}}>
+        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
           <Logo />
-          <SmallText center style={{paddingTop: Spacing.vs * 2}}>
+          <SmallText center style={{ paddingTop: Spacing.vs * 2 }}>
             {t(
               'Supporting vulnerable communities with a simple and efficient relief distribution platform.',
             )}
           </SmallText>
         </View>
-        <View style={{marginBottom: Spacing.vs * 2}}>
+        <View style={{ marginBottom: Spacing.vs * 2 }}>
           <CustomButton
             title={t('RESTORE USING SEED PHRASE')}
             onPress={() => navigation.navigate('RestoreMnemonicScreen')}
@@ -245,7 +250,7 @@ const RestoreAccountScreen = ({navigation}) => {
           <CustomButton
             title={t('RESTORE USING GOOGLE DRIVE')}
             color={colors.green}
-            onPress={() => setValues({...values, showPasscodeModal: true})}
+            onPress={() => setValues({ ...values, showPasscodeModal: true })}
           />
         </View>
       </View>

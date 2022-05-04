@@ -144,7 +144,6 @@ const getCombinedPackages = packages => {
 const getActiveAgencyTransactions = (activeAppSettings, transactions) => {
   try {
     if (transactions?.length) {
-      console.log(transactions[0])
       const filteredTransactions = transactions?.filter(
         item => item?.agencyUrl === activeAppSettings?.agencyUrl,
       );
