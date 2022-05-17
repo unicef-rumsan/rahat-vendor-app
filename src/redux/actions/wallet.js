@@ -2,26 +2,13 @@ import {ethers} from 'ethers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ERC1155_Service, TokenService} from '../../services/chain';
 import * as api from '../api';
-// let TEST_NETWORK_URL = 'https://testnetwork.esatya.io';
-// let PRODUCTION_NETWORK_URL = 'https://chain.esatya.io';
-
-// import networkUrls from '../../../constants/networkUrls';
-
-// let NETWORK_URL =
-//   networkUrls.ENV === 'development'
-//     ? networkUrls.TEST_NETWORK_URL
-//     : networkUrls.PRODUCTION_NETWORK_URL;
 
 export const getWallet =
   (type, onSuccess, onError, mnemonic, walletFromDrive) => async dispatch => {
-    // let provider = new ethers.providers.JsonRpcProvider(NETWORK_URL);
-    let wallet, connectedWallet;
+    let wallet;
     if (type === 'create') {
       try {
         wallet = ethers.Wallet.createRandom();
-
-        // connectedWallet = wallet.connect(provider);
-        // console.log(connectedWallet, "wallet")
       } catch (e) {
         onError(e.message);
         return;
@@ -30,7 +17,6 @@ export const getWallet =
     if (type === 'restoreUsingMnemonic') {
       try {
         wallet = ethers.Wallet.fromMnemonic(mnemonic);
-        // connectedWallet = wallet.connect(provider);
       } catch (e) {
         onError(e.message);
         return;
@@ -46,7 +32,6 @@ export const getWallet =
       mnemonic: wallet._mnemonic().phrase,
       privateKey: wallet._signingKey().privateKey,
       address: wallet.address,
-      // provider: wallet.provider,
     };
 
     AsyncStorage.setItem('walletInfo', JSON.stringify(walletInfo))
@@ -105,7 +90,7 @@ export const getWalletBalance =
         tokenAddress,
         nftAddress,
       ).getBalance(wallet.address);
-      dispatch({type: 'SET_BALANCE', balance: tokenBalance.toNumber()});
+      dispatch({type: 'SET_TOKEN_BALANCE', tokenBalance: tokenBalance.toNumber()});
       // success();
     } catch (e) {
       alert(e);
@@ -137,7 +122,7 @@ export const getPackageBatchBalance =
           tokenQtys.push(item.toNumber());
         });
       }
-      success(tokenQtys);
+      success(tokenIds,tokenQtys);
     } catch (e) {
       alert(e);
       // error(e);

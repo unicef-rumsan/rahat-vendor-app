@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {StyleSheet, View, Image, Pressable} from 'react-native';
 import {
   heightPercentageToDP as hp,
@@ -8,13 +8,14 @@ import {AddCircleIcon} from '../../../assets/icons';
 import colors from '../../../constants/colors';
 import {Spacing} from '../../../constants/utils';
 import {useDispatch, useSelector} from 'react-redux';
-import {switchAgency} from '../../redux/actions/auth';
+import {switchAgency} from '../../redux/actions/agency';
 import {useTranslation} from 'react-i18next';
 import {
   CustomHeader,
   RegularText,
   SmallText,
   CustomLoader,
+  CustomPopup,
 } from '../../components';
 
 const TEMP_IMAGE =
@@ -23,43 +24,13 @@ const TEMP_IMAGE =
 const AgencyScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const {t} = useTranslation();
-  const {userData, appSettings, activeAppSettings} = useSelector(
-    state => state.auth,
-  );
+  const {userData} = useSelector(state => state.auth);
+  const {appSettings, activeAppSettings} = useSelector(state => state.agency);
+
+  const {switchingAgency, switchAgencyLoaderMessage, switchAgencyErrorMessage} =
+    useSelector(state => state.agency);
 
   const {wallet} = useSelector(state => state.wallet);
-  const [showLoader, setShowLoader] = useState(false);
-
-  // useEffect(() => {
-  //   const data = {
-  //     name: userData.name,
-  //     phone: userData.phone,
-  //     wallet_address: userData.wallet_address,
-  //     email: userData.email,
-  //     address: userData.address,
-  //     // govt_id,
-  //     govt_id_image: userData.govt_id_image,
-  //     photo: userData.photo[0],
-  //   };
-  // }, []);
-
-  // const swipeableRef = useRef(null);
-
-  // const handleDelete = (name, website) => {
-  //   alert(`Delete Agency : ${name}  ${website}`);
-  //   swipeableRef.current.close();
-  // };
-
-  // const rightSwipeActions = (name, website) => (
-  //   <View style={{justifyContent: 'center', alignItems: 'flex-end'}}>
-  //     <CustomButton
-  //       title="Delete"
-  //       width={wp(20)}
-  //       color={colors.danger}
-  //       onPress={() => handleDelete(name, website)}
-  //     />
-  //   </View>
-  // );
 
   const AgencyComponent = ({name, website, onPress}) => (
     <Pressable style={styles.agencyView} onPress={onPress}>
@@ -81,30 +52,15 @@ const AgencyScreen = ({navigation}) => {
   );
 
   const handleSwitchAgency = agencyUrl => {
-    setShowLoader(true);
     const newActiveAppSettings = appSettings.find(
       setting => setting.agencyUrl === agencyUrl,
     );
     dispatch(
-      switchAgency(
-        newActiveAppSettings,
-        wallet,
-        onSwitchSuccess,
-        onSwitchError,
+      switchAgency(newActiveAppSettings, wallet, () =>
+        navigation.navigate('HomeScreen', {refresh: true}),
       ),
     );
   };
-
-  const onSwitchSuccess = newActiveAppSettings => {
-    dispatch({type: 'SET_ACTIVE_APP_SETTINGS', payload: newActiveAppSettings});
-    setShowLoader(false);
-    navigation.navigate('HomeScreen');
-  };
-  const onSwitchError = e => {
-    console.log(e, 'e');
-    setShowLoader(false);
-  };
-
   return (
     <>
       <CustomHeader
@@ -113,7 +69,6 @@ const AgencyScreen = ({navigation}) => {
         onBackPress={() => navigation.pop()}
         onRightIconPress={() =>
           navigation.navigate('LinkAgencyScreen', {
-            // fromAgencies: true,
             from: 'agencies',
             data: {
               name: userData.name,
@@ -128,9 +83,16 @@ const AgencyScreen = ({navigation}) => {
           })
         }
       />
+      <CustomPopup
+        show={switchAgencyErrorMessage && true}
+        popupType="alert"
+        messageType={'Error'}
+        message={`${switchAgencyErrorMessage}`}
+        onConfirm={() => dispatch({type: 'SWITCH_AGENCY_CLEAR_ERROR'})}
+      />
       <CustomLoader
-        show={showLoader}
-        message={`${t('Switching agency.')} ${t('Please wait...')}`}
+        show={switchingAgency}
+        message={`${t(switchAgencyLoaderMessage)}`}
       />
       <View style={styles.container}>
         {appSettings?.map((settings, i) => (

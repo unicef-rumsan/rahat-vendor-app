@@ -61,7 +61,7 @@ const IndividualPackageView = ({imageHash, title, amount, onPress}) => (
 const ChargeScreen = ({navigation, route}) => {
   const {tokenBalance, packages, beneficiaryPhone} = route.params;
   const {t} = useTranslation();
-  const {activeAppSettings} = useSelector(state => state.auth);
+  const {activeAppSettings} = useSelector(state => state.agency);
 
   return (
     <>

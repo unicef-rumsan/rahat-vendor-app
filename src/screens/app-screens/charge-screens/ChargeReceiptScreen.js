@@ -27,62 +27,7 @@ const ChargeReceiptScreen = ({navigation, route}) => {
   const {receiptData, from, packageDetail} = route?.params;
   const dispatch = useDispatch();
   const {t} = useTranslation();
-  const [enableBackToHome, setEnableBackToHome] = useState(false);
 
-  const storeReceipt = async () => {
-    try {
-      const transactions = await AsyncStorage.getItem('transactions');
-      const storedPackages = await AsyncStorage.getItem('packages');
-      if (transactions !== null && receiptData.balanceType === 'token') {
-        const parsedTransaction = JSON.parse(transactions);
-        const newTransactionArray = [receiptData, ...parsedTransaction];
-        await AsyncStorage.setItem(
-          'transactions',
-          JSON.stringify(newTransactionArray),
-        );
-        dispatch({type: 'SET_TRANSACTIONS', transactions: newTransactionArray});
-      }
-      if (transactions === null && receiptData.balanceType === 'token') {
-        const temp = [receiptData];
-        await AsyncStorage.setItem('transactions', JSON.stringify(temp));
-      }
-      if (storedPackages !== null && receiptData.balanceType === 'package') {
-        let parsedPackages = JSON.parse(storedPackages);
-        let newPackagesArray = [];
-        let objIndex = parsedPackages.findIndex(
-          obj => obj?.tokenId === packageDetail.tokenId,
-        );
-        if (objIndex === -1) {
-          newPackagesArray = [packageDetail, ...parsedPackages];
-        }
-        if (objIndex !== -1) {
-          parsedPackages[objIndex].amount =
-            parsedPackages[objIndex].amount + packageDetail.amount;
-          newPackagesArray = parsedPackages;
-        }
-        await AsyncStorage.setItem(
-          'packages',
-          JSON.stringify(newPackagesArray),
-        );
-        dispatch({type: 'SET_PACKAGES', packages: newPackagesArray});
-      }
-
-      if (storedPackages === null && receiptData.balanceType === 'package') {
-        const temp = [packageDetail];
-        await AsyncStorage.setItem('packages', JSON.stringify(temp));
-        dispatch({type: 'SET_PACKAGES', packages: temp});
-      }
-      setEnableBackToHome(true);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  useEffect(() => {
-    if (from === 'verifyOtp') {
-      storeReceipt();
-    }
-  }, []);
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
@@ -95,7 +40,7 @@ const ChargeReceiptScreen = ({navigation, route}) => {
       <View style={styles.container}>
         <Card>
           <ChargeDetail title={t('Type')} detail={receiptData?.balanceType} />
-          {receiptData.packageName && (
+          {receiptData?.packageName && (
             <ChargeDetail
               title={t('Package Name')}
               detail={receiptData?.packageName}
@@ -129,7 +74,6 @@ const ChargeReceiptScreen = ({navigation, route}) => {
         </Card>
         <CustomButton
           title={t('Back To Home')}
-          disabled={!enableBackToHome}
           color={colors.green}
           onPress={() => navigation.navigate('HomeScreen', {refresh: true})}
         />

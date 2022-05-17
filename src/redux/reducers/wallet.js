@@ -1,9 +1,9 @@
 const initialState = {
   wallet: [],
   walletInfo: null,
-  balance: null,
+  tokenBalance: null,
   transactions: [],
-  packageTokenIds: [],
+  storedTokenIds: null,
   packages: [],
   packageBalance: null,
   packageBalanceCurrency: null,
@@ -17,11 +17,15 @@ const wallet = (state = initialState, action) => {
     case 'SET_WALLET_INFO': {
       return {...state, walletInfo: action.payload};
     }
-    case 'SET_BALANCE': {
-      return {...state, balance: action.balance};
+    case 'SET_TOKEN_BALANCE': {
+      return {...state, tokenBalance: action.tokenBalance};
     }
     case 'SET_PACKAGES': {
       return {...state, packages: action.packages};
+    }
+    
+    case 'SET_STORED_TOKEN_IDS': {
+      return {...state, storedTokenIds: action.storedTokenIds};
     }
 
     case 'SET_PACKAGE_BALANCE': {
@@ -30,10 +34,7 @@ const wallet = (state = initialState, action) => {
         packageBalance: action.packageBalance,
         packageBalanceCurrency: action.packageBalanceCurrency,
       };
-    }
-    case 'SET_PACKAGE_TOKEN_IDS': {
-      return {...state, packageTokenIds: action.packageTokenIds};
-    }
+    }   
     case 'SET_TRANSACTIONS': {
       return {
         ...state,

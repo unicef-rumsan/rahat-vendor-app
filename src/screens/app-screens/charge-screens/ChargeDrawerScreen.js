@@ -1,5 +1,5 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {StyleSheet, Text, View, Pressable} from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { StyleSheet, Text, View, Pressable, Alert } from 'react-native';
 import {
   CustomButton,
   CustomHeader,
@@ -9,33 +9,32 @@ import {
   SmallText,
   SwitchAgencyModal,
 } from '../../../components';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import CustomBottomSheet from '../../../components/CustomBottomSheet';
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 import colors from '../../../../constants/colors';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import {FontSize, Spacing} from '../../../../constants/utils';
-import {useDispatch} from 'react-redux';
-import {switchAgency} from '../../../redux/actions/auth';
-import {RahatService} from '../../../services/chain';
-import {getPackageDetail} from '../../../../constants/helper';
-import {QRIcon} from '../../../../assets/icons';
+import { FontSize, Spacing } from '../../../../constants/utils';
+import { useDispatch } from 'react-redux';
+import { switchAgency, switchAgencyClearError, toggleSwitchAgencyModal } from '../../../redux/actions/agency';
+import { RahatService } from '../../../services/chain';
+import { getPackageDetail } from '../../../../constants/helper';
+import { QRIcon } from '../../../../assets/icons';
 
-const ChargeDrawerScreen = ({navigation, route}) => {
+const ChargeDrawerScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
-  const {t} = useTranslation();
-  const {appSettings, userData, activeAppSettings} = useSelector(
+  const { t } = useTranslation();
+  const { userData } = useSelector(
     state => state.auth,
   );
-  const {wallet} = useSelector(state => state.wallet);
+  const { wallet } = useSelector(state => state.wallet);
+  const { switchingAgency, switchAgencyLoaderMessage, switchAgencyErrorMessage, activeAppSettings, appSettings, showSwitchAgencyModal, switchAgencyError } = useSelector(state => state.agency)
   const [phone, setPhone] = useState('');
   const [values, setValues] = useState({
-    // phone: '',
     isSubmitting: false,
-    showSwitchAgencyModal: false,
     showLoader: false,
     loaderMessage: '',
     showPopup: '',
@@ -44,9 +43,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
     message: '',
   });
   const {
-    // phone,
     isSubmitting,
-    showSwitchAgencyModal,
     loaderMessage,
     showLoader,
     message,
@@ -61,7 +58,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
   useEffect(() => {
     const scanPhone = route?.params?.phone;
     if (scanPhone) {
-      setValues({...values, phone: scanPhone});
+      setValues({ ...values, phone: scanPhone });
     }
   }, [route]);
 
@@ -79,12 +76,6 @@ const ChargeDrawerScreen = ({navigation, route}) => {
   }, [activeAppSettings]);
 
   const handleSwitchAgency = agencyUrl => {
-    setValues({
-      ...values,
-      showSwitchAgencyModal: false,
-      showLoader: true,
-      loaderMessage: `${t('Switching agency.')} ${t('Please wait...')}`,
-    });
     const newActiveAppSettings = appSettings.find(
       setting => setting.agencyUrl === agencyUrl,
     );
@@ -92,21 +83,9 @@ const ChargeDrawerScreen = ({navigation, route}) => {
       switchAgency(
         newActiveAppSettings,
         wallet,
-        onSwitchSuccess,
-        onSwitchError,
       ),
     );
   };
-
-  const onSwitchSuccess = newActiveAppSettings => {
-    dispatch({type: 'SET_ACTIVE_APP_SETTINGS', payload: newActiveAppSettings});
-    setValues({...values, showLoader: false, showSwitchAgencyModal: false});
-  };
-  const onSwitchError = e => {
-    console.log(e, 'e');
-    setValues({...values, showLoader: false, showSwitchAgencyModal: false});
-  };
-
   const handleProceed = async () => {
     if (phone === '') {
       return setValues({
@@ -117,7 +96,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
         message: 'Please enter phone number',
       });
     }
-    setValues(values => ({...values, isSubmitting: true}));
+    setValues(values => ({ ...values, isSubmitting: true }));
 
     try {
       let rahatService = RahatService(
@@ -142,12 +121,10 @@ const ChargeDrawerScreen = ({navigation, route}) => {
         }));
       }
 
-      let packages = await getPackageDetail(
-        totalERC1155Balance,
-        'totalERCBalance',
-      );
+      let packages = await getPackageDetail(totalERC1155Balance);
 
-      setValues({...values, isSubmitting: false});
+      console.log(packages, 'herum');
+      setValues({ ...values, isSubmitting: false });
       navigation.navigate('ChargeScreen', {
         tokenBalance: balance,
         packages: packages || [],
@@ -155,21 +132,23 @@ const ChargeDrawerScreen = ({navigation, route}) => {
       });
     } catch (e) {
       alert(e);
-      setValues({...values, isSubmitting: false});
+      setValues({ ...values, isSubmitting: false });
     }
   };
-
   return (
     <>
       <CustomHeader title={t('Charge')} hideBackButton />
+      {switchAgencyError && (Alert.alert('Error', `${switchAgencyErrorMessage}`, [
+        { text: "OK", onPress: () => dispatch(switchAgencyClearError()) }
+      ]))}
       <SwitchAgencyModal
         agencies={appSettings}
         activeAgency={activeAppSettings}
         show={showSwitchAgencyModal}
         onPress={handleSwitchAgency}
-        hide={() => setValues({...values, showSwitchAgencyModal: false})}
+        hide={() => dispatch(toggleSwitchAgencyModal(showSwitchAgencyModal))}
       />
-      <CustomLoader show={showLoader} message={loaderMessage} />
+      <CustomLoader show={showLoader || switchingAgency} message={loaderMessage || switchAgencyLoaderMessage} />
       <CustomPopup
         message={message}
         messageType={messageType}
@@ -178,7 +157,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
         onConfirm={() =>
           messageType === `${t('Your account has not been approved')}`
             ? navigation.navigate('HomeScreen')
-            : setValues({...values, showPopup: false})
+            : setValues({ ...values, showPopup: false })
         }
       />
       <View style={styles.container}>
@@ -189,14 +168,14 @@ const ChargeDrawerScreen = ({navigation, route}) => {
           snapPoints={snapPoints}>
           <SmallText
             color={colors.gray}
-            style={{fontSize: FontSize.small * 1.1}}>
+            style={{ fontSize: FontSize.small * 1.1 }}>
             {activeAppSettings.agency.name}
           </SmallText>
-          <View style={{flexDirection: 'row'}}>
+          <View style={{ flexDirection: 'row' }}>
             <CustomTextInput
               placeholder={t('Phone Number')}
               keyboardType="phone-pad"
-              style={{width: widthPercentageToDP(75)}}
+              style={{ width: widthPercentageToDP(75) }}
               value={phone}
               onChangeText={value => {
                 setPhone(value);
@@ -210,7 +189,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
                   style={styles.qrButton}
                   disabled={isSubmitting}
                   onPress={() =>
-                    navigation.navigate('ScanScreen', {type: 'Charge'})
+                    navigation.navigate('ScanScreen', { type: 'Charge' })
                   }
                   android_ripple={{
                     color: 'rgba(0,0,0, 0.1)',
@@ -222,7 +201,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
             </View>
           </View>
           <SmallText
-            style={{fontSize: FontSize.small / 1.4}}
+            style={{ fontSize: FontSize.small / 1.4 }}
             color={colors.lightGray}>
             {t(
               'Important: Please double check the phone number and amount before charging. Transactions cannot be reversed.',
@@ -234,7 +213,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
             width={widthPercentageToDP(90)}
             disabled={isSubmitting}
             outlined
-            onPress={() => setValues({...values, showSwitchAgencyModal: true})}
+            onPress={() => dispatch(toggleSwitchAgencyModal(showSwitchAgencyModal))}
           />
           <CustomButton
             title={t('Proceed')}

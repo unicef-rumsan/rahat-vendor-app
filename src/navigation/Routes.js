@@ -1,26 +1,26 @@
-import React, {useEffect, useState, useRef} from 'react';
-import {View, Text, StatusBar, ActivityIndicator, AppState} from 'react-native';
-import {NavigationContainer} from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator, AppState } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import AuthStack from './AuthStack';
-import {useDispatch, useSelector} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AppStack from './AppStack';
-import {getWalletBalance, setWallet} from '../redux/actions/wallet';
-import {ethers} from 'ethers';
-import {getAppSettings, getUserByWalletAddress} from '../redux/actions/auth';
+import { setWallet } from '../redux/actions/wallet';
+import { ethers } from 'ethers';
+import { getUserByWalletAddress } from '../redux/actions/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Logo} from '../../assets/images';
+import { Logo } from '../../assets/images';
 import colors from '../../constants/colors';
 import LockScreen from '../screens/app-screens/LockScreen';
-import {useTranslation} from 'react-i18next';
-import { getCombinedPackages } from '../../constants/helper';
+import { useTranslation } from 'react-i18next';
+import { getActiveAgencyTransactions } from '../../constants/helper';
+import { setAppSettings } from '../redux/actions/agency';
 
 const Routes = () => {
   const dispatch = useDispatch();
-  const {t, i18n} = useTranslation();
+  const { i18n } = useTranslation();
   const {
     userData,
     wallet,
-    activeAgencyUrl,
     lockScreen,
     rahatPasscode,
     backupToDriveStatus,
@@ -32,7 +32,7 @@ const Routes = () => {
       if (nextAppState === 'background') {
         rahatPasscode !== '' &&
           !backupToDriveStatus &&
-          dispatch({type: 'LOCK_APP'});
+          dispatch({ type: 'LOCK_APP' });
       }
     });
 
@@ -49,16 +49,15 @@ const Routes = () => {
           i18n.changeLanguage(activeLanguage);
         }
       })
-      .catch(e => {});
+      .catch(e => { });
   }, []);
 
   useEffect(() => {
-    // dispatch(getAppSettings());
     const keys = [
       'walletInfo',
       'storedAppSettings',
-      'packages',
       'transactions',
+      'storedTokenIds'
     ];
 
     if (!wallet) {
@@ -66,19 +65,8 @@ const Routes = () => {
         .then(res => {
           const walletInfo = JSON.parse(res[0][1]);
           const storedAppSettings = JSON.parse(res[1][1]);
-          const storedPackages = JSON.parse(res[2][1]);
-          const storedTransactions = JSON.parse(res[3][1]);
-          let combineStoredPackages = getCombinedPackages(storedPackages);
-
-          if (storedPackages !== null) {
-            dispatch({type: 'SET_PACKAGES', packages: combineStoredPackages});
-          }
-          if (storedTransactions !== null) {
-            dispatch({
-              type: 'SET_TRANSACTIONS',
-              transactions: storedTransactions,
-            });
-          }
+          const storedTransactions = JSON.parse(res[2][1]);
+          const storedTokenIds = JSON.parse(res[3][1]);
 
           if (walletInfo !== null) {
             let activeAppSetting = storedAppSettings[0];
@@ -86,20 +74,26 @@ const Routes = () => {
               activeAppSetting?.networkUrl,
             );
 
+            if (storedTransactions !== null) {
+              const activeAgencyTransactions =  getActiveAgencyTransactions(activeAppSetting, storedTransactions);
+              dispatch({
+                type: 'SET_TRANSACTIONS',
+                transactions: activeAgencyTransactions,
+              });
+            }
+
+            if (storedTokenIds !== null) {
+              let activeAgencyStoredAssets = storedTokenIds?.filter(item => item.agencyUrl === activeAppSetting?.agencyUrl);
+              
+              activeAgencyStoredAssets?.length && dispatch({ type: 'SET_STORED_TOKEN_IDS', storedTokenIds: activeAgencyStoredAssets })
+            }
             const walletRandom = new ethers.Wallet(
               walletInfo.privateKey,
               provider,
             );
-            dispatch({type: 'SET_WALLET_INFO', payload: walletInfo});
+            dispatch({ type: 'SET_WALLET_INFO', payload: walletInfo });
             dispatch(setWallet(walletRandom));
-            dispatch({
-              type: 'SET_ACTIVE_APP_SETTINGS',
-              payload: activeAppSetting,
-            });
-            dispatch({
-              type: 'SET_APP_SETTINGS',
-              payload: storedAppSettings,
-            });
+            dispatch(setAppSettings(storedAppSettings,activeAppSetting));
             dispatch(
               getUserByWalletAddress(
                 activeAppSetting.agencyUrl,
@@ -113,46 +107,25 @@ const Routes = () => {
           }
         })
         .catch(e => {
-          console.log(e, 'multi get error');
+          // console.log(e,);
           setInitializing(false);
         });
     }
-
-    // if (!wallet) {
-    //   let provider = new ethers.providers.JsonRpcProvider(NETWORK_URL);
-    //   AsyncStorage.getItem('walletInfo').then(walletInfo => {
-    //     if (walletInfo !== null) {
-    //       const temp = JSON.parse(walletInfo);
-    //       const walletRandom = new ethers.Wallet(temp.privateKey, provider);
-    //       dispatch(setWallet(walletRandom));
-    //       dispatch(
-    //         getUserByWalletAddress(
-    //           temp.address,
-    //           onGetUserSuccess,
-    //           onGetUserError,
-    //         ),
-    //       );
-    //     } else {
-    //       setInitializing(false);
-    //     }
-    //   });
-    // }
   }, []);
 
   const onGetUserSuccess = () => {
     AsyncStorage.getItem('passcode')
       .then(res => {
         if (res !== null) {
-          dispatch({type: 'SET_RAHAT_PASSCODE', passcode: JSON.parse(res)});
+          dispatch({ type: 'SET_RAHAT_PASSCODE', passcode: JSON.parse(res) });
           setInitializing(false);
         } else {
           setInitializing(false);
         }
       })
       .catch(e => {
-        console.log(e);
+        // console.log(e);
       });
-    // setInitializing(false);
   };
   const onGetUserError = e => {
     setInitializing(false);

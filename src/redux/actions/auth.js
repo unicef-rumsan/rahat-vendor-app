@@ -1,9 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ethers} from 'ethers';
 import * as api from '../api';
 
 export const registerVendor =
   (agencySettings, userdata, success, error) => async dispatch => {
+   
     try {
       const response = await api.apiRegisterVendor(
         agencySettings.agencyUrl,
@@ -11,14 +10,13 @@ export const registerVendor =
       );
       success(response.data, agencySettings);
     } catch (e) {
-
+      console.log(e, 'register vendor error')
       error(e);
     }
   };
 
 export const storeUserData = data => async dispatch => {
   dispatch({type: 'SET_USERDATA', userData: data});
-  // success && success();
 };
 
 export const getUserByWalletAddress =
@@ -35,28 +33,6 @@ export const getUserByWalletAddress =
       error(e);
     }
   };
-export const switchAgency =
-  (agencySettings, wallet, success, error) => async dispatch => {
-    try {
-      const response = await api.apiGetUserByWalletAddress(
-        agencySettings.agencyUrl,
-        wallet.address,
-      );
-      if (response.status === 204) {
-        return error();
-      }
-      let provider = new ethers.providers.JsonRpcProvider(
-        agencySettings?.networkUrl,
-      );
-      let connectedWallet = wallet.connect(provider);
-      dispatch({type: 'SET_USERDATA', userData: response.data});
-      dispatch({type: 'SET_WALLET', wallet: connectedWallet});
-      success(agencySettings);
-    } catch (e) {
-      console.log(e);
-      error(e);
-    }
-  };
 
 export const getRestoreUserData =
   (agencySettings, address, success, error) => async dispatch => {
@@ -66,12 +42,11 @@ export const getRestoreUserData =
         address,
       );
       if (response.status === 204) {
-        return error();
+        return error({message: 'Not registered'}, agencySettings);
       }
-      // dispatch({type: 'SET_USERDATA', userData: response.data});
       success(response.data, agencySettings);
     } catch (e) {
-      console.log(e);
+      console.log(e, 'get restore user data');
       error(e);
     }
   };
