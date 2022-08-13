@@ -1,41 +1,23 @@
 import {ethers} from 'ethers';
 
-import networkUrls from '../../constants/networkUrls';
-
-// let NETWORK_URL =
-//   networkUrls.ENV === 'development'
-//     ? networkUrls.TEST_NETWORK_URL
-//     : networkUrls.PRODUCTION_NETWORK_URL;
-
-let NETWORK_URL = 'https://agency-nft.rahat.io';
-
 const ABI = {
   // TOKEN: require(`../../assets/contracts/aidToken.json`),
   TOKEN: require(`../../assets/contracts/RahatERC20.json`),
-  RAHAT: require(`../../assets/contracts/rahat.json`),
+  RAHAT: require(`../../assets/contracts/Rahat.json`),
   ERC20: require(`../../assets/contracts/RahatERC20.json`),
   ERC721: require(`../../assets/contracts/erc721.json`),
   ERC1155: require('../../assets/contracts/RahatERC1155.json'),
 };
 
-// const DefaultProvider = new ethers.providers.JsonRpcProvider(
-//   getDefaultNetwork(),
-// );
 const getAgencyDetails = async (agencyAddress, tokenAddress, nftAddress) => {
-  //   const details = await DataService.getAgency(agencyAddress);
-  //   if (!details) throw Error('Agency does not exists');
-  //   const provider = details.network
-  //     ? new ethers.providers.JsonRpcProvider(details.network)
-  //     : DefaultProvider;
   const details = agencyAddress;
-  const provider = new ethers.providers.JsonRpcProvider(NETWORK_URL);
+  const provider = new ethers.providers.JsonRpcProvider('https://testnetwork.esatya.io');
   const rahatContract = new ethers.Contract(
     agencyAddress,
     ABI.RAHAT.abi,
     provider,
   );
   const tokenContract = new ethers.Contract(
-    // details.tokenAddress,
     tokenAddress,
     ABI.TOKEN.abi,
     provider,
@@ -122,17 +104,18 @@ const TokenService = (agencyAddress, wallet, tokenAddress, nftAddress) => {
         tokenAddress,
         nftAddress,
       );
-      return agency.tokenContract.connect(wallet);
+      return agency.tokenContract;
       // return agency.tokenContract.connect(wallet)
     },
 
     async getBalance(address) {
       const contract = await this.getContract();
-      return contract.balanceOf(address);
+      return contract.connect(wallet)?.balanceOf(address);
+      // const test = contract.
     },
     async transfer(address, amount) {
       const contract = await this.getContract();
-      const tx = await contract.transfer(address, Number(amount));
+      const tx = await contract.connect(wallet)?.transfer(address, Number(amount));
       return tx.wait();
     },
   };

@@ -1,39 +1,36 @@
-import React, {useEffect, useState} from 'react';
-import {useTranslation} from 'react-i18next';
-import {StatusBar, StyleSheet, View, Pressable, Image} from 'react-native';
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
+import { StatusBar, StyleSheet, View, Pressable, Image } from 'react-native';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import {useSelector} from 'react-redux';
-import {AngleRightIcon, RedeemIcon} from '../../../assets/icons';
-import colors from '../../../constants/colors';
-import {getCombinedPackages} from '../../../constants/helper';
-import {FontSize, Spacing} from '../../../constants/utils';
-import {CustomHeader, Card, RegularText, SmallText} from '../../components';
-import IndividualPackageView from '../../components/IndividualPackageView';
+import { FontSize, Spacing, colors } from '../../constants';
+import { CustomHeader, Card, RegularText, IndividualPackageView } from '../../components';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const AssetsScreen = ({navigation, route}) => {
-  const {t} = useTranslation();
-  const {packages, tokenBalance} = useSelector(state => state.wallet);
+const AssetsScreen = ({ navigation, route }) => {
+  const { t } = useTranslation();
 
+  const packages = useSelector(state => state.walletReducer.packages);
+  const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
 
   return (
     <>
-      <CustomHeader title={t('Assets')} hideBackButton />
+      <CustomHeader title={'Assets'} hideBackButton />
 
       <View style={styles.container}>
         <Pressable onPress={() => navigation.navigate('ChargeTokenScreen')}>
           <Card style={styles.tokenDetailCard}>
             <RegularText
               color={colors.gray}
-              style={{fontSize: FontSize.medium * 1.1}}>
-              {t('Token Balance')}:
+              style={{ fontSize: FontSize.medium * 1.1 }}>
+              Token Balance:
             </RegularText>
             <RegularText
               color={colors.gray}
@@ -46,18 +43,18 @@ const AssetsScreen = ({navigation, route}) => {
             {/* <AmountWithAngleBracket amount={10000} /> */}
           </Card>
         </Pressable>
-        <Card style={{paddingVertical: Spacing.vs * 2}}>
+        <Card style={{ paddingVertical: Spacing.vs * 2 }}>
           <RegularText
             color={colors.gray}
-            style={{fontSize: FontSize.medium * 1.1}}>
-            {t('Packages')}:
+            style={{ fontSize: FontSize.medium * 1.1 }}>
+            Packages:
           </RegularText>
           {packages?.length === 0 && (
             <RegularText
-              
+
               color={colors.gray}
-              style={{fontSize: FontSize.medium, paddingTop: Spacing.vs}}>
-              {t('Sorry, you do not have any packages')}
+              style={{ fontSize: FontSize.medium, paddingTop: Spacing.vs }}>
+              Sorry, you do not have any packages
             </RegularText>
           )}
           {packages?.map((item, index) => (

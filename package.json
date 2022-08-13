@@ -37,6 +37,7 @@
     "react-native-gesture-handler": "^1.10.3",
     "react-native-get-random-values": "^1.7.0",
     "react-native-image-crop-picker": "^0.36.4",
+    "react-native-modal": "^13.0.1",
     "react-native-otp-inputs": "^7.1.1",
     "react-native-qrcode-scanner": "^1.5.4",
     "react-native-qrcode-svg": "^6.1.1",
@@ -49,6 +50,7 @@
     "react-native-vector-icons": "^9.0.0",
     "react-redux": "^7.2.6",
     "redux": "^4.1.2",
+    "redux-persist": "^6.0.0",
     "redux-thunk": "^2.4.0"
   },
   "devDependencies": {

@@ -1,29 +1,30 @@
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View, ScrollView, Keyboard} from 'react-native';
-import colors from '../../../constants/colors';
-import {Spacing} from '../../../constants/utils';
-import {
-  CustomButton,
-  CustomHeader,
-  CustomLoader,
-  CustomPopup,
-  RegularText,
-  SmallText,
-} from '../../components';
-import {useSelector, useDispatch} from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { GOOGLE_WEB_CLIENT_ID } from '@env';
+import { useTranslation } from 'react-i18next';
+import { useSelector, useDispatch } from 'react-redux';
+import { StyleSheet, View, ScrollView, Keyboard } from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import {
   GDrive,
-  ListQueryBuilder,
   MimeTypes,
+  ListQueryBuilder,
 } from '@robinbobin/react-native-google-drive-api-wrapper';
-import {encryptionHelper} from '../../../constants/helper';
-import {GOOGLE_WEB_CLIENT_ID} from '@env';
-import {useTranslation} from 'react-i18next';
-import PasscodeModal from '../../components/PasscodeModal';
+
+import {
+  SmallText,
+  RegularText,
+  CustomButton,
+  CustomHeader,
+  PasscodeModal,
+  LoaderModal,
+  PopupModal,
+} from '../../components';
+import { encryptionHelper } from '../../helpers';
+import { Spacing, colors } from '../../constants';
+import { updateBackingupToDriveStatus } from '../../redux/actions/authActions';
 
 GoogleSignin.configure({
   scopes: [
@@ -34,30 +35,18 @@ GoogleSignin.configure({
   webClientId: GOOGLE_WEB_CLIENT_ID,
 });
 
-const BackupWalletScreen = ({navigation}) => {
+const BackupWalletScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   let gdrive = new GDrive();
-  const {walletInfo} = useSelector(state => state.wallet);
+  const walletInfo = useSelector(state => state.walletReducer.walletInfo);
 
   const [values, setValues] = useState({
-    showLoader: false,
-    loaderMessage: '',
-    showPopup: false,
-    popupType: '',
-    popupMessageType: '',
-    popupMessage: '',
     showPasscodeModal: false,
     passcode: '',
   });
 
   const {
-    showLoader,
-    loaderMessage,
-    popupMessage,
-    popupMessageType,
-    popupType,
-    showPopup,
     showPasscodeModal,
     passcode,
   } = values;
@@ -67,10 +56,9 @@ const BackupWalletScreen = ({navigation}) => {
   }, []);
 
   const handleBackupToDrive = async () => {
-    setValues(values => ({
-      ...values,
-      loaderMessage: `${t('Encrypting your wallet.')} ${t('Please wait...')}`,
-    }));
+    LoaderModal.show({
+      message: 'Encrypting your wallet. Please wait...'
+    })
 
     try {
       let encryptedData = await encryptionHelper(walletInfo, passcode);
@@ -82,37 +70,27 @@ const BackupWalletScreen = ({navigation}) => {
             name: 'rahat_v2_backup',
           })
           .execute();
-        setValues(values => ({
-          ...values,
-          showLoader: false,
-          loaderMessage: '',
-          showPopup: true,
+        LoaderModal.hide();
+        PopupModal.show({
           popupType: 'alert',
-          popupMessageType: `${t('Success')}`,
-          popupMessage: `${t(
-            'Wallet backed up to your google drive successfully',
-          )}`,
-        }));
+          messageType: 'Success',
+          message: 'Wallet backed up to your google drive successfully',
+        })
       }
     } catch (e) {
-      console.log(e);
-      setValues(values => ({
-        ...values,
-        showLoader: false,
-        showPopup: true,
+      LoaderModal.hide();
+      PopupModal.show({
         popupType: 'alert',
-        popupMessageType: `${t('Error')}`,
-        popupMessage: `${t('Something went wrong. Please try again')}`,
-      }));
+        messageType: 'Error',
+        message: 'Something went wrong. Please try again',
+      })
     }
   };
 
   const initializeGDrive = async () => {
-    setValues(values => ({
-      ...values,
-      showLoader: true,
-      loaderMessage: `${t('Checking your drive for backup')}`,
-    }));
+    LoaderModal.show({
+      message: 'Checking your drive for backup'
+    })
     try {
       gdrive.accessToken = (await GoogleSignin.getTokens()).accessToken;
       let data = await gdrive.files.list({
@@ -122,88 +100,70 @@ const BackupWalletScreen = ({navigation}) => {
           .e('mimeType', 'application/octet-stream'),
       });
       if (data.files?.length !== 0) {
-        return setValues(values => ({
-          ...values,
-          showLoader: false,
-          showPopup: true,
+        LoaderModal.hide();
+        return PopupModal.show({
           popupType: 'alert',
-          popupMessageType: `${t('Info')}`,
-          popupMessage: `${t(
-            'Your wallet is already backed up in your google drive',
-          )}`,
-        }));
+          messageType: 'Info',
+          message: 'Your wallet is already backed up in your google drive',
+        });
       }
       handleBackupToDrive();
     } catch (e) {
-      console.log(e);
-      setValues(values => ({
-        ...values,
-        showLoader: false,
-        showPopup: true,
+      LoaderModal.hide();
+      PopupModal.show({
         popupType: 'alert',
-        popupMessageType: `${t('Error')}`,
-        popupMessage: `${t('Something went wrong. Please try again')}`,
-      }));
+        messageType: 'Error',
+        message: 'Something went wrong. Please try again',
+      });
     }
   };
 
   const googleSignin = async () => {
-    dispatch({type: 'BACKUP_TO_DRIVE_STATUS', payload: true});
+
+    dispatch(updateBackingupToDriveStatus({ backingUpToDriveStatus: true }));
 
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       initializeGDrive();
     } catch (error) {
-      dispatch({type: 'BACKUP_TO_DRIVE_STATUS', payload: false});
-      console.log(error);
-      setValues(values => ({
-        ...values,
-        showLoader: false,
-        showPopup: true,
-        popupType: 'alert',
-        popupMessageType: `${t('Error')}`,
-      }));
+      dispatch(updateBackingupToDriveStatus({ backingUpToDriveStatus: false }));
+      LoaderModal.hide();
+
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        setValues(values => ({
-          ...values,
-          popupMessage: `${t('Signin Cancelled')}`,
-        }));
+        PopupModal.show({
+          popupType: 'alert',
+          messageType: 'Error',
+          message: 'Signin Cancelled'
+        });
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        setValues(values => ({
-          ...values,
-          popupMessage: `${t('Play services not available')}`,
-        }));
+        PopupModal.show({
+          popupType: 'alert',
+          messageType: 'Error',
+          message: 'Play services not available'
+        });
       } else {
-        setValues(values => ({
-          ...values,
-          popupMessage: `${t('Something went wrong. Please try again')}`,
-        }));
+        PopupModal.show({
+          popupType: 'alert',
+          messageType: 'Error',
+          message: 'Something went wrong. Please try again'
+        });
       }
     }
   };
 
   const handleSetupPasscode = text => {
-    setValues({...values, passcode: text});
+    setValues({ ...values, passcode: text });
     text.length === 6 && Keyboard.dismiss();
   };
 
   return (
     <>
       <CustomHeader
-        title={t('Backup Wallet')}
+        title={'Backup Wallet'}
         onBackPress={() => navigation.pop()}
       />
       <ScrollView style={styles.container}>
-        <CustomLoader show={showLoader} message={loaderMessage} />
-
-        <CustomPopup
-          show={showPopup}
-          popupType={popupType}
-          messageType={popupMessageType}
-          message={popupMessage}
-          onConfirm={() => setValues({...values, showPopup: false})}
-        />
 
         <PasscodeModal
           show={showPasscodeModal}
@@ -213,15 +173,15 @@ const BackupWalletScreen = ({navigation}) => {
           )}
           buttonDisabled={passcode.length === 6 ? false : true}
           onChangeText={handleSetupPasscode}
-          hide={() => setValues({...values, showPasscodeModal: false})}
+          hide={() => setValues({ ...values, showPasscodeModal: false })}
           onConfirm={() => {
-            setValues({...values, showPasscodeModal: false});
+            setValues({ ...values, showPasscodeModal: false });
             googleSignin();
           }}
         />
 
         <View style={styles.aboutView}>
-          <RegularText style={{paddingBottom: Spacing.vs / 2}}>
+          <RegularText style={{ paddingBottom: Spacing.vs / 2 }}>
             {t('Backup your wallet')}
           </RegularText>
           <SmallText color={colors.danger} noPadding>
@@ -258,8 +218,7 @@ const BackupWalletScreen = ({navigation}) => {
           <CustomButton
             color={colors.blue}
             title={t('Backup to Google Drive')}
-            // onPress={googleSignin}
-            onPress={() => setValues({...values, showPasscodeModal: true})}
+            onPress={() => setValues({ ...values, showPasscodeModal: true })}
           />
         </View>
       </ScrollView>
@@ -275,6 +234,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,
   },
-  description: {textAlign: 'justify', color: colors.lightGray},
-  aboutView: {marginBottom: Spacing.vs},
+  description: { textAlign: 'justify', color: colors.lightGray },
+  aboutView: { marginBottom: Spacing.vs },
 });

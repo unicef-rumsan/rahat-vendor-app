@@ -1,27 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Keyboard, Pressable, StatusBar, StyleSheet, View, Alert } from 'react-native';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
+import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { AngleRightIcon, ChargeIcon, QRIcon } from '../../../../assets/icons';
-import colors from '../../../../constants/colors';
-import { FontSize, Spacing } from '../../../../constants/utils';
+import { Keyboard, StatusBar, StyleSheet, View } from 'react-native';
+
+import { AngleRightIcon} from '../../../../assets/icons';
+import { FontSize, Spacing,colors } from '../../../constants';
 import {
-  CustomHeader,
   Card,
-  CustomButton,
-  CustomTextInput,
-  RegularText,
   SmallText,
-  CustomPopup,
-  CustomLoader,
+  PopupModal,
+  LoaderModal,
+  RegularText,
+  CustomButton,
+  CustomHeader,
+  CustomTextInput,
   SwitchAgencyModal,
 } from '../../../components';
-import { switchAgencyClearError, toggleSwitchAgencyModal } from '../../../redux/actions/agency';
-import { switchAgency } from '../../../redux/actions/agency';
 import { RahatService } from '../../../services/chain';
 
 let androidPadding = 0;
@@ -45,49 +43,35 @@ const AmountWithAngleBracket = ({ amount }) => (
 
 const ChargeTokenScreen = ({ navigation, route }) => {
   const { tokenBalance, beneficiaryPhone } = route.params;
-  const dispatch = useDispatch();
   const { t } = useTranslation();
-  const { wallet } = useSelector(state => state.wallet);
-  const { switchingAgency, switchAgencyLoaderMessage, switchAgencyErrorMessage, activeAppSettings, appSettings, showSwitchAgencyModal, switchAgencyError } = useSelector(state => state.agency)
 
-  const { userData } = useSelector(
-    state => state.auth,
-  );
+  const wallet  = useSelector(state => state.walletReducer.wallet);
+  const userData = useSelector(state => state.authReducer.userData);
+  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
+
 
   const [values, setValues] = useState({
     amount: '',
-    isSubmitting: false,
     remarks: '',
-    showPopup: false,
-    popupType: '',
-    messageType: '',
-    message: '',
-    loaderMessage: '',
-    showLoader: false,
     textInputErrorFlag: false,
   });
   const {
     amount,
-    isSubmitting,
     remarks,
-    message,
-    messageType,
-    popupType,
-    showPopup,
-    loaderMessage,
-    showLoader,
     textInputErrorFlag,
   } = values;
 
   useEffect(() => {
     if (userData?.agencies[0]?.status === 'new') {
-      setValues({
-        ...values,
-        showPopup: true,
+      PopupModal.show({
         popupType: 'alert',
-        messageType: `${'Alert'}`,
-        message: `${t('Your account has not been approved')}`,
-      });
+        messageType: 'Alert',
+        message: 'Your account has not been approved',
+        onConfirm: () => {
+          PopupModal.hide();
+          navigation.navigate('HomeScreen');
+        }
+      })
     }
   }, [activeAppSettings]);
 
@@ -111,7 +95,9 @@ const ChargeTokenScreen = ({ navigation, route }) => {
     }
 
     Keyboard.dismiss();
-    setValues({ ...values, isSubmitting: true });
+    LoaderModal.show({
+      message: 'Please wait...'
+    });
     try {
       await RahatService(
         activeAppSettings.agency.contracts.rahat,
@@ -121,6 +107,8 @@ const ChargeTokenScreen = ({ navigation, route }) => {
       ).chargeCustomerERC20(beneficiaryPhone, amount);
 
       setValues({ ...values, isSubmitting: false });
+      LoaderModal.hide();
+
       navigation.navigate('VerifyOTPScreen', {
         phone: beneficiaryPhone,
         amount: amount,
@@ -128,52 +116,17 @@ const ChargeTokenScreen = ({ navigation, route }) => {
         type: 'erc20',
       });
     } catch (e) {
-      console.log(e, 'error');
-      alert(e);
-      setValues({ ...values, isSubmitting: false });
+      // alert(e);
+      LoaderModal.hide();
     }
   };
 
-  const handleSwitchAgency = agencyUrl => {
-    const newActiveAppSettings = appSettings.find(
-      setting => setting.agencyUrl === agencyUrl,
-    );
-    dispatch(
-      switchAgency(
-        newActiveAppSettings,
-        wallet,
-      ),
-    );
-  };
-
- 
+  const _onSwitchAgency = () => SwitchAgencyModal.show();
 
   return (
     <>
       <CustomHeader title={t('Charge')} onBackPress={() => navigation.pop()} />
-      {switchAgencyError && (Alert.alert('Error', `${switchAgencyErrorMessage}`, [
-        { text: "OK", onPress: () => dispatch(switchAgencyClearError()) }
-      ]))}
-      <CustomLoader show={isSubmitting || switchingAgency} message={t('Please wait...')} />
-      <CustomPopup
-        message={message}
-        messageType={messageType}
-        show={showPopup}
-        popupType={popupType}
-        onConfirm={() =>
-          messageType === `${t('Insufficient Balance')}`
-            ? setValues({ ...values, showPopup: false })
-            : navigation.navigate('HomeScreen')
-        }
-      />
-      <SwitchAgencyModal
-        agencies={appSettings}
-        activeAgency={activeAppSettings}
-        show={showSwitchAgencyModal}
-        onPress={handleSwitchAgency}
-        hide={() => dispatch(toggleSwitchAgencyModal(showSwitchAgencyModal))}
-      />
-      <CustomLoader show={showLoader} message={loaderMessage} />
+
       <View style={styles.container}>
         <SmallText
           style={{ fontSize: FontSize.small * 1.1 }}
@@ -185,7 +138,7 @@ const ChargeTokenScreen = ({ navigation, route }) => {
           <RegularText
             color={colors.gray}
             style={{ fontSize: FontSize.medium * 1.1 }}>
-            {t('Token Balance')}:
+            Token Balance :
           </RegularText>
           <AmountWithAngleBracket amount={tokenBalance} />
         </Card>
@@ -205,7 +158,6 @@ const ChargeTokenScreen = ({ navigation, route }) => {
           <CustomTextInput
             placeholder={t('Remarks')}
             value={remarks}
-            editable={!isSubmitting}
             onChangeText={value => handleTextChange(value, 'remarks')}
           />
           <SmallText
@@ -216,18 +168,16 @@ const ChargeTokenScreen = ({ navigation, route }) => {
             )}
           </SmallText>
           <CustomButton
-            title={t('Switch Agency')}
-            width={widthPercentageToDP(80)}
-            disabled={isSubmitting}
             outlined
-            onPress={() => dispatch(toggleSwitchAgencyModal(showSwitchAgencyModal))}
+            title={'Switch Agency'}
+            width={widthPercentageToDP(80)}
+            onPress={_onSwitchAgency}
           />
           <CustomButton
-            title={t('Charge')}
+            onPress={onSubmit}
+            title={'Charge'}
             color={colors.green}
             width={widthPercentageToDP(80)}
-            onPress={onSubmit}
-            disabled={isSubmitting}
           />
         </Card>
       </View>

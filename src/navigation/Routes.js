@@ -1,135 +1,66 @@
-import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, AppState } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import AuthStack from './AuthStack';
-import { useDispatch, useSelector } from 'react-redux';
-import AppStack from './AppStack';
-import { setWallet } from '../redux/actions/wallet';
 import { ethers } from 'ethers';
-import { getUserByWalletAddress } from '../redux/actions/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Logo } from '../../assets/images';
-import colors from '../../constants/colors';
-import LockScreen from '../screens/app-screens/LockScreen';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getActiveAgencyTransactions } from '../../constants/helper';
-import { setAppSettings } from '../redux/actions/agency';
+import { useDispatch, useSelector } from 'react-redux';
+import { NavigationContainer } from '@react-navigation/native';
+import { View, ActivityIndicator, AppState } from 'react-native';
+
+import AppStack from './AppStack';
+import AuthStack from './AuthStack';
+import { colors } from '../constants';
+import { Logo } from '../../assets/images';
+import LockScreen from '../screens/app-screens/LockScreen';
+import { setWalletData } from '../redux/actions/walletActions';
+import { lockApp, setAuthData } from '../redux/actions/authActions';
 
 const Routes = () => {
   const dispatch = useDispatch();
   const { i18n } = useTranslation();
-  const {
-    userData,
-    wallet,
-    lockScreen,
-    rahatPasscode,
-    backupToDriveStatus,
-  } = useSelector(state => state.auth);
-  const [initializing, setInitializing] = useState(true);
+
+  const lockScreen = useSelector(state => state.authReducer.lockScreen);
+  const rahatPasscode = useSelector(state => state.authReducer.rahatPasscode);
+  const backingUpToDriveStatus = useSelector(state => state.authReducer.backingUpToDriveStatus);
+  
+  const userData = useSelector(state => state.authReducer.userData);
+  const walletInfo = useSelector(state => state.walletReducer.walletInfo);
+  const initializing = useSelector(state => state.authReducer.initializing);
+  const activeLanguage = useSelector(state => state.languageReducer.activeLanguage);
+  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (nextAppState === 'background') {
-        rahatPasscode !== '' &&
-          !backupToDriveStatus &&
-          dispatch({ type: 'LOCK_APP' });
+        !!rahatPasscode  &&
+          !backingUpToDriveStatus &&
+          dispatch(lockApp());
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [rahatPasscode, backupToDriveStatus]);
+  }, [rahatPasscode, backingUpToDriveStatus]);
 
   useEffect(() => {
-    AsyncStorage.getItem('activeLanguage')
-      .then(res => {
-        if (res !== null) {
-          const activeLanguage = JSON.parse(res);
-          i18n.changeLanguage(activeLanguage);
-        }
-      })
-      .catch(e => { });
-  }, []);
+    i18n.changeLanguage(activeLanguage?.name);
+  }, [activeLanguage]);
 
   useEffect(() => {
-    const keys = [
-      'walletInfo',
-      'storedAppSettings',
-      'transactions',
-      'storedTokenIds'
-    ];
+    setAuthData({ initializing: true });
+    if (walletInfo) {
+      const provider = new ethers.providers.JsonRpcProvider(
+        activeAppSettings?.networkUrl,
+      );
 
-    if (!wallet) {
-      AsyncStorage.multiGet(keys)
-        .then(res => {
-          const walletInfo = JSON.parse(res[0][1]);
-          const storedAppSettings = JSON.parse(res[1][1]);
-          const storedTransactions = JSON.parse(res[2][1]);
-          const storedTokenIds = JSON.parse(res[3][1]);
-
-          if (walletInfo !== null) {
-            let activeAppSetting = storedAppSettings[0];
-            let provider = new ethers.providers.JsonRpcProvider(
-              activeAppSetting?.networkUrl,
-            );
-
-            if (storedTransactions !== null) {
-              const activeAgencyTransactions =  getActiveAgencyTransactions(activeAppSetting, storedTransactions);
-              dispatch({
-                type: 'SET_TRANSACTIONS',
-                transactions: activeAgencyTransactions,
-              });
-            }
-
-            if (storedTokenIds !== null) {
-              let activeAgencyStoredAssets = storedTokenIds?.filter(item => item.agencyUrl === activeAppSetting?.agencyUrl);
-              
-              activeAgencyStoredAssets?.length && dispatch({ type: 'SET_STORED_TOKEN_IDS', storedTokenIds: activeAgencyStoredAssets })
-            }
-            const walletRandom = new ethers.Wallet(
-              walletInfo.privateKey,
-              provider,
-            );
-            dispatch({ type: 'SET_WALLET_INFO', payload: walletInfo });
-            dispatch(setWallet(walletRandom));
-            dispatch(setAppSettings(storedAppSettings,activeAppSetting));
-            dispatch(
-              getUserByWalletAddress(
-                activeAppSetting.agencyUrl,
-                walletInfo.address,
-                onGetUserSuccess,
-                onGetUserError,
-              ),
-            );
-          } else {
-            setInitializing(false);
-          }
-        })
-        .catch(e => {
-          // console.log(e,);
-          setInitializing(false);
-        });
+      const temp = new ethers.Wallet(walletInfo.privateKey);
+      const connectedWallet = temp.connect(provider);
+      dispatch(setWalletData({ wallet: connectedWallet }));
+      dispatch(setAuthData());
+      return
     }
+    
+    dispatch(setAuthData())
   }, []);
-
-  const onGetUserSuccess = () => {
-    AsyncStorage.getItem('passcode')
-      .then(res => {
-        if (res !== null) {
-          dispatch({ type: 'SET_RAHAT_PASSCODE', passcode: JSON.parse(res) });
-          setInitializing(false);
-        } else {
-          setInitializing(false);
-        }
-      })
-      .catch(e => {
-        // console.log(e);
-      });
-  };
-  const onGetUserError = e => {
-    setInitializing(false);
-  };
 
   if (initializing) {
     return (
@@ -137,8 +68,8 @@ const Routes = () => {
         <View
           style={{
             flex: 1,
-            justifyContent: 'center',
             alignItems: 'center',
+            justifyContent: 'center',
             backgroundColor: 'white',
           }}>
           <Logo />
@@ -148,15 +79,17 @@ const Routes = () => {
     );
   }
   return (
-    <NavigationContainer>
-      {userData === null && !lockScreen ? (
-        <AuthStack />
-      ) : userData !== null && lockScreen ? (
-        <LockScreen />
-      ) : (
-        <AppStack />
-      )}
-    </NavigationContainer>
+    <>
+      <NavigationContainer>
+        {userData === null && !lockScreen ? (
+          <AuthStack />
+        ) : userData !== null && lockScreen ? (
+          <LockScreen />
+        ) : (
+          <AppStack />
+        )}
+      </NavigationContainer>
+    </>
   );
 };
 

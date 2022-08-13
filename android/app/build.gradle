@@ -141,8 +141,8 @@ android {
         applicationId "com.rahatvendor"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 20
-        versionName "1.3.0"
+        versionCode 25
+        versionName "2.0.4"
         missingDimensionStrategy 'react-native-camera', 'general'
     }
     splits {

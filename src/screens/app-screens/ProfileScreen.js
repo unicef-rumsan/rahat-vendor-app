@@ -1,57 +1,45 @@
 import React from 'react';
 import {
+  View,
   Image,
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  View,
 } from 'react-native';
+import { useSelector } from 'react-redux';
+import QRCode from 'react-native-qrcode-svg';
+import { RNToasty } from 'react-native-toasty';
 
-import colors from '../../../constants/colors';
-import {FontSize, Spacing} from '../../../constants/utils';
+import {
+  Card,
+  SmallText,
+  RegularText,
+  CustomHeader,
+  IndividualSettingView,
+} from '../../components';
 import {
   PersonIcon,
   PhoneIcon,
   LocationIcon,
-  EditIcon,
 } from '../../../assets/icons';
-import {
-  Card,
-  CustomHeader,
-  IndividualSettingView,
-  RegularText,
-  SmallText,
-} from '../../components';
-import {useSelector} from 'react-redux';
-import QRCode from 'react-native-qrcode-svg';
-import {RNToasty} from 'react-native-toasty';
+import { FontSize, Spacing, colors } from '../../constants';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {useTranslation} from 'react-i18next';
 
-const ProfileScreen = ({navigation}) => {
-  const {userData} = useSelector(state => state.auth);
-  const {t} = useTranslation();
-  // const ProfileDetail = ({icon, title}) => (
-  //   <View style={styles.detailView}>
-  //     {icon}
-  //     <RegularText style={{paddingHorizontal: Spacing.hs}}>{title}</RegularText>
-  //   </View>
-  // );
+const ProfileScreen = ({ navigation }) => {
+  const userData = useSelector(state => state.authReducer.userData);
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
-    RNToasty.Show({title: `${t('Copied to clipboard')}`, duration: 0});
+    RNToasty.Show({ title: 'Copied to clipboard', duration: 0 });
   };
 
   return (
     <>
       <CustomHeader
-        title={t('Profile')}
+        title={'Profile'}
         onBackPress={() => navigation.pop()}
-        // rightIcon={<EditIcon />}
-
-        // onRightIconPress={() => navigation.navigate('EditProfile')}
+      // rightIcon={<EditIcon />}
+      // onRightIconPress={() => navigation.navigate('EditProfile')}
       />
       <ScrollView style={styles.container}>
         <Image
@@ -61,29 +49,24 @@ const ProfileScreen = ({navigation}) => {
           style={styles.image}
         />
 
-        {/* <View
-          style={{
-            paddingHorizontal: Spacing.hs * 2,
-            paddingTop: Spacing.vs * 2,
-          }}> */}
         <IndividualSettingView
           icon={<PersonIcon />}
           title={userData?.name}
-          style={{paddingHorizontal: Spacing.hs * 2}}
+          style={{ paddingHorizontal: Spacing.hs * 2 }}
         />
         <IndividualSettingView
           icon={<PhoneIcon />}
           title={userData?.phone}
-          style={{paddingHorizontal: Spacing.hs * 2}}
+          style={{ paddingHorizontal: Spacing.hs * 2 }}
         />
         <IndividualSettingView
           icon={<LocationIcon />}
           title={userData?.address}
-          style={{paddingHorizontal: Spacing.hs * 2}}
+          style={{ paddingHorizontal: Spacing.hs * 2 }}
         />
 
         <View
-          style={{paddingHorizontal: Spacing.hs, marginVertical: Spacing.vs}}>
+          style={{ paddingHorizontal: Spacing.hs, marginVertical: Spacing.vs }}>
           <RegularText color={colors.gray}>Your Address</RegularText>
           <Card>
             <View
@@ -108,15 +91,13 @@ const ProfileScreen = ({navigation}) => {
               <SmallText
                 center
                 color={colors.lightGray}
-                style={{fontSize: FontSize.xsmall, paddingTop: Spacing.vs}}>
-                {t(
-                  'This QR Code (address) is your unique identity. Use this to receive digital documents, assets or verify your identity.',
-                )}
+                style={{ fontSize: FontSize.xsmall, paddingTop: Spacing.vs }}>
+                This QR Code (address) is your unique identity. Use this to receive digital documents, 
+                assets or verify your identity.',
               </SmallText>
             </View>
           </Card>
         </View>
-        {/* </View> */}
       </ScrollView>
     </>
   );
@@ -126,15 +107,8 @@ export default ProfileScreen;
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
     backgroundColor: colors.white,
   },
-  // detailView: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  //   paddingTop: Spacing.vs,
-  //   paddingHorizontal: Spacing.hs * 2,
-  // },
   image: {
     height: 150,
     width: 150,

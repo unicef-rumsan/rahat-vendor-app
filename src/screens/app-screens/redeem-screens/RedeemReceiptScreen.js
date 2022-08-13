@@ -1,14 +1,11 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Clipboard from '@react-native-clipboard/clipboard';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {useTranslation} from 'react-i18next';
+import {RNToasty} from 'react-native-toasty';
+import Clipboard from '@react-native-clipboard/clipboard';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
-import {RNToasty} from 'react-native-toasty';
-import {useDispatch} from 'react-redux';
-import colors from '../../../../constants/colors';
-import {Spacing} from '../../../../constants/utils';
 
+import {Spacing, colors} from '../../../constants';
 import {CustomButton, CustomHeader, SmallText, Card} from '../../../components';
 
 const RedeemReceiptScreen = ({navigation, route}) => {
@@ -16,7 +13,9 @@ const RedeemReceiptScreen = ({navigation, route}) => {
   const {t} = useTranslation();
   const RedeemDetail = ({title, detail, detailColor, onPress}) => (
     <Pressable style={styles.chargeDetail} onPress={onPress}>
-      <SmallText>{title}</SmallText>
+      <SmallText>
+        {title}
+        </SmallText>
       <View>
         {typeof detail === 'object' ? (
           detail.map((item, index) => (
@@ -26,7 +25,7 @@ const RedeemReceiptScreen = ({navigation, route}) => {
               numberOfLines={1}
               color={detailColor || colors.black}
               style={styles.detailText}>
-              {item.name} ({item.balance})
+                {`${item.name} ${item.balance}` }
             </SmallText>
           ))
         ) : (

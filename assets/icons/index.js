@@ -1,32 +1,32 @@
-import HomeIcon from './Home';
-import ChargeIcon from './Charge';
-import SettingsIcon from './Settings';
-import HeaderBack from './HeaderBack';
 import Logo from './Logo';
-import RedeemIcon from './Redeem';
-import DollorIcon from './Dollor';
-import AngleRightIcon from './AngleRight';
-import PersonIcon from './Person';
-import PhoneIcon from './Phone';
-import LocationIcon from './Location';
-import EditIcon from './Edit';
-import WalletIcon from './Wallet';
-import AgencyIcon from './Agency';
-import AboutIcon from './About';
-import TransferTokenIcon from './TransferToken';
-import BackupWalletIcon from './BackupWallet';
-import PassCodeIcon from './Passcode';
-import LanguageIcon from './Language';
-import AddCircleIcon from './AddCircle';
-import MoreDotsIcon from './MoreDots';
-import RumsanLogo from './RumsanLogo';
-import QRIcon from './QRIcon';
 import EyeIcon from './Eye';
 import GearIcon from './Gear';
-import PackageImageIcon from "./PackageImage"
-import AssetsIcon from "./Assets"
-import GiftIcon from "./Gift"
-// import MoreVerticalIcon from './MoreVertical'
+import GiftIcon from "./Gift";
+import HomeIcon from './Home';
+import QRIcon from './QRIcon';
+import EditIcon from './Edit';
+import PhoneIcon from './Phone';
+import AboutIcon from './About';
+import AssetsIcon from "./Assets";
+import WalletIcon from './Wallet';
+import ChargeIcon from './Charge';
+import RedeemIcon from './Redeem';
+import DollorIcon from './Dollor';
+import PersonIcon from './Person';
+import AgencyIcon from './Agency';
+import LocationIcon from './Location';
+import HeaderBack from './HeaderBack';
+import SettingsIcon from './Settings';
+import PassCodeIcon from './Passcode';
+import LanguageIcon from './Language';
+import RumsanLogo from './RumsanLogo';
+import MoreDotsIcon from './MoreDots';
+import AddCircleIcon from './AddCircle';
+import AngleRightIcon from './AngleRight';
+import BackupWalletIcon from './BackupWallet';
+import PackageImageIcon from "./PackageImage";
+import TransferTokenIcon from './TransferToken';
+import RightArrowIcon from './RightArrow';
 
 export {
   HomeIcon,
@@ -56,5 +56,6 @@ export {
   GearIcon,
   PackageImageIcon,
   AssetsIcon,
-  GiftIcon
+  GiftIcon,
+  RightArrowIcon
 };

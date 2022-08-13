@@ -5,9 +5,7 @@ import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import {PackageImageIcon} from '../../../assets/icons';
-import colors from '../../../constants/colors';
-import {FontSize, Spacing} from '../../../constants/utils';
+import { Spacing, colors} from '../../constants';
 import {CustomHeader, Card, SmallText} from '../../components';
 
 let androidPadding = 0;
@@ -18,7 +16,6 @@ if (Platform.OS === 'android') {
 const PackageDetailScreen = ({navigation, route}) => {
   const {t} = useTranslation();
   const {packageDetail} = route?.params;
-  console.log(packageDetail, "asd")
 
   const IndividualPackageDetail = ({title, value}) => (
     <View

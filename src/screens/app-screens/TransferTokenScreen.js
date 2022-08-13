@@ -1,69 +1,58 @@
-import React, {useState, useEffect} from 'react';
+import { ethers } from 'ethers';
+import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
+  View,
   Alert,
   Pressable,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
-  Text,
-  View,
 } from 'react-native';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import {QRIcon} from '../../../assets/icons';
-import colors from '../../../constants/colors';
-import {FontSize, Spacing} from '../../../constants/utils';
-import Contract from '../../../blockchain/contract';
+
 import {
-  CustomHeader,
   Card,
+  SmallText,
+  RegularText,
+  CustomHeader,
   CustomButton,
   CustomTextInput,
-  RegularText,
-  SmallText,
-  CustomLoader,
-  CustomPopup,
+  PopupModal,
+  LoaderModal,
 } from '../../components';
-import {useDispatch, useSelector} from 'react-redux';
-import {ethers} from 'ethers';
-import {useTranslation} from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { QRIcon } from '../../../assets/icons';
+import Contract from '../../../blockchain/contract';
+import { FontSize, Spacing, colors } from '../../constants';
+import { setTransactionData } from '../../redux/actions/transactionActions';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const TransferTokenScreen = ({navigation, route}) => {
-  const {tokenBalance} = useSelector(state => state.wallet);
-  const {t} = useTranslation();
+const TransferTokenScreen = ({ navigation, route }) => {
+  const wallet = useSelector(state => state.walletReducer.wallet);
+  const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
+  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
+  const transactions = useSelector(state => state.transactionReducer.transactions);
+
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const [values, setValues] = useState({
-    destinationAddress: '',
     amount: '',
     showLoader: false,
-    loaderMessage: '',
-    showPopup: false,
-    popupType: '',
-    popupMessageType: '',
-    popupMessage: '',
+    destinationAddress: '',
   });
 
   const {
-    destinationAddress,
     amount,
-    loaderMessage,
     showLoader,
-    popupMessage,
-    popupMessageType,
-    popupType,
-    showPopup,
+    destinationAddress,
   } = values;
-
-  const {activeAppSettings} = useSelector(state => state.auth);
-  const {wallet} = useSelector(state => state.wallet);
 
   useEffect(() => {
     if (showLoader) {
@@ -72,7 +61,11 @@ const TransferTokenScreen = ({navigation, route}) => {
           ...values,
           showLoader: false,
         });
-        return alert(`${t('Invalid destination address')}`);
+        return PopupModal.show({
+          popupType: 'alert',
+          messageType: 'Error',
+          message: 'Invalid destination address',
+        })
       }
       sendERCToken();
     }
@@ -89,27 +82,23 @@ const TransferTokenScreen = ({navigation, route}) => {
 
   const handleTransferToken = () => {
     if (tokenBalance < amount) {
-      return setValues({
-        ...values,
-        showPopup: true,
+      return PopupModal.show({
         popupType: 'alert',
-        popupMessage: `${t('Amount cannot be greater than balance')}`,
-        popupMessageType: `${t('Alert')}`,
+        messageType: 'Alert',
+        message: 'Amount cannot be greater than balance',
       });
     }
     if (destinationAddress === '' || amount === '') {
-      return setValues({
-        ...values,
-        showPopup: true,
+      return PopupModal.show({
         popupType: 'alert',
-        popupMessage: `${t('Please fill out all the fields')}`,
-        popupMessageType: `${t('Alert')}`,
+        messageType: 'Alert',
+        message: 'Please fill out all the fields',
       });
     }
-    setValues({
-      ...values,
-      showLoader: true,
-      loaderMessage: `${t('Transferring token.')} ${t('Please wait...')}`,
+
+    setValues({ ...values, showLoader: true });
+    LoaderModal.show({
+      message: 'Please wait...'
     });
   };
 
@@ -124,43 +113,30 @@ const TransferTokenScreen = ({navigation, route}) => {
       onSuccess();
     } catch (e) {
       onError(e);
-      setValues({
-        ...values,
-        showLoader: false,
-      });
+      LoaderModal.hide();
     }
   };
 
   const storeReceiptSuccess = receiptData => {
-    setValues({...values, showLoader: false});
+    setValues({ ...values, showLoader: false });
     navigation.replace('TransferReceiptScreen', {
       receiptData,
     });
-  };
+  }
 
-  const storeReceipt = async receiptData => {
-    try {
-      let transactions,
-        parsedTransactions = [],
-        finalTransactions = [];
-      transactions = await AsyncStorage.getItem('transactions');
+  const storeReceipt = (receiptData) => {
+    let updatedTransactions = [];
 
-      if (transactions !== null) {
-        parsedTransactions = JSON.parse(transactions);
-        finalTransactions = [receiptData, ...parsedTransactions];
-      } else {
-        finalTransactions = [receiptData];
-      }
-      await AsyncStorage.setItem(
-        'transactions',
-        JSON.stringify(finalTransactions),
-      );
-      dispatch({type: 'SET_TRANSACTIONS', transactions: finalTransactions});
-      storeReceiptSuccess(receiptData);
-    } catch (e) {
-      console.log(e);
+    if(transactions?.length) {
+      updatedTransactions = [receiptData, ...transactions];
+    }else{
+      updatedTransactions = [receiptData];
     }
-  };
+
+    dispatch(setTransactionData({transactions: updatedTransactions}));
+
+    storeReceiptSuccess(receiptData);
+}
 
   const onSuccess = () => {
     let timeElapsed = Date.now();
@@ -177,8 +153,7 @@ const TransferTokenScreen = ({navigation, route}) => {
     storeReceipt(receiptData);
   };
   const onError = e => {
-    console.log(e, 'error');
-    setValues({...values, showLoader: false});
+    setValues({ ...values, showLoader: false });
     Alert.alert(
       'Error',
       `${e?.error || `${t('Something went wrong. Please try again')}`}`,
@@ -210,24 +185,16 @@ const TransferTokenScreen = ({navigation, route}) => {
         onBackPress={() => navigation.pop()}
       />
       <View style={styles.container}>
-        <CustomLoader message={loaderMessage} show={showLoader} />
-        <CustomPopup
-          show={showPopup}
-          message={popupMessage}
-          messageType={popupMessageType}
-          popupType={popupType}
-          onConfirm={() => setValues({...values, showPopup: false})}
-        />
         <Card>
           <RegularText
             color={colors.black}
-            style={{paddingBottom: Spacing.vs, fontSize: FontSize.medium}}>
+            style={{ paddingBottom: Spacing.vs, fontSize: FontSize.medium }}>
             {t('Transfer Token')} :
           </RegularText>
-          <View style={{flexDirection: 'row'}}>
+          <View style={{ flexDirection: 'row' }}>
             <CustomTextInput
               placeholder="Destination Address"
-              style={{width: widthPercentageToDP(64)}}
+              style={{ width: widthPercentageToDP(64) }}
               onChangeText={value =>
                 handleTextChange(value, 'destinationAddress')
               }
@@ -258,7 +225,7 @@ const TransferTokenScreen = ({navigation, route}) => {
             value={amount}
           />
 
-          <SmallText style={{fontSize: FontSize.small / 1.2}}>
+          <SmallText style={{ fontSize: FontSize.small / 1.2 }}>
             {t(
               'Important: Please double check the destination address and amount before transferring. Transactions cannot be reversed.',
             )}

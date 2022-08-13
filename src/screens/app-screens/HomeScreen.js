@@ -1,53 +1,52 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useRef,
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import {
-  ActivityIndicator,
-  BackHandler,
-  Image,
-  Platform,
-  Pressable,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
   View,
+  Text,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  BackHandler,
+  SafeAreaView,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
-import colors from '../../../constants/colors';
+import { RNToasty } from 'react-native-toasty';
+import { useDispatch, useSelector } from 'react-redux';
+import { useIsFocused } from '@react-navigation/native';
+import { useBackHandler } from '@react-native-community/hooks';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
+
 import {
+  Logo,
   DollorIcon,
   GearIcon,
   GiftIcon,
-  Logo,
   MoreDotsIcon,
   PersonIcon,
-  SettingsIcon,
 } from '../../../assets/icons';
-import { FontSize, Spacing } from '../../../constants/utils';
-
-import { widthPercentageToDP } from 'react-native-responsive-screen';
-import IndividualStatement from '../../components/IndividualStatement';
-
 import {
   Card,
   SmallText,
   RegularText,
   CustomButton,
+  IndividualStatement,
   IndividualSettingView,
+  CustomBottomSheet,
 } from '../../components';
-import { useDispatch, useSelector } from 'react-redux';
+import { FontSize, Spacing, colors } from '../../constants';
+import { getPackageDetail } from '../../helpers/nftPackageHelpers';
 import {
+  setWalletData,
+  getWalletBalance,
   getPackageBalanceInFiat,
   getPackageBatchBalance,
-  getWalletBalance,
-} from '../../redux/actions/wallet';
-import { useBackHandler } from '@react-native-community/hooks';
-import { RNToasty } from 'react-native-toasty';
-import { useIsFocused } from '@react-navigation/native';
-import CustomLoader from '../../components/CustomLoader';
-import { useTranslation } from 'react-i18next';
-import CustomBottomSheet from '../../components/CustomBottomSheet';
-import { getPackageDetail } from '../../../constants/helper';
+} from '../../redux/actions/walletActions';
 
 let BACK_COUNT = 0;
 
@@ -63,32 +62,28 @@ const Header = ({ title, onRightIconPress }) => (
 
 const HomeScreen = ({ navigation, route }) => {
   const refresh = route?.params?.refresh;
-  const { t } = useTranslation();
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const bottomSheetModalRef = useRef(null);
   const snapPoints = useMemo(() => ['18%', '18%'], []);
-  const { userData } = useSelector(state => state.auth);
-  const { activeAppSettings } = useSelector(state => state.agency);
+  const userData = useSelector(state => state.authReducer.userData);
   const [userInAgencyStatus, setUserInAgencyStatus] = useState(false);
 
-  const {
-    wallet,
-    tokenBalance,
-    packageBalance,
-    packageBalanceCurrency,
-    transactions,
-    storedTokenIds,
-  } = useSelector(state => state.wallet);
-
+  const wallet = useSelector(state => state.walletReducer.wallet);
+  const packageIds = useSelector(state => state.walletReducer.packageIds);
+  const packages = useSelector(state => state.walletReducer.packages);
+  const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
+  const packageBalance = useSelector(state => state.walletReducer.packageBalance);
+  const transactions = useSelector(state => state.transactionReducer.transactions);
+  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
+  const packageBalanceCurrency = useSelector(state => state.walletReducer.packageBalanceCurrency);
   const [values, setValues] = useState({
     refreshing: false,
-    showLoader: false,
     showBottomSheet: false,
     bottomSheetContent: '',
   });
 
-  const { refreshing, showLoader, bottomSheetContent } = values;
+  const { refreshing, bottomSheetContent } = values;
 
   useEffect(() => {
     let temp = userData.agencies?.filter(
@@ -102,7 +97,7 @@ const HomeScreen = ({ navigation, route }) => {
       if (BACK_COUNT < 1) {
         BACK_COUNT++;
         RNToasty.Show({
-          title: `${t('Press BACK again to exit app')}`,
+          title: `${'Press BACK again to exit app'}`,
           position: 'center',
         });
         setTimeout(() => {
@@ -116,46 +111,54 @@ const HomeScreen = ({ navigation, route }) => {
     }
   }, []);
 
+  // useEffect(() => {
+  //   // LoaderModal.show();
+  // }, [])
+
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
 
   const getBalance = () => {
-    dispatch(
-      getWalletBalance(
-        activeAppSettings?.agency?.contracts?.rahat,
-        wallet,
-        activeAppSettings?.agency?.contracts?.rahat_erc20,
-        activeAppSettings?.agency?.contracts?.rahat_erc1155,
-      ),
-    );
+    if (wallet) {
+      dispatch(
+        getWalletBalance(
+          wallet,
+          activeAppSettings,
+        ),
+      );
+    }
   };
 
   const getPackageBatchBalanceSuccess = async (tokenIds, batchBalance) => {
     if (tokenIds?.length && batchBalance?.length) {
       dispatch(getPackageBalanceInFiat(tokenIds, batchBalance));
+
       const packages = await getPackageDetail(
         { tokenIds, balances: batchBalance },
         'getPackages',
       );
-      dispatch({ type: 'SET_PACKAGES', packages });
+
+
+      dispatch(setWalletData({
+        packages
+      }));
     }
     if (tokenIds?.length === 0 && batchBalance?.length === 0) {
-      dispatch({
-        type: 'SET_PACKAGE_BALANCE',
+      dispatch(setWalletData({
         packageBalance: 0,
         packageBalanceCurrency: '',
-      });
+      }));
     }
   };
 
   const getPackageBalance = async () => {
     try {
-      let activeStoredTokenIds = storedTokenIds?.find(
+      let activePackageIds = packageIds?.find(
         item => item?.agencyUrl === activeAppSettings?.agencyUrl,
       );
-      if (activeStoredTokenIds?.tokenIds?.length) {
-        const walletAddress = activeStoredTokenIds?.tokenIds?.map(
+      if (activePackageIds?.tokenIds?.length) {
+        const walletAddress = activePackageIds?.tokenIds?.map(
           () => wallet.address,
         );
         dispatch(
@@ -165,24 +168,22 @@ const HomeScreen = ({ navigation, route }) => {
             activeAppSettings?.agency?.contracts?.rahat_erc1155,
             wallet,
             walletAddress,
-            activeStoredTokenIds?.tokenIds,
+            activePackageIds?.tokenIds,
             getPackageBatchBalanceSuccess,
           ),
         );
       } else {
-        dispatch({
-          type: 'SET_PACKAGE_BALANCE',
+        dispatch(setWalletData({
+          packages: [],
           packageBalance: 0,
           packageBalanceCurrency: '',
-        });
+        }));
       }
     } catch (e) {
-      console.log(e);
-      dispatch({
-        type: 'SET_PACKAGE_BALANCE',
+      dispatch(setWalletData({
         packageBalance: 0,
         packageBalanceCurrency: '',
-      });
+      }));
     }
   };
 
@@ -197,7 +198,7 @@ const HomeScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     getPackageBalance();
-  }, [storedTokenIds]);
+  }, [packageIds]);
 
   const onRefresh = () => {
     getBalance();
@@ -254,7 +255,7 @@ const HomeScreen = ({ navigation, route }) => {
   return (
     <>
       <Header
-        title={t('Home')}
+        title={'Home'}
         onRightIconPress={() => {
           setValues({ ...values, bottomSheetContent: 'more' });
           handlePresentModalPress();
@@ -266,17 +267,13 @@ const HomeScreen = ({ navigation, route }) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-        <CustomLoader
-          show={showLoader}
-          message={`${t('Switching agency.')} ${t('Please wait...')}`}
-        />
         <Card>
           <View style={[styles.rowView, { paddingBottom: Spacing.vs / 2 }]}>
             <SmallText noPadding color={colors.blue}>
               {activeAppSettings.agency.name || 'Agency Name'}
             </SmallText>
             <CustomButton
-              title={t('Redeem')}
+              title={'Redeem'}
               borderRadius={20}
               width={widthPercentageToDP(30)}
               capitalizeText
@@ -304,7 +301,7 @@ const HomeScreen = ({ navigation, route }) => {
                 color={colors.lightGray}
                 style={{ paddingTop: Spacing.vs / 3 }}
                 fontSize={FontSize.small * 1.1}>
-                {t('Token Balance')}
+                Token Balance
               </RegularText>
             </View>
             <View>
@@ -312,14 +309,14 @@ const HomeScreen = ({ navigation, route }) => {
                 <ActivityIndicator size={24} color={colors.blue} />
               ) : (
                 <RegularText color={colors.gray}>
-                  {packageBalanceCurrency} {packageBalance}
+                  {`${packageBalanceCurrency} ${packageBalance}`}
                 </RegularText>
               )}
               <RegularText
                 color={colors.lightGray}
                 style={{ paddingTop: Spacing.vs / 3 }}
                 fontSize={FontSize.small * 1.1}>
-                {t('Package')}
+                Package
               </RegularText>
             </View>
           </View>
@@ -332,30 +329,27 @@ const HomeScreen = ({ navigation, route }) => {
                 fontSize: FontSize.medium,
                 paddingVertical: Spacing.vs / 2,
               }}>
-              {t('Please contact your agency for approval')}
+              Please contact your agency for approval
             </RegularText>
             <CustomButton
               width={widthPercentageToDP(80)}
-              title={t('Check for approval')}
+              title={'Check for approval'}
               color={colors.green}
               onPress={() => navigation.navigate('CheckApprovalScreen')}
             />
           </Card>
         )}
-        {transactions?.length !== 0 && (
+        {transactions?.length && (
           <>
             <View style={styles.recentTxnHeader}>
               <RegularText color={colors.black}>
-                {t('Recent Transactions')}
+                {'Recent Transactions'}
               </RegularText>
               <Pressable
                 onPress={() =>
-                  navigation.navigate('StatementScreen', {
-                    transactions,
-                    balance,
-                  })
+                  navigation.navigate('StatementScreen')
                 }>
-                <RegularText color={colors.blue}>{t('VIEW ALL')}</RegularText>
+                <RegularText color={colors.blue}>{'VIEW ALL'}</RegularText>
               </Pressable>
             </View>
             <Card>

@@ -1,66 +1,105 @@
 import React from 'react';
-import {StyleSheet, View, Image, Pressable} from 'react-native';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import {AddCircleIcon} from '../../../assets/icons';
-import colors from '../../../constants/colors';
-import {Spacing} from '../../../constants/utils';
-import {useDispatch, useSelector} from 'react-redux';
-import {switchAgency} from '../../redux/actions/agency';
-import {useTranslation} from 'react-i18next';
+import { useDispatch, useSelector } from 'react-redux';
+import { StyleSheet, View, Pressable } from 'react-native';
+
+import { Spacing, colors, FontSize } from '../../constants';
+import { AddCircleIcon } from '../../../assets/icons';
 import {
-  CustomHeader,
-  RegularText,
   SmallText,
-  CustomLoader,
-  CustomPopup,
+  RegularText,
+  CustomHeader,
+  PoppinsMedium,
+  LoaderModal,
+  PopupModal,
 } from '../../components';
+import { switchAgencyAction } from '../../redux/actions/agencyActions';
 
-const TEMP_IMAGE =
-  'https://cdn.freelogovectors.net/wp-content/uploads/2016/12/un-logo.png';
-
-const AgencyScreen = ({navigation}) => {
-  const dispatch = useDispatch();
-  const {t} = useTranslation();
-  const {userData} = useSelector(state => state.auth);
-  const {appSettings, activeAppSettings} = useSelector(state => state.agency);
-
-  const {switchingAgency, switchAgencyLoaderMessage, switchAgencyErrorMessage} =
-    useSelector(state => state.agency);
-
-  const {wallet} = useSelector(state => state.wallet);
-
-  const AgencyComponent = ({name, website, onPress}) => (
+const AgencyComponent = ({ name, website, onPress }) => {
+  return (
     <Pressable style={styles.agencyView} onPress={onPress}>
       <View style={styles.agencyDetailsView}>
         <View style={styles.logoContainer}>
-          <Image
-            source={{
-              uri: TEMP_IMAGE,
-            }}
-            style={styles.logo}
-          />
+          {/* <Image
+          source={{
+            uri: TEMP_IMAGE,
+          }}
+          style={styles.logo}
+        /> */}
+          <PoppinsMedium
+            color={colors.blue}
+            fontSize={FontSize.large * 1.2}
+          >
+            {name?.[0]}
+          </PoppinsMedium>
         </View>
-        <View style={{paddingHorizontal: Spacing.hs}}>
-          <RegularText color={colors.black}>{name}</RegularText>
-          <SmallText>{website}</SmallText>
+        <View style={{ paddingHorizontal: Spacing.hs }}>
+          <RegularText color={colors.black}>
+            {name}
+          </RegularText>
+          <SmallText exact>
+            {website}
+          </SmallText>
         </View>
       </View>
     </Pressable>
-  );
+  )
+};
 
-  const handleSwitchAgency = agencyUrl => {
-    const newActiveAppSettings = appSettings.find(
+const AgencyScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const userData = useSelector(state => state.authReducer.userData);
+  const appSettings = useSelector(state => state.agencyReducer.appSettings);
+  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
+  console.log({appSettings})
+
+  const wallet = useSelector(state => state.walletReducer.wallet);
+
+  // const handleSwitchAgency = agencyUrl => {
+  //   const newActiveAppSettings = appSettings.find(
+  //     setting => setting.agencyUrl === agencyUrl,
+  //   );
+  //   dispatch(
+  //     switchAgency(newActiveAppSettings, wallet, () =>
+  //       navigation.navigate('HomeScreen', { refresh: true }),
+  //     ),
+  //   );
+  // };
+
+  const onSwitchAgencyError = (error) => {
+    LoaderModal.hide()
+    return PopupModal.show({
+      message: String(error),
+      popupType: 'alert',
+      messageType: 'Error',
+    })
+  }
+
+  const onSwitchAgencySuccess = () => {
+    LoaderModal.hide();
+    navigation.navigate('HomeScreen')
+  }
+
+  const _onSwitchAgency = (agencyUrl) => () => {
+
+    if (activeAppSettings.agencyUrl === agencyUrl) return
+
+    LoaderModal.show();
+    const newAppSettings = appSettings.find(
       setting => setting.agencyUrl === agencyUrl,
     );
-    dispatch(
-      switchAgency(newActiveAppSettings, wallet, () =>
-        navigation.navigate('HomeScreen', {refresh: true}),
-      ),
-    );
-  };
+    dispatch(switchAgencyAction({
+      wallet,
+      onSwitchAgencyError,
+      onSwitchAgencySuccess,
+      newAppSettings,
+    }));
+  } 
+
+
   return (
     <>
       <CustomHeader
@@ -83,28 +122,16 @@ const AgencyScreen = ({navigation}) => {
           })
         }
       />
-      <CustomPopup
-        show={switchAgencyErrorMessage && true}
-        popupType="alert"
-        messageType={'Error'}
-        message={`${switchAgencyErrorMessage}`}
-        onConfirm={() => dispatch({type: 'SWITCH_AGENCY_CLEAR_ERROR'})}
-      />
-      <CustomLoader
-        show={switchingAgency}
-        message={`${t(switchAgencyLoaderMessage)}`}
-      />
       <View style={styles.container}>
         {appSettings?.map((settings, i) => (
           <AgencyComponent
             key={i}
-            name={`${settings.agency.name} ${
-              activeAppSettings.agencyUrl === settings.agencyUrl
-                ? `${t('(Active)')}`
+            name={`${settings.agency.name} ${activeAppSettings.agencyUrl === settings.agencyUrl
+                ? '(Active)'
                 : ''
-            }`}
+              }`}
             website={settings.agencyUrl}
-            onPress={() => handleSwitchAgency(settings.agencyUrl)}
+            onPress={_onSwitchAgency(settings.agencyUrl)}
           />
         ))}
       </View>
@@ -129,7 +156,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logo: {height: hp(8), width: wp(17), resizeMode: 'contain'},
+  logo: { height: hp(8), width: wp(17), resizeMode: 'contain' },
   agencyDetailsView: {
     paddingVertical: Spacing.vs,
     flexDirection: 'row',

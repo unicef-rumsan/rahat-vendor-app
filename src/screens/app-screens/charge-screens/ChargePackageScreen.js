@@ -1,24 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StatusBar, StyleSheet, View, Image, Alert } from 'react-native';
+import { StatusBar, StyleSheet, View, Image } from 'react-native';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import { useDispatch, useSelector } from 'react-redux';
+import {  useSelector } from 'react-redux';
 
-import colors from '../../../../constants/colors';
-import { FontSize, Spacing } from '../../../../constants/utils';
+import { FontSize, Spacing, colors } from '../../../constants';
 import {
-  CustomHeader,
   Card,
-  CustomButton,
   SmallText,
-  CustomPopup,
-  CustomLoader,
+  PopupModal,
+  CustomButton,
+  LoaderModal,
+  CustomHeader,
   SwitchAgencyModal,
 } from '../../../components';
-import { toggleSwitchAgencyModal, switchAgency, switchAgencyClearError } from '../../../redux/actions/agency';
 import { RahatService } from '../../../services/chain';
 
 let androidPadding = 0;
@@ -49,53 +47,29 @@ const IndividualPackageDetail = ({ title, value }) => (
 
 const ChargePackageScreen = ({ navigation, route }) => {
   const { packageDetail, beneficiaryPhone } = route.params;
-  const dispatch = useDispatch();
   const { t } = useTranslation();
-  const { wallet } = useSelector(state => state.wallet);
-  const { userData } = useSelector(
-    state => state.auth,
-  );
-
-  const { switchingAgency, switchAgencyLoaderMessage, switchAgencyErrorMessage, activeAppSettings, appSettings, showSwitchAgencyModal, switchAgencyError } = useSelector(state => state.agency)
-
-
-  const [values, setValues] = useState({
-    isSubmitting: false,
-    showPopup: false,
-    popupType: '',
-    messageType: '',
-    message: '',
-    loaderMessage: '',
-    showLoader: false,
-  });
-  const {
-    isSubmitting,
-    message,
-    messageType,
-    popupType,
-    showPopup,
-    loaderMessage,
-    showLoader,
-  } = values;
+  const wallet = useSelector(state => state.walletReducer.wallet);
+  const userData = useSelector(state => state.authReducer.userData);
+  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
 
   useEffect(() => {
     if (userData?.agencies[0]?.status === 'new') {
-      setValues({
-        ...values,
-        showPopup: true,
+      return PopupModal.show({
         popupType: 'alert',
         messageType: `${'Alert'}`,
         message: `${t('Your account has not been approved')}`,
-      });
+        onConfirm: () => {
+          PopupModal.hide();
+          navigation.navigate('HomeScreen');
+        }
+      })
     }
   }, [activeAppSettings]);
 
   const onSubmit = async () => {
-    setValues({
-      ...values,
-      isSubmitting: true,
-      loaderMessage: `${t('Please wait')}`,
-    });
+    LoaderModal.show({
+      message: 'Please wait...'
+    })
     try {
       await RahatService(
         activeAppSettings.agency.contracts.rahat,
@@ -106,6 +80,7 @@ const ChargePackageScreen = ({ navigation, route }) => {
 
       packageDetail.amount = 1;
       delete packageDetail.balance;
+      LoaderModal.hide();
       navigation.navigate('VerifyOTPScreen', {
         phone: beneficiaryPhone,
         remarks: '',
@@ -113,52 +88,19 @@ const ChargePackageScreen = ({ navigation, route }) => {
         packageDetail,
       });
     } catch (e) {
-      setValues({ ...values, isSubmitting: false });
-      alert(e);
+      LoaderModal.hide();
+      // alert(e);
     }
   };
 
-  const handleSwitchAgency = agencyUrl => {
+  const _onSwitchAgency = () => SwitchAgencyModal.show();
 
-    const newActiveAppSettings = appSettings.find(
-      setting => setting.agencyUrl === agencyUrl,
-    );
-    dispatch(
-      switchAgency(
-        newActiveAppSettings,
-        wallet,
-      ),
-    );
-  };
   return (
     <>
       <CustomHeader
-        title={t('Charge Package')}
+        title={'Charge Package'}
         onBackPress={() => navigation.pop()}
       />
-      {switchAgencyError && (Alert.alert('Error', `${switchAgencyErrorMessage}`, [
-        { text: "OK", onPress: () => dispatch(switchAgencyClearError()) }
-      ]))}
-      <CustomLoader show={isSubmitting} message={loaderMessage} />
-      <CustomPopup
-        message={message}
-        messageType={messageType}
-        show={showPopup}
-        popupType={popupType}
-        onConfirm={() =>
-          messageType === `${t('Insufficient Balance')}`
-            ? setValues({ ...values, showPopup: false })
-            : navigation.navigate('HomeScreen')
-        }
-      />
-      <SwitchAgencyModal
-        agencies={appSettings}
-        activeAgency={activeAppSettings}
-        show={showSwitchAgencyModal}
-        onPress={handleSwitchAgency}
-        hide={() => dispatch(toggleSwitchAgencyModal(showSwitchAgencyModal))}
-      />
-      <CustomLoader show={showLoader} message={loaderMessage} />
       <View style={styles.container}>
         <SmallText
           style={{ fontSize: FontSize.small * 1.1 }}
@@ -169,7 +111,6 @@ const ChargePackageScreen = ({ navigation, route }) => {
 
         <Card style={{ paddingVertical: Spacing.vs * 2 }}>
           <View style={{ alignItems: 'center', paddingBottom: Spacing.vs * 3 }}>
-            {/* <PackageImageIcon /> */}
             <Image
               source={{
                 uri: `https://ipfs.rumsan.com/ipfs/${packageDetail.imageUri}`,
@@ -182,36 +123,32 @@ const ChargePackageScreen = ({ navigation, route }) => {
             />
           </View>
           <IndividualPackageDetail
-            title={t('Name')}
+            title={'Name'}
             value={packageDetail.name}
           />
           <IndividualPackageDetail
-            title={t('Symbol')}
+            title={'Symbol'}
             value={packageDetail.symbol}
           />
           <IndividualPackageDetail
-            title={t('Description')}
+            title={'Description'}
             value={packageDetail.description}
           />
           <IndividualPackageDetail
-            title={t('Worth')}
+            title={'Worth'}
             value={packageDetail.value}
           />
           <CustomButton
-            title={t('Switch Agency')}
+            title={'Switch Agency'}
             width={widthPercentageToDP(80)}
-            disabled={isSubmitting}
             outlined
-            onPress={() => dispatch(toggleSwitchAgencyModal(showSwitchAgencyModal))}
-
+            onPress={_onSwitchAgency}
           />
           <CustomButton
-            title={t('Charge')}
+            title={'Charge'}
             color={colors.green}
             width={widthPercentageToDP(80)}
             onPress={onSubmit}
-          // isSubmitting={isSubmitting}
-          // disabled={isSubmitting}
           />
         </Card>
       </View>

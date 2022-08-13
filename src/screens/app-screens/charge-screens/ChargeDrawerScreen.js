@@ -1,55 +1,36 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, View, Pressable, Alert } from 'react-native';
-import {
-  CustomButton,
-  CustomHeader,
-  CustomLoader,
-  CustomPopup,
-  CustomTextInput,
-  SmallText,
-  SwitchAgencyModal,
-} from '../../../components';
-import { useTranslation } from 'react-i18next';
-import CustomBottomSheet from '../../../components/CustomBottomSheet';
-import { useSelector } from 'react-redux';
-import colors from '../../../../constants/colors';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import { FontSize, Spacing } from '../../../../constants/utils';
-import { useDispatch } from 'react-redux';
-import { switchAgency, switchAgencyClearError, toggleSwitchAgencyModal } from '../../../redux/actions/agency';
-import { RahatService } from '../../../services/chain';
-import { getPackageDetail } from '../../../../constants/helper';
+import { useSelector } from 'react-redux';
+import { StyleSheet, View, Pressable } from 'react-native';
+
+import {
+  SmallText,
+  PopupModal,
+  CustomButton,
+  CustomHeader,
+  CustomTextInput,
+  SwitchAgencyModal,
+  CustomBottomSheet,
+} from '../../../components';
 import { QRIcon } from '../../../../assets/icons';
+import { getPackageDetail } from '../../../helpers';
+import { RahatService } from '../../../services/chain';
+import { FontSize, Spacing, colors } from '../../../constants';
 
 const ChargeDrawerScreen = ({ navigation, route }) => {
-  const dispatch = useDispatch();
-  const { t } = useTranslation();
-  const { userData } = useSelector(
-    state => state.auth,
-  );
-  const { wallet } = useSelector(state => state.wallet);
-  const { switchingAgency, switchAgencyLoaderMessage, switchAgencyErrorMessage, activeAppSettings, appSettings, showSwitchAgencyModal, switchAgencyError } = useSelector(state => state.agency)
+  const wallet = useSelector(state => state.walletReducer.wallet);
+  const userData = useSelector(state => state.authReducer.userData);
+  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
+
   const [phone, setPhone] = useState('');
   const [values, setValues] = useState({
     isSubmitting: false,
-    showLoader: false,
-    loaderMessage: '',
-    showPopup: '',
-    popupType: '',
-    messageType: '',
-    message: '',
   });
   const {
     isSubmitting,
-    loaderMessage,
-    showLoader,
-    message,
-    messageType,
-    popupType,
-    showPopup,
   } = values;
 
   const bottomSheetModalRef = useRef(null);
@@ -58,44 +39,34 @@ const ChargeDrawerScreen = ({ navigation, route }) => {
   useEffect(() => {
     const scanPhone = route?.params?.phone;
     if (scanPhone) {
-      setValues({ ...values, phone: scanPhone });
+      setPhone(scanPhone);
     }
   }, [route]);
 
   useEffect(() => {
     if (userData?.agencies[0]?.status === 'new') {
-      return setValues({
-        ...values,
-        showPopup: true,
+      return PopupModal.show({
         popupType: 'alert',
-        messageType: `${'Alert'}`,
-        message: `${t('Your account has not been approved')}`,
-      });
+        messageType: 'Alert',
+        message: 'Your account has not been approved',
+        onConfirm: () => {
+          PopupModal.hide();
+          navigation.navigate('HomeScreen');
+        }
+      })
     }
     bottomSheetModalRef.current?.present();
   }, [activeAppSettings]);
 
-  const handleSwitchAgency = agencyUrl => {
-    const newActiveAppSettings = appSettings.find(
-      setting => setting.agencyUrl === agencyUrl,
-    );
-    dispatch(
-      switchAgency(
-        newActiveAppSettings,
-        wallet,
-      ),
-    );
-  };
   const handleProceed = async () => {
     if (phone === '') {
-      return setValues({
-        ...values,
-        showPopup: true,
+      return PopupModal.show({
         popupType: 'alert',
         messageType: 'Info',
         message: 'Please enter phone number',
       });
     }
+
     setValues(values => ({ ...values, isSubmitting: true }));
 
     try {
@@ -111,19 +82,16 @@ const ChargeDrawerScreen = ({ navigation, route }) => {
         phone,
       );
       if (balance === 0 && totalERC1155Balance?.tokenIds?.length === 0) {
-        return setValues(values => ({
-          ...values,
-          isSubmitting: false,
-          showPopup: true,
+        setValues({...values, isSubmitting: false});
+        return PopupModal.show({
           popupType: 'alert',
           messageType: 'Info',
           message: 'Insuffiecient fund and packages',
-        }));
+        });
       }
 
       let packages = await getPackageDetail(totalERC1155Balance);
 
-      console.log(packages, 'herum');
       setValues({ ...values, isSubmitting: false });
       navigation.navigate('ChargeScreen', {
         tokenBalance: balance,
@@ -131,41 +99,25 @@ const ChargeDrawerScreen = ({ navigation, route }) => {
         beneficiaryPhone: phone,
       });
     } catch (e) {
-      alert(e);
+      // alert(e);
       setValues({ ...values, isSubmitting: false });
     }
   };
+
+  const _onSwitchAgency = () => SwitchAgencyModal.show();
+
   return (
     <>
-      <CustomHeader title={t('Charge')} hideBackButton />
-      {switchAgencyError && (Alert.alert('Error', `${switchAgencyErrorMessage}`, [
-        { text: "OK", onPress: () => dispatch(switchAgencyClearError()) }
-      ]))}
-      <SwitchAgencyModal
-        agencies={appSettings}
-        activeAgency={activeAppSettings}
-        show={showSwitchAgencyModal}
-        onPress={handleSwitchAgency}
-        hide={() => dispatch(toggleSwitchAgencyModal(showSwitchAgencyModal))}
-      />
-      <CustomLoader show={showLoader || switchingAgency} message={loaderMessage || switchAgencyLoaderMessage} />
-      <CustomPopup
-        message={message}
-        messageType={messageType}
-        show={showPopup}
-        popupType={popupType}
-        onConfirm={() =>
-          messageType === `${t('Your account has not been approved')}`
-            ? navigation.navigate('HomeScreen')
-            : setValues({ ...values, showPopup: false })
-        }
-      />
+      <CustomHeader title={'Charge'} hideBackButton />
+      
       <View style={styles.container}>
+
         <CustomBottomSheet
           enablePanDownToClose={false}
           disableBackdrop
           ref={bottomSheetModalRef}
-          snapPoints={snapPoints}>
+          snapPoints={snapPoints}
+          >
           <SmallText
             color={colors.gray}
             style={{ fontSize: FontSize.small * 1.1 }}>
@@ -173,7 +125,7 @@ const ChargeDrawerScreen = ({ navigation, route }) => {
           </SmallText>
           <View style={{ flexDirection: 'row' }}>
             <CustomTextInput
-              placeholder={t('Phone Number')}
+              placeholder={'Phone Number'}
               keyboardType="phone-pad"
               style={{ width: widthPercentageToDP(75) }}
               value={phone}
@@ -203,25 +155,23 @@ const ChargeDrawerScreen = ({ navigation, route }) => {
           <SmallText
             style={{ fontSize: FontSize.small / 1.4 }}
             color={colors.lightGray}>
-            {t(
-              'Important: Please double check the phone number and amount before charging. Transactions cannot be reversed.',
-            )}
+              Important: Please double check the phone number and amount before charging. Transactions cannot be reversed.
           </SmallText>
 
           <CustomButton
-            title={t('Switch Agency')}
-            width={widthPercentageToDP(90)}
-            disabled={isSubmitting}
             outlined
-            onPress={() => dispatch(toggleSwitchAgencyModal(showSwitchAgencyModal))}
+            title={'Switch Agency'}
+            disabled={isSubmitting}
+            width={widthPercentageToDP(90)}
+            onPress={_onSwitchAgency}
           />
           <CustomButton
-            title={t('Proceed')}
+            title={'Proceed'}
             color={colors.green}
-            width={widthPercentageToDP(90)}
             onPress={handleProceed}
-            isSubmitting={isSubmitting}
             disabled={isSubmitting}
+            width={widthPercentageToDP(90)}
+            isSubmitting={isSubmitting}
           />
         </CustomBottomSheet>
       </View>

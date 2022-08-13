@@ -4,8 +4,7 @@ import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import colors from '../../../constants/colors';
-import {Spacing} from '../../../constants/utils';
+import {Spacing, colors} from '../../constants';
 import {Card, CustomHeader, RegularText} from '../../components';
 
 const CONNECTIPS_LOGO =

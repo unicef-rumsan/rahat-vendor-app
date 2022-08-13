@@ -1,91 +1,85 @@
+import { ethers } from 'ethers';
 import React, { useState } from 'react';
-import { StyleSheet, View, StatusBar, SafeAreaView } from 'react-native';
-import QRCodeScanner from 'react-native-qrcode-scanner';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
+import { useDispatch, useSelector } from 'react-redux';
 import { useIsFocused } from '@react-navigation/native';
-import { RumsanLogo } from '../../../assets/icons';
-import colors from '../../../constants/colors';
-import { FontSize, Spacing } from '../../../constants/utils';
+import QRCodeScanner from 'react-native-qrcode-scanner';
+import { StyleSheet, View, StatusBar, SafeAreaView, Keyboard } from 'react-native';
+
 import {
-  PoppinsMedium,
   RegularText,
+  PopupModal,
+  LoaderModal,
   CustomButton,
-  CustomPopup,
+  PoppinsMedium,
   CustomTextInput,
 } from '../../components';
-import CustomLoader from '../../components/CustomLoader';
-import {
-  getAppSettings,
+import { 
+  setAuthData,
+  registerVendor, 
+  getAppSettings, 
   getRestoreUserData,
-  registerVendor,
-} from '../../redux/actions/auth';
-import { useDispatch, useSelector } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ethers } from 'ethers';
-import { setWallet } from '../../redux/actions/wallet';
-import { useTranslation } from 'react-i18next';
+  clearRegistrationFormData, 
+ } from '../../redux/actions/authActions';
+import { RumsanLogo } from '../../../assets/icons';
+import { FontSize, Spacing, colors } from '../../constants';
+import { setWalletData } from '../../redux/actions/walletActions';
+import { setAppSettings } from '../../redux/actions/agencyActions';
+import { setTransactionData } from '../../redux/actions/transactionActions';
+
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
 const LinkAgencyScreen = ({ navigation, route }) => {
-  const isFocused = useIsFocused();
-  const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { wallet } = useSelector(state => state.wallet);
-  const { appSettings } = useSelector(state => state.agency);
+  const isFocused = useIsFocused();
 
+  const wallet = useSelector(state => state.walletReducer.wallet);
+  const appSettings = useSelector(state => state.agencyReducer.appSettings);
+  const registrationFormData = useSelector(state => state.authReducer.registrationFormData);
+
+  const [agencyCode, setAgencyCode] = useState('');
   const [linkAgencyType, setLinkAgencyType] = useState('qr');
-
-  const [values, setValues] = useState({
-    isSubmitting: false,
-    loaderMessage: '',
-    showPopup: false,
-    popupType: '',
-    messageType: '',
-    message: '',
-    agencyCode: '',
-  });
-  const {
-    isSubmitting,
-    loaderMessage,
-    showPopup,
-    message,
-    messageType,
-    popupType,
-    agencyCode,
-  } = values;
 
   const onScan = res => {
     const agencyUrl = res?.data;
-    if (appSettings?.some(item => item.agencyUrl === agencyUrl)) {
-      return setValues({
-        ...values,
-        showPopup: true,
+    if (route.params?.from === 'agencies' && appSettings?.some(item => item.agencyUrl === agencyUrl)) {
+      return PopupModal.show({
         popupType: "alert",
         messageType: 'Info',
-        message: `${t('Already linked to this agency. Cannot link same agency twice.')}`
-      });
+        message: 'Already linked to this agency. Cannot link same agency twice.'
+      })
     }
-    setValues({
-      ...values,
-      isSubmitting: true,
-      loaderMessage: `${t('Fetching agency details.')} ${t('Please wait...')}`,
-    });
+    LoaderModal.show({
+      message: 'Fetching agency details.'
+    })
     dispatch(
-      getAppSettings(agencyUrl, onGetAppSettingsSuccess, onGetAppSettingsError),
+      getAppSettings(
+        agencyUrl,
+        onGetAppSettingsSuccess,
+        onGetAppSettingsError
+      ),
     );
   };
+
   const handleLinkAgencyWithCode = () => {
-    setValues({
-      ...values,
-      isSubmitting: true,
-      loaderMessage: `${t('Fetching agency details.')} ${t('Please wait...')}`,
+    Keyboard.dismiss();
+    if (route.params?.from === 'agencies' && appSettings?.some(item => item.agencyUrl === agencyCode)) {
+      return PopupModal.show({
+        popupType: "alert",
+        messageType: 'Info',
+        message: 'Already linked to this agency. Cannot link same agency twice.'
+      })
+    }
+    LoaderModal.show({
+      message: 'Fetching agency details.'
     });
+
     dispatch(
       getAppSettings(
         agencyCode,
@@ -96,18 +90,15 @@ const LinkAgencyScreen = ({ navigation, route }) => {
   };
 
   const registerNewUser = agencySettings => {
-    setValues({
-      ...values,
-      isSubmitting: true,
-      loaderMessage: `${t('Setting up your rahat account.')} ${t(
-        'Please wait...',
-      )}`,
-    });
+    const data = registrationFormData ? registrationFormData : route?.params?.data;
+    LoaderModal.show({
+      message: 'Setting up your rahat account'
+    })
     setTimeout(() => {
       dispatch(
         registerVendor(
           agencySettings,
-          route.params.data,
+          data,
           onRegisterSuccess,
           onRegisterError,
         ),
@@ -115,12 +106,10 @@ const LinkAgencyScreen = ({ navigation, route }) => {
     }, 200);
   };
   const linkNewAgency = agencySettings => {
-
-    setValues({
-      ...values,
-      isSubmitting: true,
-      loaderMessage: `${t('Linking your new agency.')} ${t('Please wait...')}`,
+    LoaderModal.show({
+      message: 'Linking your new agency'
     });
+
     setTimeout(() => {
       dispatch(
         registerVendor(
@@ -134,11 +123,10 @@ const LinkAgencyScreen = ({ navigation, route }) => {
   };
 
   const restoreUser = agencySettings => {
-    setValues({
-      ...values,
-      isSubmitting: true,
-      loaderMessage: `${t('Retrieving user data.')} ${t('Please wait...')}`,
-    });
+    LoaderModal.show({
+      message: 'Retrieving user data'
+    })
+
     setTimeout(() => {
       dispatch(
         getRestoreUserData(
@@ -160,13 +148,9 @@ const LinkAgencyScreen = ({ navigation, route }) => {
   }
 
   const onGetAppSettingsSuccess = agencySettings => {
-    setValues({
-      ...values,
-      isSubmitting: false,
-    });
+
     if (agencySettings.isSetup === true) {
-      console.log(route.params?.from)
-      if (route.params?.from === 'signup') {
+      if (route.params?.from === 'signup' || registrationFormData) {
         registerNewUser(agencySettings);
       }
       if (route.params?.from === 'restore') {
@@ -179,86 +163,71 @@ const LinkAgencyScreen = ({ navigation, route }) => {
   };
 
   const onGetAppSettingsError = e => {
-    setValues({
-      ...values,
-      isSubmitting: false,
-      showPopup: true,
+    LoaderModal.hide();
+    let errorMessage = 'Invalid agency code';
+
+    if (e?.message === `Network Error`) errorMessage = 'Network Error. Please check your internet connection and the agency url';
+
+    PopupModal.show({
       popupType: 'alert',
-      messageType: `${t('Error')}`,
-      message: `${t('Invalid agency code')}`,
+      messageType: 'Error',
+      message: errorMessage,
     });
   };
 
   const onRegisterSuccess = async (data, agencySettings) => {
-    try {
-      const storedAppSettings = await AsyncStorage.getItem('storedAppSettings');
-      let provider = new ethers.providers.JsonRpcProvider(
-        agencySettings?.networkUrl,
-      );
-      let connectedWallet = wallet.connect(provider);
-      dispatch(setWallet(connectedWallet));
-      if (storedAppSettings !== null) {
-        let parsedAppSettings = JSON.parse(storedAppSettings);
-        let newAppSettings = [...parsedAppSettings, agencySettings];
 
-        await AsyncStorage.setItem(
-          'storedAppSettings',
-          JSON.stringify(newAppSettings),
-        );
-        dispatch({ type: 'SET_APP_SETTINGS', payload: newAppSettings });
-      } else {
-        let dataToStore = [agencySettings];
-        await AsyncStorage.setItem(
-          'storedAppSettings',
-          JSON.stringify(dataToStore),
-        );
-        dispatch({ type: 'SET_APP_SETTINGS', payload: dataToStore });
-      }
-      dispatch({ type: 'SET_ACTIVE_APP_SETTINGS', payload: agencySettings });
+    dispatch(clearRegistrationFormData());
 
-      if (route.params?.from === 'signup') {
-        navigation.replace('RegisterSuccessScreen', { data });
-      }
-      if (route.params?.from === 'restore') {
-        dispatch({ type: 'SET_USERDATA', userData: data });
-        navigation.replace('Tabs');
-      }
-      if (route.params?.from === 'agencies') {
-        dispatch({ type: 'SET_TRANSACTIONS', transactions: [] });
-        dispatch({ type: 'SET_STORED_TOKEN_IDS', storedTokenIds: [] });
-        dispatch({ type: 'SET_USERDATA', userData: data });
-        navigation.pop();
-      }
-    } catch (e) {
+    let provider = new ethers.providers.JsonRpcProvider(
+      agencySettings?.networkUrl,
+    );
+    let connectedWallet = wallet.connect(provider);
+    dispatch(setWalletData({ wallet: connectedWallet }));
+    dispatch(setAppSettings({
+      appSettings: [...appSettings, agencySettings],
+      activeAppSettings: agencySettings
+    }));
+
+    if (route.params?.from === 'restore') {
+      LoaderModal.hide();
+      dispatch(setAuthData({ userData: data }));
+      return navigation.replace('Tabs');
+    }
+
+    if (route.params?.from === 'signup') {
+      LoaderModal.hide();
+      return navigation.replace('RegisterSuccessScreen', { data });
+    }
+
+    if (route.params?.from === 'agencies') {
+      LoaderModal.hide();
+      dispatch(setAuthData({ userData: data }));
+      dispatch(setTransactionData({ packagesWithActiveAgency: null, transactionsWithActiveAgency: null }));
+      navigation.pop();
     }
   };
 
   const onRegisterError = e => {
-    const errorMessage = e?.response ? e?.response?.data?.error : e?.message;
-    AsyncStorage.clear()
-      .then(() => {
-        setValues({
-          ...values,
-          isSubmitting: false,
-          showPopup: true,
-          popupType: 'alert',
-          messageType: 'Error',
-          message: `${t(errorMessage || 'Something went wrong. Please try again.')}`
-        });
-      })
-      .catch(e => {
-        console.log(e, 'asycn clear error');
-      });
-  };
-  const onLinkNewAgencyError = e => {
-    const errorMessage = e?.response ? e.response?.data?.message : e?.message;
-    setValues({
-      ...values,
-      isSubmitting: false,
-      showPopup: true,
+    console.log({e: e.response})
+    const errorMessage = e?.response ? e?.response?.data?.message : e?.message;
+
+    LoaderModal.hide();
+    
+    PopupModal.show({
       popupType: 'alert',
       messageType: 'Error',
-      message: `${t(errorMessage || 'Something went wrong. Please try again.')}`
+      message: errorMessage || 'Something went wrong. Please try again.'
+    });
+  };
+
+  const onLinkNewAgencyError = e => {
+    const errorMessage = e?.response ? e.response?.data?.message : e?.message;
+    LoaderModal.hide();
+    PopupModal.show({
+      popupType: 'alert',
+      messageType: 'Error',
+      message: errorMessage || 'Something went wrong. Please try again.'
     });
   };
 
@@ -268,39 +237,38 @@ const LinkAgencyScreen = ({ navigation, route }) => {
         <StatusBar backgroundColor="rgba(0,0,0,0)" barStyle="light-content" />
       )}
 
-      {!isSubmitting && !showPopup && (
-        <QRCodeScanner
-          cameraStyle={{ height: '100%' }}
-          showMarker
-          markerStyle={{ borderColor: 'white' }}
-          reactivate
-          onRead={onScan}
-        />
-      )}
+      <QRCodeScanner
+        showMarker
+        reactivate
+        vibrate={false}
+        onRead={onScan}
+        cameraStyle={{ height: '100%' }}
+        markerStyle={{ borderColor: 'white' }}
+      />
 
       <View style={styles.alignCenter}>
         <PoppinsMedium
           color={colors.white}
           fontSize={FontSize.large * 1.3}
           style={{ textAlign: 'center' }}>
-          {t('Link Agency')}
+          Link Agency
         </PoppinsMedium>
         <PoppinsMedium
           color={colors.white}
           fontSize={FontSize.large}
           style={styles.text}>
-          {t('Scan QR code to link agency')}
+          Scan QR code to link agency
         </PoppinsMedium>
         <PoppinsMedium
           color={colors.white}
           fontSize={FontSize.small / 1.1}
           style={styles.text}>
-          {t('Please align the QR code within the frame')}
+          Please align the QR code within the frame
         </PoppinsMedium>
       </View>
       <View style={styles.buttonView}>
         <CustomButton
-          title={t('LINK AGENCY USING CODE')}
+          title={'LINK AGENCY USING CODE'}
           onPress={() => setLinkAgencyType('code')}
         />
       </View>
@@ -312,7 +280,7 @@ const LinkAgencyScreen = ({ navigation, route }) => {
             paddingHorizontal: Spacing.hs / 3,
             fontSize: FontSize.small,
           }}>
-          {t('Powered By')}
+          Powered By
         </RegularText>
         <RumsanLogo />
       </View>
@@ -323,17 +291,10 @@ const LinkAgencyScreen = ({ navigation, route }) => {
     <View style={styles.linkWithCodeUIContainer}>
       <SafeAreaView style={styles.header}>
         <PoppinsMedium style={{ fontSize: FontSize.large }}>
-          {t('Link Agency')}
+          Link Agency
         </PoppinsMedium>
       </SafeAreaView>
-      <CustomLoader show={isSubmitting} message={loaderMessage} />
-      <CustomPopup
-        show={showPopup}
-        popupType={popupType}
-        messageType={messageType}
-        message={message}
-        onConfirm={() => setValues({ ...values, showPopup: false })}
-      />
+
       <View
         style={{
           flex: 1,
@@ -344,24 +305,24 @@ const LinkAgencyScreen = ({ navigation, route }) => {
           <RegularText
             fontSize={FontSize.medium}
             style={{ paddingBottom: Spacing.vs }}>
-            {t('Link agency using code:')}
+            Link agency using code
           </RegularText>
           <CustomTextInput
-            placeholder={t('Enter Code')}
+            placeholder={'Enter Code'}
             keyboardType="url"
             autoCapitalize="none"
-            onChangeText={value => setValues({ ...values, agencyCode: value })}
+            onChangeText={value =>  setAgencyCode(value)}
           />
         </View>
 
         <View>
           <CustomButton
-            title={t('LINK AGENCY WITH QR SCAN')}
+            title={'LINK AGENCY WITH QR SCAN'}
             onPress={() => setLinkAgencyType('qr')}
             outlined
           />
           <CustomButton
-            title={t('Continue')}
+            title={'Continue'}
             onPress={handleLinkAgencyWithCode}
           />
         </View>
@@ -371,15 +332,6 @@ const LinkAgencyScreen = ({ navigation, route }) => {
 
   return (
     <>
-      <CustomLoader show={isSubmitting} message={loaderMessage} />
-
-      <CustomPopup
-        show={showPopup}
-        popupType={popupType}
-        messageType={messageType}
-        message={message}
-        onConfirm={() => setValues({ ...values, showPopup: false })}
-      />
       {linkAgencyType === 'qr' ? LinkWithQRUI() : LinkWithCodeUI()}
     </>
   );
