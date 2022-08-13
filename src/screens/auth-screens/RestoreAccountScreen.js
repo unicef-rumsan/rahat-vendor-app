@@ -29,10 +29,11 @@ GoogleSignin.configure({
     'https://www.googleapis.com/auth/drive.file',
   ],
   offlineAccess: true,
-  webClientId: GOOGLE_WEB_CLIENT_ID,
+  webClientId: GOOGLE_WEB_CLIENT_ID || '',
 });
 
 const RestoreAccountScreen = ({ navigation }) => {
+  console.log({GOOGLE_WEB_CLIENT_ID})
   let gdrive = new GDrive();
   const dispatch = useDispatch();
 
