@@ -38,7 +38,6 @@ const read = async () => {
     });
   });
 
-  console.log(result);
   return result;
 };
 

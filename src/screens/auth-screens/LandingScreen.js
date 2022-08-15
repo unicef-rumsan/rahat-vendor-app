@@ -1,89 +1,61 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
+  View,
+  Image,
   Animated,
   FlatList,
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
   Pressable,
-  Image,
-  TouchableOpacity,
+  StyleSheet,
 } from 'react-native';
-import {ExpandingDot} from 'react-native-animated-pagination-dots';
-import colors from '../../../constants/colors';
-import {AppIntro} from '../../../contents/AppIntro';
-import RightArrow from '../../../assets/icons/RightArrow';
-import {Spacing} from '../../../constants/utils';
-import {CustomButton, RegularText, SmallText} from '../../components';
 import {
-  heightPercentageToDP,
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useTranslation} from 'react-i18next';
-import LanguagePicker from '../../components/LanguagePicker';
-import {English, Nepali} from '../../../assets/icons/flags';
+import { useSelector } from 'react-redux';
+import { ExpandingDot } from 'react-native-animated-pagination-dots';
 
-const {width} = Dimensions.get('window');
-const languages = [
-  {name: 'en', label: 'English', icon: <English />},
-  {name: 'np', label: 'Nepali', icon: <Nepali />},
-];
+import {RightArrowIcon} from '../../../assets/icons';
+import { AppIntro } from '../../../contents/AppIntro';
+import { Spacing, colors, WINDOW_WIDTH } from '../../constants';
+import { RegularText, SmallText, LanguagePicker, FlagImage } from '../../components';
 
-const LandingScreen = ({navigation}) => {
+const LandingScreen = ({ navigation }) => {
   var scrollX = useRef(new Animated.Value(0)).current;
-  const {t, i18n} = useTranslation();
-  console.log(i18n.languages);
+  const { activeLanguage } = useSelector(state => state.languageReducer);
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
-  const [activeLanguage, setActiveLanguage] = useState([]);
-  // const clearAll = async () => {
-  //   try {
-  //     await AsyncStorage.clear();
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-  // };
 
-  // useEffect(() => {
-  //   clearAll();
-  // }, []);
-
-  useEffect(() => {
-    let active = languages.filter(item => item.name === i18n.language);
-    setActiveLanguage(active);
-  }, [showLanguagePicker]);
-
-  const renderItem = ({item}) => {
+  const renderItem = ({ item }) => {
     return (
       <View style={styles.introContainer}>
         <Image
           source={item.image}
-          style={{height: hp(40), width: wp(90), marginTop: Spacing.vs * 2}}
+          style={{ height: hp(40), width: wp(90), marginTop: Spacing.vs * 2 }}
         />
         <View>
-          <RegularText center>{t(item.title)}</RegularText>
-          <SmallText center>{t(item.description)}</SmallText>
+          <RegularText center>{item.title}</RegularText>
+          <SmallText center>{item.description}</SmallText>
         </View>
       </View>
     );
   };
 
+  const showPicker = () => setShowLanguagePicker(true);
+  const hidePicker = () => setShowLanguagePicker(false);
+
   return (
     <View style={styles.container}>
       <LanguagePicker
         show={showLanguagePicker}
-        hide={() => setShowLanguagePicker(false)}
+        hide={hidePicker}
       />
       <View style={styles.languageButtonContainer}>
         <Pressable
           style={styles.languageButton}
-          onPress={() => setShowLanguagePicker(true)}>
-          {activeLanguage[0]?.icon}
+          onPress={showPicker}>
+          <FlagImage name={activeLanguage.flagName} />
         </Pressable>
       </View>
-      <RightArrow color={colors.black} />
+      <RightArrowIcon color={colors.black} />
       <FlatList
         data={AppIntro}
         keyExtractor={item => item.id}
@@ -94,7 +66,7 @@ const LandingScreen = ({navigation}) => {
         decelerationRate={'normal'}
         scrollEventThrottle={16}
         onScroll={Animated.event(
-          [{nativeEvent: {contentOffset: {x: scrollX}}}],
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
           {
             useNativeDriver: false,
           },
@@ -110,28 +82,18 @@ const LandingScreen = ({navigation}) => {
         dotStyle={styles.dotStyle}
         containerStyle={styles.dotContainerStyle}
       />
-      {/* <CustomButton
-        title="Get Started"
-        icon={<RightArrow />}
-        style={styles.button}
-        onPress={() => navigation.navigate('GetStartedScreen')}
-      /> */}
 
       <Pressable
         style={styles.button}
         onPress={() => navigation.navigate('GetStartedScreen')}>
         <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            alignSelf: 'center',
-          }}>
+          style={styles.getStartedButton}>
           <RegularText
             center
-            style={{paddingHorizontal: Spacing.hs / 2, color: colors.black}}>
-            {t('GET STARTED')}
+            style={{ paddingHorizontal: Spacing.hs / 2, color: colors.black }}>
+            GET STARTED
           </RegularText>
-          <RightArrow color={colors.black} />
+          <RightArrowIcon color={colors.black} />
         </View>
       </Pressable>
     </View>
@@ -146,7 +108,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   introContainer: {
-    width: width,
+    width: WINDOW_WIDTH,
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingHorizontal: Spacing.hs,
@@ -160,11 +122,11 @@ const styles = StyleSheet.create({
   dotContainerStyle: {
     bottom: 140,
   },
-  button: {marginBottom: Spacing.vs * 5},
+  button: { marginBottom: Spacing.vs * 5 },
   languageButton: {
     // backgroundColor: '#66b6d2',
     borderRadius: 30,
-    height: heightPercentageToDP(6),
+    height: hp(6),
     paddingHorizontal: Spacing.hs / 2,
     paddingVertical: Spacing.vs / 2,
     alignItems: 'center',
@@ -176,4 +138,9 @@ const styles = StyleSheet.create({
     right: 50,
     zIndex: 1,
   },
+  getStartedButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+  }
 });

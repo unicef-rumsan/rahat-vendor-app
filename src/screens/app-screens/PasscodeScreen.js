@@ -1,46 +1,37 @@
-import React, {useState} from 'react';
-import {Pressable, StyleSheet, Text, View, ScrollView} from 'react-native';
-import colors from '../../../constants/colors';
-import {FontSize, Spacing} from '../../../constants/utils';
-import CustomHeader from '../../components/CustomHeader';
-import CustomLoader from '../../components/CustomLoader';
-import {RNToasty} from 'react-native-toasty';
-// import OtpInputs from 'react-native-otp-inputs';
+import React, { useState } from 'react';
+import { RNToasty } from 'react-native-toasty';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import {
+  Cursor,
   CodeField,
   useBlurOnFulfill,
   useClearByFocusCell,
-  Cursor,
-  isLastFilledCell,
 } from 'react-native-confirmation-code-field';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import {EyeIcon} from '../../../assets/icons';
+import { useDispatch } from 'react-redux';
+
+import { EyeIcon } from '../../../assets/icons';
+import { FontSize, Spacing, colors } from '../../constants';
 import {
-  RegularText,
   SmallText,
+  RegularText,
   CustomButton,
-  CustomTextInput,
-  CustomPopup,
+  CustomHeader,
+  PopupModal,
+  LoaderModal,
 } from '../../components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useDispatch, useSelector} from 'react-redux';
-import {useTranslation} from 'react-i18next';
-let PASSCODE_LENGTH = 4;
+import { useTranslation } from 'react-i18next';
+import { setRahatPasscode } from '../../redux/actions/authActions';
 let CELL_COUNT = 4;
 
-const PasscodeScreen = ({navigation}) => {
+const PasscodeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const {t} = useTranslation();
-  const [popupStates, setPopupStates] = useState({
-    showPopup: false,
-    popupType: '',
-    messageType: '',
-    message: '',
-  });
-  const {message, messageType, popupType, showPopup} = popupStates;
+  const { t } = useTranslation();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [confirmPasscode, setConfirmPasscode] = useState('');
@@ -48,8 +39,8 @@ const PasscodeScreen = ({navigation}) => {
   const [isConfirmPasscodeVisible, setIsConfirmPasscodeVisible] =
     useState(false);
 
-  const ref = useBlurOnFulfill({passcode, cellCount: CELL_COUNT});
-  const ref2 = useBlurOnFulfill({confirmPasscode, cellCount: CELL_COUNT});
+  const ref = useBlurOnFulfill({ passcode, cellCount: CELL_COUNT });
+  const ref2 = useBlurOnFulfill({ confirmPasscode, cellCount: CELL_COUNT });
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
     value: passcode,
     setValue: setPasscode,
@@ -90,30 +81,22 @@ const PasscodeScreen = ({navigation}) => {
     );
   };
 
-  const handleSetPasscode = async () => {
+  const handleSetPasscode = () => {
     if (passcode !== confirmPasscode) {
-      setPopupStates({
-        ...popupStates,
-        showPopup: true,
-        messageType: `${t('Info')}`,
-        message: `${t('New and confirm passcode does not match')}`,
+      return PopupModal.show({
         popupType: 'alert',
-      });
-      return;
+        messageType: 'Info',
+        message: 'New and confirm passcode does not match',
+      })
     }
 
-    setIsSubmitting(true);
+    LoaderModal.show();
 
-    AsyncStorage.setItem('passcode', JSON.stringify(passcode))
-      .then(() => {
-        setIsSubmitting(false);
-        dispatch({type: 'SET_RAHAT_PASSCODE', passcode});
-        RNToasty.Show({title: `${t('Passcode setup successfully')}`});
-        navigation.navigate('HomeScreen');
-      })
-      .catch(e => {
-        alert(`${t('Something went wrong. Please try again')}`);
-      });
+    dispatch(setRahatPasscode({rahatPasscode: passcode}));
+
+    RNToasty.Show({title: 'Passcode setup successfully', duration: 1});
+
+    navigation.navigate('HomeScreen');
   };
 
   return (
@@ -124,19 +107,6 @@ const PasscodeScreen = ({navigation}) => {
       />
 
       <View style={styles.container}>
-        <CustomLoader
-          show={isSubmitting}
-          message={`${t('Setting up your passcode.')} ${t('Please wait...')}`}
-        />
-
-        <CustomPopup
-          show={showPopup}
-          popupType={popupType}
-          messageType={messageType}
-          message={message}
-          onConfirm={() => setPopupStates({...popupStates, showPopup: false})}
-        />
-
         <View>
           <View style={styles.info}>
             <RegularText color={colors.black}>
@@ -145,10 +115,10 @@ const PasscodeScreen = ({navigation}) => {
             <SmallText>{t('Unlock Rahat Vendor App')}</SmallText>
           </View>
           <View style={styles.inputView}>
-            <RegularText style={{paddingVertical: Spacing.vs}}>
+            <RegularText style={{ paddingVertical: Spacing.vs }}>
               {`${t('New')} ${'Rahat Passcode'}`}
             </RegularText>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <CodeField
                 {...props}
                 ref={ref}
@@ -159,13 +129,13 @@ const PasscodeScreen = ({navigation}) => {
                 keyboardType="number-pad"
                 textContentType="password"
                 // renderCell={renderCell}
-                renderCell={({index, symbol, isFocused}) =>
+                renderCell={({ index, symbol, isFocused }) =>
                   renderCell(index, symbol, isFocused, 'passcode')
                 }
               />
               <Pressable
                 hitSlop={30}
-                style={{paddingTop: Spacing.vs}}
+                style={{ paddingTop: Spacing.vs }}
                 onPress={() =>
                   setIsPasscodeVisible(isPasscodeVisible => !isPasscodeVisible)
                 }>
@@ -176,10 +146,10 @@ const PasscodeScreen = ({navigation}) => {
             </View>
           </View>
           <View style={styles.inputView}>
-            <RegularText style={{paddingVertical: Spacing.vs}}>
+            <RegularText style={{ paddingVertical: Spacing.vs }}>
               {`${t('Confirm')} ${'Rahat Passcode'}`}
             </RegularText>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <CodeField
                 {...props2}
                 ref={ref2}
@@ -189,13 +159,13 @@ const PasscodeScreen = ({navigation}) => {
                 rootStyle={styles.codeFieldRoot}
                 keyboardType="number-pad"
                 textContentType="newPassword"
-                renderCell={({index, symbol, isFocused}) =>
+                renderCell={({ index, symbol, isFocused }) =>
                   renderCell(index, symbol, isFocused, 'confirmPasscode')
                 }
               />
               <Pressable
                 hitSlop={30}
-                style={{paddingTop: Spacing.vs}}
+                style={{ paddingTop: Spacing.vs }}
                 onPress={() =>
                   setIsConfirmPasscodeVisible(
                     isConfirmPasscodeVisible => !isConfirmPasscodeVisible,
@@ -253,7 +223,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.large,
     textAlign: 'center',
   },
-  otpInputs: {flexDirection: 'row', paddingBottom: Spacing.vs},
+  otpInputs: { flexDirection: 'row', paddingBottom: Spacing.vs },
   info: {
     height: heightPercentageToDP(12),
     width: widthPercentageToDP(90),

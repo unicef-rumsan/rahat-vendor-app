@@ -1,5 +1,6 @@
 import React from 'react';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   GetStartedScreen,
   LandingScreen,
@@ -8,39 +9,47 @@ import {
   RestoreMnemonicScreen,
   SignupScreen,
 } from '../screens/auth-screens';
-import {LinkAgencyQRScreen} from '../screens/app-screens';
-import LinkAgencyCodeScreen from '../screens/app-screens/LinkAgencyCodeScreen';
+import { PopupModal } from '../components';
+import { LinkAgencyScreen } from '../screens/app-screens';
+import { LoaderModal, SwitchAgencyModal } from '../components';
 
 const Stack = createNativeStackNavigator();
 
 const AuthStack = () => {
-  return (
-    <Stack.Navigator
-      initialRouteName="LandingScreen"
-      // initialRouteName="LinkAgencyQRScreen"
-      screenOptions={{headerShown: false, animation: 'fade'}}>
-      <Stack.Screen name="LandingScreen" component={LandingScreen} />
-      <Stack.Screen name="GetStartedScreen" component={GetStartedScreen} />
-      <Stack.Screen name="SignupScreen" component={SignupScreen} />
-      <Stack.Screen
-        name="RegisterSuccessScreen"
-        component={RegisterSuccessScreen}
-      />
-      <Stack.Screen name="LinkAgencyQRScreen" component={LinkAgencyQRScreen} />
-      <Stack.Screen
-        name="LinkAgencyCodeScreen"
-        component={LinkAgencyCodeScreen}
-      />
+  let initialRouteName = 'LandingScreen';
+  const walletInfo = useSelector(state => state.walletReducer.walletInfo);
+  const registrationFormData = useSelector(state => state.authReducer.registrationFormData);
 
-      <Stack.Screen
-        name="RestoreAccountScreen"
-        component={RestoreAccountScreen}
-      />
-      <Stack.Screen
-        name="RestoreMnemonicScreen"
-        component={RestoreMnemonicScreen}
-      />
-    </Stack.Navigator>
+  if(walletInfo && registrationFormData) initialRouteName = 'LinkAgencyScreen';
+
+  return (
+    <>
+      <Stack.Navigator
+        initialRouteName={initialRouteName}
+        screenOptions={{ headerShown: false, animation: 'fade' }}>
+
+        <Stack.Screen name="LandingScreen" component={LandingScreen} />
+        <Stack.Screen name="GetStartedScreen" component={GetStartedScreen} />
+        <Stack.Screen name="SignupScreen" component={SignupScreen} />
+        <Stack.Screen name="LinkAgencyScreen" component={LinkAgencyScreen} />
+        <Stack.Screen
+          name="RegisterSuccessScreen"
+          component={RegisterSuccessScreen}
+        />
+
+        <Stack.Screen
+          name="RestoreAccountScreen"
+          component={RestoreAccountScreen}
+        />
+        <Stack.Screen
+          name="RestoreMnemonicScreen"
+          component={RestoreMnemonicScreen}
+        />
+
+      </Stack.Navigator>
+      <LoaderModal />
+      <PopupModal />
+    </>
   );
 };
 

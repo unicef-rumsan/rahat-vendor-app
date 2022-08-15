@@ -1,77 +1,89 @@
-import React, {useEffect, useState} from 'react';
+import React, {
+  useRef,
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import {
-  ActivityIndicator,
-  BackHandler,
-  Image,
-  Platform,
-  Pressable,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
   View,
+  Text,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  BackHandler,
+  SafeAreaView,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
-import colors from '../../../constants/colors';
-import {Logo} from '../../../assets/icons';
-import {FontSize, Spacing} from '../../../constants/utils';
+import { RNToasty } from 'react-native-toasty';
+import { useDispatch, useSelector } from 'react-redux';
+import { useIsFocused } from '@react-navigation/native';
+import { useBackHandler } from '@react-native-community/hooks';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
 
-import {widthPercentageToDP} from 'react-native-responsive-screen';
-import IndividualStatement from '../../components/IndividualStatement';
-
-import {Card, SmallText, RegularText, CustomButton} from '../../components';
-import {useDispatch, useSelector} from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {getWalletBalance} from '../../redux/actions/wallet';
-import {useBackHandler} from '@react-native-community/hooks';
-import {RNToasty} from 'react-native-toasty';
-import {useIsFocused} from '@react-navigation/native';
-import SwitchAgencyModal from '../../components/SwitchAgencyModal';
-import CustomLoader from '../../components/CustomLoader';
-import {getUserByWalletAddress, switchAgency} from '../../redux/actions/auth';
-import {ethers} from 'ethers';
-import {useTranslation} from 'react-i18next';
+import {
+  Logo,
+  DollorIcon,
+  GearIcon,
+  GiftIcon,
+  MoreDotsIcon,
+  PersonIcon,
+} from '../../../assets/icons';
+import {
+  Card,
+  SmallText,
+  RegularText,
+  CustomButton,
+  IndividualStatement,
+  IndividualSettingView,
+  CustomBottomSheet,
+} from '../../components';
+import { FontSize, Spacing, colors } from '../../constants';
+import { getPackageDetail } from '../../helpers/nftPackageHelpers';
+import {
+  setWalletData,
+  getWalletBalance,
+  getPackageBalanceInFiat,
+  getPackageBatchBalance,
+} from '../../redux/actions/walletActions';
 
 let BACK_COUNT = 0;
 
-const Header = ({title, onRightIconPress, userData}) => (
+const Header = ({ title, onRightIconPress }) => (
   <SafeAreaView style={styles.headerContainer}>
     <Logo />
     <Text style={styles.headerTitle}>{title}</Text>
-
     <Pressable onPress={onRightIconPress} hitSlop={50}>
-      <Image
-        source={{
-          uri: `https://ipfs.rumsan.com/ipfs/${userData.photo[0]}`,
-        }}
-        style={styles.headerRightIcon}
-        resizeMode="center"
-      />
+      <MoreDotsIcon />
     </Pressable>
   </SafeAreaView>
 );
 
-const HomeScreen = ({navigation, route}) => {
+const HomeScreen = ({ navigation, route }) => {
   const refresh = route?.params?.refresh;
-  const {t} = useTranslation();
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
-  const {userData, appSettings, activeAppSettings} = useSelector(
-    state => state.auth,
-  );
+  const bottomSheetModalRef = useRef(null);
+  const snapPoints = useMemo(() => ['18%', '18%'], []);
+  const userData = useSelector(state => state.authReducer.userData);
   const [userInAgencyStatus, setUserInAgencyStatus] = useState(false);
 
-  const {wallet, balance} = useSelector(state => state.wallet);
-
+  const wallet = useSelector(state => state.walletReducer.wallet);
+  const packageIds = useSelector(state => state.walletReducer.packageIds);
+  const packages = useSelector(state => state.walletReducer.packages);
+  const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
+  const packageBalance = useSelector(state => state.walletReducer.packageBalance);
+  const transactions = useSelector(state => state.transactionReducer.transactions);
+  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
+  const packageBalanceCurrency = useSelector(state => state.walletReducer.packageBalanceCurrency);
   const [values, setValues] = useState({
     refreshing: false,
-    transactions: [],
-    showSwitchAgencyModal: false,
-    showLoader: false,
+    showBottomSheet: false,
+    bottomSheetContent: '',
   });
 
-  const {refreshing, transactions, showSwitchAgencyModal, showLoader} = values;
+  const { refreshing, bottomSheetContent } = values;
 
   useEffect(() => {
     let temp = userData.agencies?.filter(
@@ -85,7 +97,7 @@ const HomeScreen = ({navigation, route}) => {
       if (BACK_COUNT < 1) {
         BACK_COUNT++;
         RNToasty.Show({
-          title: `${t('Press BACK again to exit app')}`,
+          title: `${'Press BACK again to exit app'}`,
           position: 'center',
         });
         setTimeout(() => {
@@ -99,30 +111,79 @@ const HomeScreen = ({navigation, route}) => {
     }
   }, []);
 
+  // useEffect(() => {
+  //   // LoaderModal.show();
+  // }, [])
+
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
+
   const getBalance = () => {
-    dispatch(
-      getWalletBalance(
-        activeAppSettings?.agency?.contracts?.rahat,
-        wallet,
-        activeAppSettings?.agency?.contracts?.token,
-      ),
-    );
+    if (wallet) {
+      dispatch(
+        getWalletBalance(
+          wallet,
+          activeAppSettings,
+        ),
+      );
+    }
   };
 
-  const getTransactions = async () => {
-    try {
-      const transactions = await AsyncStorage.getItem('transactions');
-      const parsedTransactions = JSON.parse(transactions);
-      const filteredTransactions = parsedTransactions?.filter(
-        item => item.agencyUrl === activeAppSettings.agencyUrl,
+  const getPackageBatchBalanceSuccess = async (tokenIds, batchBalance) => {
+    if (tokenIds?.length && batchBalance?.length) {
+      dispatch(getPackageBalanceInFiat(tokenIds, batchBalance));
+
+      const packages = await getPackageDetail(
+        { tokenIds, balances: batchBalance },
+        'getPackages',
       );
 
-      setValues(values => ({
-        ...values,
-        transactions: filteredTransactions || [],
+
+      dispatch(setWalletData({
+        packages
       }));
+    }
+    if (tokenIds?.length === 0 && batchBalance?.length === 0) {
+      dispatch(setWalletData({
+        packageBalance: 0,
+        packageBalanceCurrency: '',
+      }));
+    }
+  };
+
+  const getPackageBalance = async () => {
+    try {
+      let activePackageIds = packageIds?.find(
+        item => item?.agencyUrl === activeAppSettings?.agencyUrl,
+      );
+      if (activePackageIds?.tokenIds?.length) {
+        const walletAddress = activePackageIds?.tokenIds?.map(
+          () => wallet.address,
+        );
+        dispatch(
+          getPackageBatchBalance(
+            activeAppSettings?.agency?.contracts?.rahat,
+            activeAppSettings?.agency?.contracts?.rahat_erc20,
+            activeAppSettings?.agency?.contracts?.rahat_erc1155,
+            wallet,
+            walletAddress,
+            activePackageIds?.tokenIds,
+            getPackageBatchBalanceSuccess,
+          ),
+        );
+      } else {
+        dispatch(setWalletData({
+          packages: [],
+          packageBalance: 0,
+          packageBalanceCurrency: '',
+        }));
+      }
     } catch (e) {
-      console.log(e);
+      dispatch(setWalletData({
+        packageBalance: 0,
+        packageBalanceCurrency: '',
+      }));
     }
   };
 
@@ -130,106 +191,136 @@ const HomeScreen = ({navigation, route}) => {
     let isMounted = true;
     if (isMounted || refresh) {
       getBalance();
-      getTransactions();
+      getPackageBalance();
     }
     return () => (isMounted = false);
   }, [route]);
 
+  useEffect(() => {
+    getPackageBalance();
+  }, [packageIds]);
+
   const onRefresh = () => {
     getBalance();
-    getTransactions();
+    getPackageBalance();
   };
 
-  const handleSwitchAgency = agencyUrl => {
-    setValues({...values, showSwitchAgencyModal: false, showLoader: true});
-    const newActiveAppSettings = appSettings.find(
-      setting => setting.agencyUrl === agencyUrl,
-    );
-    dispatch(
-      switchAgency(
-        newActiveAppSettings,
-        wallet,
-        onSwitchSuccess,
-        onSwitchError,
-      ),
-    );
-  };
-
-  const onSwitchSuccess = newActiveAppSettings => {
-    dispatch({type: 'SET_ACTIVE_APP_SETTINGS', payload: newActiveAppSettings});
-    setValues({...values, showLoader: false, showSwitchAgencyModal: false});
-  };
-  const onSwitchError = e => {
-    console.log(e, 'e');
-    setValues({...values, showLoader: false, showSwitchAgencyModal: false});
-  };
+  const renderBottomSheet = () => (
+    <CustomBottomSheet
+      ref={bottomSheetModalRef}
+      snapPoints={snapPoints}
+      enablePanDownToClose>
+      {bottomSheetContent === 'more' ? (
+        <>
+          <IndividualSettingView
+            icon={<PersonIcon color={colors.gray} />}
+            title={'Profile'}
+            onPress={() => {
+              bottomSheetModalRef.current?.dismiss();
+              navigation.navigate('ProfileScreen');
+            }}
+          />
+          <IndividualSettingView
+            icon={<GearIcon color={colors.gray} />}
+            title={'Settings'}
+            onPress={() => {
+              bottomSheetModalRef.current?.dismiss();
+              navigation.navigate('SettingsScreen');
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <IndividualSettingView
+            icon={<DollorIcon color={colors.gray} />}
+            title={'Token'}
+            onPress={() => {
+              bottomSheetModalRef.current?.dismiss();
+              navigation.navigate('RedeemTokenScreen');
+            }}
+          />
+          <IndividualSettingView
+            icon={<GiftIcon color={colors.gray} />}
+            title={'Packages'}
+            onPress={() => {
+              bottomSheetModalRef.current?.dismiss();
+              navigation.navigate('RedeemPackageScreen');
+            }}
+          />
+        </>
+      )}
+    </CustomBottomSheet>
+  );
 
   return (
     <>
       <Header
-        title={t('Home')}
-        onRightIconPress={() => navigation.navigate('ProfileScreen')}
-        userData={userData}
+        title={'Home'}
+        onRightIconPress={() => {
+          setValues({ ...values, bottomSheetContent: 'more' });
+          handlePresentModalPress();
+        }}
       />
+
       <ScrollView
         style={styles.container}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-        <SwitchAgencyModal
-          show={showSwitchAgencyModal}
-          activeAgency={activeAppSettings}
-          agencies={appSettings}
-          onPress={handleSwitchAgency}
-          hide={() => setValues({...values, showSwitchAgencyModal: false})}
-        />
-
-        <CustomLoader
-          show={showLoader}
-          message={`${t('Switching agency.')} ${t('Please wait...')}`}
-        />
-
         <Card>
-          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-            <View>
-              <SmallText noPadding color={colors.blue}>
-                {activeAppSettings.agency.name}
-              </SmallText>
-              <RegularText
-                color={colors.lightGray}
-                style={{paddingTop: Spacing.vs / 3}}
-                fontSize={FontSize.small * 1.2}>
-                Token Balance
-              </RegularText>
-              {balance === null ? (
-                <ActivityIndicator size={24} color={colors.blue} />
-              ) : (
-                <RegularText color={colors.gray}>{balance}</RegularText>
-              )}
-            </View>
+          <View style={[styles.rowView, { paddingBottom: Spacing.vs / 2 }]}>
+            <SmallText noPadding color={colors.blue}>
+              {activeAppSettings.agency.name || 'Agency Name'}
+            </SmallText>
             <CustomButton
-              title={t('Redeem')}
+              title={'Redeem'}
               borderRadius={20}
               width={widthPercentageToDP(30)}
               capitalizeText
               outlined
               fontFamily={'Lora-Regular'}
-              onPress={() =>
-                // userData?.agencies[0]?.status === 'new'
-                //   ? navigation.navigate('CheckApprovalScreen')
-                //   : navigation.navigate('RedeemScreen')
-                userInAgencyStatus === 'new'
-                  ? navigation.navigate('CheckApprovalScreen')
-                  : navigation.navigate('RedeemScreen')
-              }
-              // onPress={() =>
-              //   setValues({...values, showSwitchAgencyModal: true})
-              // }
+              paddingVertical={Spacing.vs / 8}
+              fontSize={FontSize.medium}
+              onPress={() => {
+                if (userInAgencyStatus === 'new') {
+                  navigation.navigate('CheckApprovalScreen');
+                }
+                setValues({ ...values, bottomSheetContent: 'redeem' });
+                handlePresentModalPress();
+              }}
             />
           </View>
+          <View style={styles.rowView}>
+            <View>
+              {tokenBalance === null ? (
+                <ActivityIndicator size={24} color={colors.blue} />
+              ) : (
+                <RegularText color={colors.gray}>{tokenBalance}</RegularText>
+              )}
+              <RegularText
+                color={colors.lightGray}
+                style={{ paddingTop: Spacing.vs / 3 }}
+                fontSize={FontSize.small * 1.1}>
+                Token Balance
+              </RegularText>
+            </View>
+            <View>
+              {packageBalance === null ? (
+                <ActivityIndicator size={24} color={colors.blue} />
+              ) : (
+                <RegularText color={colors.gray}>
+                  {`${packageBalanceCurrency} ${packageBalance}`}
+                </RegularText>
+              )}
+              <RegularText
+                color={colors.lightGray}
+                style={{ paddingTop: Spacing.vs / 3 }}
+                fontSize={FontSize.small * 1.1}>
+                Package
+              </RegularText>
+            </View>
+          </View>
         </Card>
-
-        {/* {userData?.agencies[0]?.status === 'new' && ( */}
         {userInAgencyStatus === 'new' && (
           <Card>
             <RegularText
@@ -238,31 +329,27 @@ const HomeScreen = ({navigation, route}) => {
                 fontSize: FontSize.medium,
                 paddingVertical: Spacing.vs / 2,
               }}>
-              {t('Please contact your agency for approval')}
+              Please contact your agency for approval
             </RegularText>
             <CustomButton
               width={widthPercentageToDP(80)}
-              title={t('Check for approval')}
+              title={'Check for approval'}
               color={colors.green}
               onPress={() => navigation.navigate('CheckApprovalScreen')}
             />
           </Card>
         )}
-
-        {transactions?.length !== 0 && (
+        {transactions?.length && (
           <>
             <View style={styles.recentTxnHeader}>
               <RegularText color={colors.black}>
-                {t('Recent Transactions')}
+                {'Recent Transactions'}
               </RegularText>
               <Pressable
                 onPress={() =>
-                  navigation.navigate('StatementScreen', {
-                    transactions,
-                    balance,
-                  })
+                  navigation.navigate('StatementScreen')
                 }>
-                <RegularText color={colors.blue}>{t("VIEW ALL")}</RegularText>
+                <RegularText color={colors.blue}>{'VIEW ALL'}</RegularText>
               </Pressable>
             </View>
             <Card>
@@ -275,33 +362,41 @@ const HomeScreen = ({navigation, route}) => {
                         ? true
                         : false
                       : index === 2
-                      ? true
-                      : false
+                        ? true
+                        : false
                   }
                   key={index}
+                  balanceType={item?.balanceType}
+                  transactionType={item?.transactionType}
+                  icon={
+                    item?.packages ? item.packages[0]?.imageUri : item?.imageUri
+                  }
                   title={
-                    item.type === 'charge'
-                      ? `${item.type} to ...${item.chargeTo?.slice(
-                          item?.chargeTo?.length - 4,
-                          item?.chargeTo?.length,
-                        )}`
-                      : item.type === 'transfer'
-                      ? `${item.type} to ...${item.to?.slice(
+                    item?.transactionType === 'charge'
+                      ? `${item?.transactionType} to ...${item.chargeTo?.slice(
+                        item?.chargeTo?.length - 4,
+                        item?.chargeTo?.length,
+                      )}`
+                      : item?.transactionType === 'transfer'
+                        ? `${item?.transactionType} to ...${item.to?.slice(
                           item?.to?.length - 4,
                           item?.to?.length,
                         )}`
-                      : 'redeem token'
+                        : item?.transactionType === 'redeem' &&
+                          item?.balanceType === 'package'
+                          ? 'redeem package'
+                          : 'redeem token'
                   }
-                  type={item.type}
-                  amount={item.amount}
-                  date={item.timeStamp}
+                  type={item?.transactionType}
+                  amount={item?.amount}
+                  date={item?.timeStamp}
                   onPress={() =>
                     navigation.navigate(
-                      item.type === 'charge'
+                      item?.transactionType === 'charge'
                         ? 'ChargeReceiptScreen'
-                        : item.type === 'transfer'
-                        ? 'TransferReceiptScreen'
-                        : 'RedeemReceiptScreen',
+                        : item?.transactionType === 'transfer'
+                          ? 'TransferReceiptScreen'
+                          : 'RedeemReceiptScreen',
                       {
                         receiptData: item,
                       },
@@ -313,6 +408,7 @@ const HomeScreen = ({navigation, route}) => {
           </>
         )}
       </ScrollView>
+      {renderBottomSheet()}
     </>
   );
 };
@@ -326,10 +422,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.hs,
     backgroundColor: colors.white,
-    paddingTop: Spacing.vs,
+    paddingTop: Spacing.vs * 2,
   },
-  headerTitle: {fontFamily: 'Lora-Regular', fontSize: FontSize.regular},
-  headerRightIcon: {height: 80, width: 30, borderRadius: 100},
+  headerTitle: { fontFamily: 'Lora-Regular', fontSize: FontSize.regular },
+  headerRightIcon: { height: 80, width: 30, borderRadius: 100 },
   container: {
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,

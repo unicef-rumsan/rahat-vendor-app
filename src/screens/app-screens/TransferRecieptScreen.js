@@ -1,17 +1,14 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Clipboard from '@react-native-clipboard/clipboard';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {useTranslation} from 'react-i18next';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+import {Pressable, StyleSheet, View} from 'react-native';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 import {RNToasty} from 'react-native-toasty';
-import colors from '../../../constants/colors';
-import {Spacing} from '../../../constants/utils';
-
+import {Spacing, colors} from '../../constants';
 import {CustomButton, CustomHeader, SmallText, Card} from '../../components';
 
 const TransferReceiptScreen = ({navigation, route}) => {
-  const {receiptData, from} = route.params;
+  const {receiptData} = route.params;
   const {t} = useTranslation();
   const TransferDetail = ({title, detail, detailColor, onPress}) => (
     <Pressable style={styles.chargeDetail} onPress={onPress}>
@@ -21,36 +18,11 @@ const TransferReceiptScreen = ({navigation, route}) => {
         numberOfLines={1}
         color={detailColor || colors.black}
         style={styles.detailText}>
-        {detail}{' '}
+        {detail}
       </SmallText>
     </Pressable>
   );
 
-  const storeReceipt = async () => {
-    try {
-      const transactions = await AsyncStorage.getItem('transactions');
-      if (transactions !== null) {
-        const parsedTransaction = JSON.parse(transactions);
-        const newTransactionArray = [receiptData, ...parsedTransaction];
-        await AsyncStorage.setItem(
-          'transactions',
-          JSON.stringify(newTransactionArray),
-        );
-      }
-      if (transactions === null) {
-        const temp = [receiptData];
-        await AsyncStorage.setItem('transactions', JSON.stringify(temp));
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  useEffect(() => {
-    if (from === 'transferToken') {
-      storeReceipt();
-    }
-  }, []);
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
@@ -63,22 +35,22 @@ const TransferReceiptScreen = ({navigation, route}) => {
       <View style={styles.container}>
         <Card>
           <TransferDetail
-            title={t('Status')}
-            detail={t('Success')}
+            title={'Status'}
+            detail={'Success'}
             detailColor={colors.green}
           />
           <TransferDetail
-            title={t('To')}
-            detail={receiptData.to}
+            title={'To'}
+            detail={receiptData?.to}
             detailColor={colors.blue}
-            onPress={() => copyToClipboard(receiptData.to)}
+            onPress={() => copyToClipboard(receiptData?.to)}
           />
 
-          <TransferDetail title={t('Date')} detail={receiptData.timeStamp} />
-          <TransferDetail title={t('Amount')} detail={receiptData.amount} />
+          <TransferDetail title={'Date'} detail={receiptData?.timeStamp} />
+          <TransferDetail title={'Amount'} detail={receiptData?.amount} />
         </Card>
         <CustomButton
-          title={t('Back To Home')}
+          title={'Back To Home'}
           color={colors.green}
           onPress={() => navigation.navigate('HomeScreen', {refresh: true})}
         />

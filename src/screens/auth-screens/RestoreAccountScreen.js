@@ -1,29 +1,27 @@
+import { useDispatch } from 'react-redux';
+import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {Logo} from '../../../assets/images';
-import colors from '../../../constants/colors';
-import {Spacing} from '../../../constants/utils';
-import {
-  CustomButton,
-  CustomLoader,
-  CustomPopup,
-  SmallText,
-} from '../../components';
 import {
   GDrive,
   ListQueryBuilder,
-  MimeTypes,
 } from '@robinbobin/react-native-google-drive-api-wrapper';
-import {useDispatch} from 'react-redux';
-import {restoreUsingDrive} from '../../redux/actions/wallet';
-import {decryptionHelper} from '../../../constants/helper';
-import {GOOGLE_WEB_CLIENT_ID} from '@env';
-import {useTranslation} from 'react-i18next';
-import PasscodeModal from '../../components/PasscodeModal';
+import { GOOGLE_WEB_CLIENT_ID } from '@env';
+
+import {
+  SmallText,
+  PopupModal,
+  CustomButton,
+  LoaderModal,
+  PasscodeModal,
+} from '../../components';
+import { Logo } from '../../../assets/images';
+import {colors, Spacing} from '../../constants';
+import { decryptionHelper } from '../../helpers';
+import { restoreUsingDrive } from '../../redux/actions/walletActions';
 
 GoogleSignin.configure({
   scopes: [
@@ -31,11 +29,11 @@ GoogleSignin.configure({
     'https://www.googleapis.com/auth/drive.file',
   ],
   offlineAccess: true,
-  webClientId: GOOGLE_WEB_CLIENT_ID,
+  webClientId: GOOGLE_WEB_CLIENT_ID || '',
 });
 
-const RestoreAccountScreen = ({navigation}) => {
-  const {t} = useTranslation();
+const RestoreAccountScreen = ({ navigation }) => {
+  console.log({GOOGLE_WEB_CLIENT_ID})
   let gdrive = new GDrive();
   const dispatch = useDispatch();
 
@@ -47,51 +45,36 @@ const RestoreAccountScreen = ({navigation}) => {
   }, []);
 
   const [values, setValues] = useState({
-    showLoader: false,
-    loaderMessage: '',
-    showPopup: false,
-    popupType: '',
-    popupMessageType: '',
-    popupMessage: '',
     showPasscodeModal: false,
     passcode: '',
   });
 
   const {
-    showLoader,
-    loaderMessage,
-    popupMessage,
-    popupMessageType,
-    popupType,
-    showPopup,
     showPasscodeModal,
     passcode,
   } = values;
 
   const onSuccess = () => {
-    setValues({...values, showLoader: false, showPasscodeModal: false});
-    navigation.navigate('LinkAgencyQRScreen', {from: 'restore'});
+    setValues({ ...values, showPasscodeModal: false });
+    LoaderModal.hide();
+    navigation.navigate('LinkAgencyScreen', { from: 'restore' });
   };
 
   const onError = e => {
-    console.log(e);
-    let error = JSON.stringify(e);
-    setValues(values => ({
-      ...values,
-      showLoader: false,
-      showPopup: true,
+    // let error = JSON.stringify(e);
+    LoaderModal.hide();
+    PopupModal.show({
       popupType: 'alert',
-      popupMessageType: 'Error',
-      popupMessage: error,
-    }));
+      messageType: 'Error',
+      message: String(e),
+    })
   };
 
   const handleRestoreWallet = async data => {
-    setValues(values => ({
-      ...values,
-      showLoader: true,
-      loaderMessage: `${t('Restoring your wallet. Please wait...')}`,
-    }));
+    LoaderModal.show({
+      message: 'Restoring your wallet. Please wait...'
+    })
+
     try {
       let binaryFileData, encryptedData;
       binaryFileData = await gdrive.files.getBinary(data.files[0].id);
@@ -103,70 +86,74 @@ const RestoreAccountScreen = ({navigation}) => {
         encryptedData.iv,
         passcode,
       );
-      dispatch(restoreUsingDrive(walletInfo, onSuccess, onError));
+    
+      if(walletInfo){
+        dispatch(restoreUsingDrive(walletInfo, onSuccess, onError));
+      }
+      else{
+        LoaderModal.hide();
+        PopupModal.show({
+          popupType: 'alert',
+          messageType: 'Error',
+          message: 'Invalid backup file'
+        })
+      }
+
     } catch (e) {
-      let errorMessage = '';
+      console.log({e})
+      let errorMessage = e?.message || e?.error || '';
       if (
         e?.message ===
         'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT'
       ) {
-        errorMessage = `${t('Invalid Passcode. Please try again')}`;
+        errorMessage = 'Invalid Passcode. Please try again';
       }
-      setValues(values => ({
-        ...values,
-        showLoader: false,
-        showPasscodeModal: false,
-        showPopup: true,
+      LoaderModal.hide();
+      PopupModal.show({
         popupType: 'alert',
-        popupMessageType: 'Error',
-        popupMessage:
-          errorMessage !== ''
+        messageType: 'Error',
+        message:
+          !!errorMessage
             ? errorMessage
-            : `${t('Something went wrong. Please try again')}`,
-      }));
+            : 'Something went wrong. Please try again',
+      })
     }
   };
 
   const initializeGDrive = async () => {
-    setValues(values => ({
-      ...values,
-      showLoader: true,
-      loaderMessage: `${t('Checking your drive for backup files')}`,
-    }));
+    LoaderModal.show({
+      message:'Checking your drive for backup files',
+    });
+
     try {
       gdrive.accessToken = (await GoogleSignin.getTokens()).accessToken;
+      gdrive.fetchTimeout = -1;
       let data = await gdrive.files.list({
         q: new ListQueryBuilder()
-          .e('name', 'rahat_backup')
+          .e('name', 'rahat_v2_backup')
           .and()
           .e('mimeType', 'application/octet-stream'),
       });
-      if (data.files?.length === 0) {
-        return setValues(values => ({
-          ...values,
-          showLoader: false,
-          showPopup: true,
+      if (!data?.files?.length) {
+        LoaderModal.hide();
+        PopupModal.show({
           popupType: 'alert',
-          popupMessageType: 'Info',
-          popupMessage: `${t(
+          messageType: 'Info',
+          message: 
             'Sorry, Your drive does not contain rahat backup file.',
-          )}`,
-        }));
+        })
       }
 
       handleRestoreWallet(data);
-
-      // handleBackupToDrive();
     } catch (e) {
-      console.log(e);
-      setValues(values => ({
-        ...values,
-        showLoader: false,
-        showPopup: true,
+      console.log({initialiDriv: 'ko error', e})
+      const errorMessage = e?.message || e?.error || '';
+      LoaderModal.hide();
+      PopupModal.show({
         popupType: 'alert',
-        popupMessageType: 'Error',
-        popupMessage: `${t('Something went wrong. Please try again')}`,
-      }));
+        messageType: 'Error',
+        message: !!errorMessage ? errorMessage : 'Something went wrong. Please try again',
+      });
     }
   };
 
@@ -176,32 +163,32 @@ const RestoreAccountScreen = ({navigation}) => {
       const userInfo = await GoogleSignin.signIn();
       initializeGDrive();
     } catch (error) {
-      console.log(error);
-      setValues(values => ({
-        ...values,
-        showLoader: false,
-        showPopup: true,
-        popupType: 'alert',
-        popupMessageType: 'Error',
-      }));
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        setValues(values => ({
-          ...values,
-          popupMessage: `${t('Signin Cancelled')}`,
-        }));
+       return PopupModal.show({
+          popupType: 'alert',
+          messageType: 'Error',
+          message: 'Signin Cancelled'
+        })
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        setValues(values => ({
-          ...values,
-          popupMessage: `${t('Play services not available')}`,
-        }));
+        return PopupModal.show({
+          popupType: 'alert',
+          messageType: 'Error',
+          message: 'Play services not available'
+        });
       } else {
-        setValues(values => ({
-          ...values,
-          popupMessage: `${t('Something went wrong. Please try again')}`,
-        }));
+        return PopupModal.show({
+          popupType: 'alert',
+          messageType: 'Error',
+          message: 'Something went wrong. Please try again'
+        });
       }
     }
   };
+
+  const onConfirmPasscode = () => {
+    setValues({ ...values, showPasscodeModal: false });
+    googleSignin();
+  }
 
   return (
     <>
@@ -210,42 +197,27 @@ const RestoreAccountScreen = ({navigation}) => {
         title="Passcode"
         text="Enter 6 digit passcode to restore your wallet"
         buttonDisabled={passcode.length === 6 ? false : true}
-        onChangeText={text => setValues({...values, passcode: text})}
-        hide={() => setValues({...values, showPasscodeModal: false})}
-        onConfirm={() => {
-          setValues({...values, showPasscodeModal: false});
-          googleSignin();
-        }}
+        onChangeText={text => setValues({ ...values, passcode: text })}
+        hide={() => setValues({ ...values, showPasscodeModal: false })}
+        onConfirm={onConfirmPasscode}
       />
       <View style={styles.container}>
-        <CustomLoader show={showLoader} message={loaderMessage} />
-
-        <CustomPopup
-          show={showPopup}
-          popupType={popupType}
-          messageType={popupMessageType}
-          message={popupMessage}
-          onConfirm={() => setValues({...values, showPopup: false})}
-        />
-
         <View />
-        <View style={{justifyContent: 'center', alignItems: 'center'}}>
+        <View style={styles.content}>
           <Logo />
-          <SmallText center style={{paddingTop: Spacing.vs * 2}}>
-            {t(
-              'Supporting vulnerable communities with a simple and efficient relief distribution platform.',
-            )}
+          <SmallText center style={styles.text}>
+              Supporting vulnerable communities with a simple and efficient relief distribution platform.,
           </SmallText>
         </View>
-        <View style={{marginBottom: Spacing.vs * 2}}>
+        <View style={styles.buttonContainer}>
           <CustomButton
-            title={t('RESTORE USING SEED PHRASE')}
+            title={'RESTORE USING SEED PHRASE'}
             onPress={() => navigation.navigate('RestoreMnemonicScreen')}
           />
           <CustomButton
-            title={t('RESTORE USING GOOGLE DRIVE')}
+            title={'RESTORE USING GOOGLE DRIVE'}
             color={colors.green}
-            onPress={() => setValues({...values, showPasscodeModal: true})}
+            onPress={() => setValues({ ...values, showPasscodeModal: true })}
           />
         </View>
       </View>
@@ -262,4 +234,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.hs,
     justifyContent: 'space-between',
   },
+  text: {paddingTop: Spacing.vs * 2},
+  buttonContainer: {marginBottom: Spacing.vs * 2},
+  content: {justifyContent: 'center', alignItems: 'center'},
 });

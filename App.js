@@ -1,11 +1,13 @@
 import React from 'react';
-import {StatusBar} from 'react-native';
-import colors from './constants/colors';
-import Routes from './src/navigation/Routes';
-import {Provider} from 'react-redux';
-import store from './src/redux/store';
 import 'react-native-get-random-values';
 import '@ethersproject/shims';
+import { Provider } from 'react-redux';
+import { StatusBar } from 'react-native';
+import { PersistGate } from 'redux-persist/integration/react';
+
+import Routes from './src/navigation/Routes';
+import { store, persistor } from './src/redux/store';
+
 
 const App = () => {
   return (
@@ -13,10 +15,12 @@ const App = () => {
       <StatusBar
         translucent
         barStyle="dark-content"
-        backgroundColor={colors.white}
+        backgroundColor={'white'}
       />
       <Provider store={store}>
-        <Routes />
+        <PersistGate loading={null} persistor={persistor}>
+          <Routes />
+        </PersistGate>
       </Provider>
     </>
   );

@@ -1,30 +1,28 @@
-import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
-import {RNToasty} from 'react-native-toasty';
-import {useDispatch, useSelector} from 'react-redux';
-import colors from '../../../constants/colors';
-import {Spacing} from '../../../constants/utils';
+import React, { useEffect, useState } from 'react';
+import { RNToasty } from 'react-native-toasty';
+import { useDispatch, useSelector } from 'react-redux';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
 
 import {
   Card,
+  SmallText,
   CustomButton,
   CustomHeader,
   PoppinsMedium,
-  SmallText,
 } from '../../components';
-import {getUserByWalletAddress} from '../../redux/actions/auth';
+import { Spacing, colors } from '../../constants';
+import { getUserByWalletAddress, setAuthData } from '../../redux/actions/authActions';
 
-const CheckApprovalScreen = ({navigation}) => {
+const CheckApprovalScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const {userData, activeAppSettings} = useSelector(state => state.auth);
-  console.log(activeAppSettings, 'active');
+  const userData = useSelector(state => state.authReducer.userData);
+  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
   const [values, setValues] = useState({
-    // isApproved: false,
     isLoading: true,
   });
 
-  const {isApproved, isLoading} = values;
+  const { isLoading } = values;
 
   useEffect(() => {
     dispatch(
@@ -39,25 +37,27 @@ const CheckApprovalScreen = ({navigation}) => {
 
   const onSuccess = data => {
     if (data?.agencies[0].status === 'active') {
-      setValues({...values, isLoading: false});
+      setValues({ ...values, isLoading: false });
       RNToasty.Show({
-        title: `${t('Your account has been approved')}`,
+        title: 'Your account has been approved',
         duration: 1,
       });
+      dispatch(setAuthData({userData: data}));
       navigation.pop();
     } else {
-      setValues({...values, isLoading: false});
+      setValues({ ...values, isLoading: false });
     }
   };
 
-  const onError = () => {
-    setValues({...values, isLoading: false});
+  const onError = (e) => {
+    console.log(e)
+    setValues({ ...values, isLoading: false });
   };
 
   return (
     <>
       <CustomHeader
-        title={t('Approval')}
+        title={'Approval'}
         onBackPress={() => navigation.pop()}
       />
       <View style={styles.container}>
@@ -68,20 +68,24 @@ const CheckApprovalScreen = ({navigation}) => {
         ) : (
           <>
             <PoppinsMedium color={colors.yellow}>
-              {t('Please wait for approval from agency.')}
+              Please wait for approval from agency.
             </PoppinsMedium>
             <Card>
               <SmallText color={colors.black}>
-                {t('Please contact your agency for approval')}
+                Please contact your agency for approval
               </SmallText>
               <View
-                style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                <SmallText>{activeAppSettings.agency.name} </SmallText>
-                <SmallText>{activeAppSettings.agency.phone}</SmallText>
+                style={styles.rowView}>
+                <SmallText>
+                  {activeAppSettings.agency.name}
+                </SmallText>
+                <SmallText>
+                  {activeAppSettings.agency.phone}
+                </SmallText>
               </View>
               <CustomButton
                 width={widthPercentageToDP(80)}
-                title={t('Back To Home')}
+                title={'Back To Home'}
                 color={colors.green}
                 onPress={() => navigation.pop()}
               />
@@ -101,4 +105,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,
   },
+  rowView: { flexDirection: 'row', justifyContent: 'space-between' }
 });

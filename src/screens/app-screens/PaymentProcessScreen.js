@@ -1,12 +1,11 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import colors from '../../../constants/colors';
-import {Spacing} from '../../../constants/utils';
+import {StyleSheet, View} from 'react-native';
+import {Spacing, colors} from '../../constants';
 import {
+  RegularText,
   CustomHeader,
   CustomButton,
   CustomTextInput,
-  RegularText,
 } from '../../components';
 
 const PaymentProcessScreen = ({navigation, route}) => {
