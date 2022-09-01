@@ -34,7 +34,7 @@ GoogleSignin.configure({
   offlineAccess: true,
   webClientId: GOOGLE_WEB_CLIENT_ID || '',
 });
-console.log({GOOGLE_WEB_CLIENT_ID});
+
 const BackupWalletScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const {t} = useTranslation();
