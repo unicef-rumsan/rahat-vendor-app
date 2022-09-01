@@ -1,6 +1,6 @@
-import { useDispatch } from 'react-redux';
-import { StyleSheet, View } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import {useDispatch} from 'react-redux';
+import {StyleSheet, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
 import {
   GoogleSignin,
   statusCodes,
@@ -9,7 +9,7 @@ import {
   GDrive,
   ListQueryBuilder,
 } from '@robinbobin/react-native-google-drive-api-wrapper';
-import { GOOGLE_WEB_CLIENT_ID } from '@env';
+import {GOOGLE_WEB_CLIENT_ID} from 'react-native-dotenv';
 
 import {
   SmallText,
@@ -18,10 +18,10 @@ import {
   LoaderModal,
   PasscodeModal,
 } from '../../components';
-import { Logo } from '../../../assets/images';
+import {Logo} from '../../../assets/images';
 import {colors, Spacing} from '../../constants';
-import { decryptionHelper } from '../../helpers';
-import { restoreUsingDrive } from '../../redux/actions/walletActions';
+import {decryptionHelper} from '../../helpers';
+import {restoreUsingDrive} from '../../redux/actions/walletActions';
 
 GoogleSignin.configure({
   scopes: [
@@ -32,8 +32,7 @@ GoogleSignin.configure({
   webClientId: GOOGLE_WEB_CLIENT_ID || '',
 });
 
-const RestoreAccountScreen = ({ navigation }) => {
-  console.log({GOOGLE_WEB_CLIENT_ID})
+const RestoreAccountScreen = ({navigation}) => {
   let gdrive = new GDrive();
   const dispatch = useDispatch();
 
@@ -49,15 +48,12 @@ const RestoreAccountScreen = ({ navigation }) => {
     passcode: '',
   });
 
-  const {
-    showPasscodeModal,
-    passcode,
-  } = values;
+  const {showPasscodeModal, passcode} = values;
 
   const onSuccess = () => {
-    setValues({ ...values, showPasscodeModal: false });
+    setValues({...values, showPasscodeModal: false});
     LoaderModal.hide();
-    navigation.navigate('LinkAgencyScreen', { from: 'restore' });
+    navigation.navigate('LinkAgencyScreen', {from: 'restore'});
   };
 
   const onError = e => {
@@ -67,13 +63,13 @@ const RestoreAccountScreen = ({ navigation }) => {
       popupType: 'alert',
       messageType: 'Error',
       message: String(e),
-    })
+    });
   };
 
   const handleRestoreWallet = async data => {
     LoaderModal.show({
-      message: 'Restoring your wallet. Please wait...'
-    })
+      message: 'Restoring your wallet. Please wait...',
+    });
 
     try {
       let binaryFileData, encryptedData;
@@ -86,21 +82,19 @@ const RestoreAccountScreen = ({ navigation }) => {
         encryptedData.iv,
         passcode,
       );
-    
-      if(walletInfo){
+
+      if (walletInfo) {
         dispatch(restoreUsingDrive(walletInfo, onSuccess, onError));
-      }
-      else{
+      } else {
         LoaderModal.hide();
         PopupModal.show({
           popupType: 'alert',
           messageType: 'Error',
-          message: 'Invalid backup file'
-        })
+          message: 'Invalid backup file',
+        });
       }
-
     } catch (e) {
-      console.log({e})
+      console.log({e});
       let errorMessage = e?.message || e?.error || '';
       if (
         e?.message ===
@@ -112,17 +106,16 @@ const RestoreAccountScreen = ({ navigation }) => {
       PopupModal.show({
         popupType: 'alert',
         messageType: 'Error',
-        message:
-          !!errorMessage
-            ? errorMessage
-            : 'Something went wrong. Please try again',
-      })
+        message: !!errorMessage
+          ? errorMessage
+          : 'Something went wrong. Please try again',
+      });
     }
   };
 
   const initializeGDrive = async () => {
     LoaderModal.show({
-      message:'Checking your drive for backup files',
+      message: 'Checking your drive for backup files',
     });
 
     try {
@@ -139,20 +132,21 @@ const RestoreAccountScreen = ({ navigation }) => {
         PopupModal.show({
           popupType: 'alert',
           messageType: 'Info',
-          message: 
-            'Sorry, Your drive does not contain rahat backup file.',
-        })
+          message: 'Sorry, Your drive does not contain rahat backup file.',
+        });
       }
 
       handleRestoreWallet(data);
     } catch (e) {
-      console.log({initialiDriv: 'ko error', e})
+      console.log({initialiDriv: 'ko error', e});
       const errorMessage = e?.message || e?.error || '';
       LoaderModal.hide();
       PopupModal.show({
         popupType: 'alert',
         messageType: 'Error',
-        message: !!errorMessage ? errorMessage : 'Something went wrong. Please try again',
+        message: !!errorMessage
+          ? errorMessage
+          : 'Something went wrong. Please try again',
       });
     }
   };
@@ -164,31 +158,31 @@ const RestoreAccountScreen = ({ navigation }) => {
       initializeGDrive();
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-       return PopupModal.show({
+        return PopupModal.show({
           popupType: 'alert',
           messageType: 'Error',
-          message: 'Signin Cancelled'
-        })
+          message: 'Signin Cancelled',
+        });
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         return PopupModal.show({
           popupType: 'alert',
           messageType: 'Error',
-          message: 'Play services not available'
+          message: 'Play services not available',
         });
       } else {
         return PopupModal.show({
           popupType: 'alert',
           messageType: 'Error',
-          message: 'Something went wrong. Please try again'
+          message: 'Something went wrong. Please try again',
         });
       }
     }
   };
 
   const onConfirmPasscode = () => {
-    setValues({ ...values, showPasscodeModal: false });
+    setValues({...values, showPasscodeModal: false});
     googleSignin();
-  }
+  };
 
   return (
     <>
@@ -197,8 +191,8 @@ const RestoreAccountScreen = ({ navigation }) => {
         title="Passcode"
         text="Enter 6 digit passcode to restore your wallet"
         buttonDisabled={passcode.length === 6 ? false : true}
-        onChangeText={text => setValues({ ...values, passcode: text })}
-        hide={() => setValues({ ...values, showPasscodeModal: false })}
+        onChangeText={text => setValues({...values, passcode: text})}
+        hide={() => setValues({...values, showPasscodeModal: false})}
         onConfirm={onConfirmPasscode}
       />
       <View style={styles.container}>
@@ -206,7 +200,8 @@ const RestoreAccountScreen = ({ navigation }) => {
         <View style={styles.content}>
           <Logo />
           <SmallText center style={styles.text}>
-              Supporting vulnerable communities with a simple and efficient relief distribution platform.,
+            Supporting vulnerable communities with a simple and efficient relief
+            distribution platform.
           </SmallText>
         </View>
         <View style={styles.buttonContainer}>
@@ -217,7 +212,7 @@ const RestoreAccountScreen = ({ navigation }) => {
           <CustomButton
             title={'RESTORE USING GOOGLE DRIVE'}
             color={colors.green}
-            onPress={() => setValues({ ...values, showPasscodeModal: true })}
+            onPress={() => setValues({...values, showPasscodeModal: true})}
           />
         </View>
       </View>
