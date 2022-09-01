@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { GOOGLE_WEB_CLIENT_ID } from '@env';
-import { useTranslation } from 'react-i18next';
-import { useSelector, useDispatch } from 'react-redux';
-import { StyleSheet, View, ScrollView, Keyboard } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {GOOGLE_WEB_CLIENT_ID} from 'react-native-dotenv';
+import {useTranslation} from 'react-i18next';
+import {useSelector, useDispatch} from 'react-redux';
+import {StyleSheet, View, ScrollView, Keyboard} from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
@@ -22,9 +22,9 @@ import {
   LoaderModal,
   PopupModal,
 } from '../../components';
-import { encryptionHelper } from '../../helpers';
-import { Spacing, colors } from '../../constants';
-import { updateBackingupToDriveStatus } from '../../redux/actions/authActions';
+import {encryptionHelper} from '../../helpers';
+import {Spacing, colors} from '../../constants';
+import {updateBackingupToDriveStatus} from '../../redux/actions/authActions';
 
 GoogleSignin.configure({
   scopes: [
@@ -34,10 +34,10 @@ GoogleSignin.configure({
   offlineAccess: true,
   webClientId: GOOGLE_WEB_CLIENT_ID || '',
 });
-
-const BackupWalletScreen = ({ navigation }) => {
+console.log({GOOGLE_WEB_CLIENT_ID});
+const BackupWalletScreen = ({navigation}) => {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   let gdrive = new GDrive();
   const walletInfo = useSelector(state => state.walletReducer.walletInfo);
 
@@ -46,10 +46,7 @@ const BackupWalletScreen = ({ navigation }) => {
     passcode: '',
   });
 
-  const {
-    showPasscodeModal,
-    passcode,
-  } = values;
+  const {showPasscodeModal, passcode} = values;
 
   useEffect(() => {
     GoogleSignin.signOut();
@@ -57,8 +54,8 @@ const BackupWalletScreen = ({ navigation }) => {
 
   const handleBackupToDrive = async () => {
     LoaderModal.show({
-      message: 'Encrypting your wallet. Please wait...'
-    })
+      message: 'Encrypting your wallet. Please wait...',
+    });
 
     try {
       let encryptedData = await encryptionHelper(walletInfo, passcode);
@@ -75,7 +72,7 @@ const BackupWalletScreen = ({ navigation }) => {
           popupType: 'alert',
           messageType: 'Success',
           message: 'Wallet backed up to your google drive successfully',
-        })
+        });
       }
     } catch (e) {
       LoaderModal.hide();
@@ -83,14 +80,14 @@ const BackupWalletScreen = ({ navigation }) => {
         popupType: 'alert',
         messageType: 'Error',
         message: 'Something went wrong. Please try again',
-      })
+      });
     }
   };
 
   const initializeGDrive = async () => {
     LoaderModal.show({
-      message: 'Checking your drive for backup'
-    })
+      message: 'Checking your drive for backup',
+    });
     try {
       gdrive.accessToken = (await GoogleSignin.getTokens()).accessToken;
       let data = await gdrive.files.list({
@@ -119,41 +116,40 @@ const BackupWalletScreen = ({ navigation }) => {
   };
 
   const googleSignin = async () => {
-
-    dispatch(updateBackingupToDriveStatus({ backingUpToDriveStatus: true }));
+    dispatch(updateBackingupToDriveStatus({backingUpToDriveStatus: true}));
 
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       initializeGDrive();
     } catch (error) {
-      dispatch(updateBackingupToDriveStatus({ backingUpToDriveStatus: false }));
+      dispatch(updateBackingupToDriveStatus({backingUpToDriveStatus: false}));
       LoaderModal.hide();
 
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         PopupModal.show({
           popupType: 'alert',
           messageType: 'Error',
-          message: 'Signin Cancelled'
+          message: 'Signin Cancelled',
         });
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         PopupModal.show({
           popupType: 'alert',
           messageType: 'Error',
-          message: 'Play services not available'
+          message: 'Play services not available',
         });
       } else {
         PopupModal.show({
           popupType: 'alert',
           messageType: 'Error',
-          message: 'Something went wrong. Please try again'
+          message: 'Something went wrong. Please try again',
         });
       }
     }
   };
 
   const handleSetupPasscode = text => {
-    setValues({ ...values, passcode: text });
+    setValues({...values, passcode: text});
     text.length === 6 && Keyboard.dismiss();
   };
 
@@ -164,7 +160,6 @@ const BackupWalletScreen = ({ navigation }) => {
         onBackPress={() => navigation.pop()}
       />
       <ScrollView style={styles.container}>
-
         <PasscodeModal
           show={showPasscodeModal}
           title={t('Setup Passcode')}
@@ -173,15 +168,15 @@ const BackupWalletScreen = ({ navigation }) => {
           )}
           buttonDisabled={passcode.length === 6 ? false : true}
           onChangeText={handleSetupPasscode}
-          hide={() => setValues({ ...values, showPasscodeModal: false })}
+          hide={() => setValues({...values, showPasscodeModal: false})}
           onConfirm={() => {
-            setValues({ ...values, showPasscodeModal: false });
+            setValues({...values, showPasscodeModal: false});
             googleSignin();
           }}
         />
 
         <View style={styles.aboutView}>
-          <RegularText style={{ paddingBottom: Spacing.vs / 2 }}>
+          <RegularText style={{paddingBottom: Spacing.vs / 2}}>
             {t('Backup your wallet')}
           </RegularText>
           <SmallText color={colors.danger} noPadding>
@@ -218,7 +213,7 @@ const BackupWalletScreen = ({ navigation }) => {
           <CustomButton
             color={colors.blue}
             title={t('Backup to Google Drive')}
-            onPress={() => setValues({ ...values, showPasscodeModal: true })}
+            onPress={() => setValues({...values, showPasscodeModal: true})}
           />
         </View>
       </ScrollView>
@@ -234,6 +229,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,
   },
-  description: { textAlign: 'justify', color: colors.lightGray },
-  aboutView: { marginBottom: Spacing.vs },
+  description: {textAlign: 'justify', color: colors.lightGray},
+  aboutView: {marginBottom: Spacing.vs},
 });
