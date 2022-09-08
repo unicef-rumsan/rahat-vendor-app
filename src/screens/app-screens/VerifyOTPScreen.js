@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {View, Keyboard, StatusBar, StyleSheet} from 'react-native';
-import {useTranslation} from 'react-i18next';
 import {RNToasty} from 'react-native-toasty';
 import {useDispatch, useSelector} from 'react-redux';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
@@ -31,12 +30,11 @@ const VerifyOTPScreen = ({navigation, route}) => {
   const activeAppSettings = useSelector(
     state => state.agencyReducer.activeAppSettings,
   );
-  const packageIds = useSelector(state => state.walletReducer.packageIds);
   const transactions = useSelector(
     state => state.transactionReducer.transactions,
   );
 
-  const {phone, remarks, type, packageDetail, amount} = route?.params;
+  const {phone, remarks, type, amount} = route?.params;
 
   const [otp, setOtp] = useState('');
 
@@ -51,25 +49,6 @@ const VerifyOTPScreen = ({navigation, route}) => {
   const storeReceiptData = receiptData => {
     let updatedPackageIds = [],
       updatedTransactions = [];
-
-    if (receiptData.balanceType === 'package') {
-      if (packageIds?.length) {
-        updatedPackageIds = packageIds.map(item => {
-          if (item.agencyUrl === activeAppSettings.agencyUrl) {
-            !item.tokenIds.includes(packageDetail.tokenId) &&
-              item.tokenIds.push(packageDetail.tokenId);
-          }
-          return item;
-        });
-      } else {
-        updatedPackageIds = [
-          {
-            agencyUrl: activeAppSettings.agencyUrl,
-            tokenIds: [packageDetail.tokenId],
-          },
-        ];
-      }
-    }
     if (transactions?.length) {
       updatedTransactions = [receiptData, ...transactions];
     } else {
@@ -99,20 +78,12 @@ const VerifyOTPScreen = ({navigation, route}) => {
         activeAppSettings.agency.contracts.rahat,
         wallet,
         activeAppSettings.agency.contracts.rahat_erc20,
-        activeAppSettings.agency.contracts.rahat_erc1155,
       );
 
       let receipt, receiptData;
 
-      if (type === 'erc20')
+      if (type === 'erc20') {
         receipt = await rahatService.verifyChargeForERC20(phone, otp);
-
-      if (type === 'erc1155') {
-        receipt = await rahatService.verifyChargeForERC1155(
-          phone,
-          otp,
-          packageDetail.tokenId,
-        );
       }
 
       receiptData = {
@@ -121,19 +92,12 @@ const VerifyOTPScreen = ({navigation, route}) => {
         to: receipt.to,
         status: 'success',
         chargeTo: phone,
-        amount: type === 'erc20' ? amount : packageDetail.amount,
+        amount: type === 'erc20' ? amount : 0,
         transactionType: 'charge',
         balanceType: type === 'erc20' ? 'token' : 'package',
         agencyUrl: activeAppSettings.agencyUrl,
         remarks,
       };
-
-      if (type === 'erc1155') {
-        receiptData.packageName = packageDetail.name;
-        receiptData.imageUri = packageDetail.imageUri;
-        receiptData.tokenId = packageDetail.tokenId;
-      }
-
       storeReceiptData(receiptData);
     } catch (e) {
       LoaderModal.hide();

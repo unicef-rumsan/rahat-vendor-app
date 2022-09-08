@@ -100,12 +100,9 @@ const ChargeTokenScreen = ({navigation, route}) => {
         activeAppSettings.agency.contracts.rahat,
         wallet,
         activeAppSettings.agency.contracts.rahat_erc20,
-        activeAppSettings.agency.contracts.rahat_erc1155,
       ).chargeCustomerERC20(beneficiaryPhone, amount);
-
       setValues({...values, isSubmitting: false});
       LoaderModal.hide();
-
       navigation.navigate('VerifyOTPScreen', {
         phone: beneficiaryPhone,
         amount: amount,
@@ -113,7 +110,7 @@ const ChargeTokenScreen = ({navigation, route}) => {
         type: 'erc20',
       });
     } catch (e) {
-      // alert(e);
+      alert(e);
       LoaderModal.hide();
     }
   };
@@ -164,12 +161,6 @@ const ChargeTokenScreen = ({navigation, route}) => {
               'Important: Please double check the phone number and amount before charging. Transactions cannot be reversed.',
             )}
           </SmallText>
-          {/* <CustomButton
-            outlined
-            title={'Switch Agency'}
-            width={widthPercentageToDP(80)}
-            onPress={_onSwitchAgency}
-          /> */}
           <CustomButton
             onPress={onSubmit}
             title={'Charge'}

@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  heightPercentageToDP,
-  widthPercentageToDP,
-} from 'react-native-responsive-screen';
 import {useSelector} from 'react-redux';
-import {StatusBar, StyleSheet, View, Pressable, Image} from 'react-native';
+import {StatusBar, StyleSheet, View, Pressable} from 'react-native';
 
 import {AngleRightIcon} from '../../../../assets/icons';
 import {FontSize, Spacing, colors} from '../../../constants';
@@ -28,37 +24,8 @@ const AmountWithAngleBracket = ({amount}) => (
   </View>
 );
 
-const IndividualPackageView = ({imageHash, title, amount, onPress}) => (
-  <Pressable onPress={onPress}>
-    <View style={styles.individualPackageDetail}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}>
-        <Image
-          source={{uri: `https://ipfs.rumsan.com/ipfs/${imageHash}`}}
-          style={{
-            height: heightPercentageToDP(3),
-            width: widthPercentageToDP(8),
-          }}
-        />
-        <RegularText
-          color={colors.gray}
-          style={{
-            fontSize: FontSize.medium * 1.1,
-            paddingHorizontal: Spacing.hs,
-          }}>
-          {title}
-        </RegularText>
-      </View>
-      <AmountWithAngleBracket amount={amount} />
-    </View>
-  </Pressable>
-);
-
 const ChargeScreen = ({navigation, route}) => {
-  const {tokenBalance, packages, beneficiaryPhone} = route.params;
+  const {tokenBalance, beneficiaryPhone} = route.params;
 
   const activeAppSettings = useSelector(
     state => state.agencyReducer.activeAppSettings,
@@ -91,28 +58,6 @@ const ChargeScreen = ({navigation, route}) => {
             <AmountWithAngleBracket amount={tokenBalance} />
           </Card>
         </Pressable>
-
-        {/* <Card style={{paddingVertical: Spacing.vs * 2}}>
-          <RegularText
-            color={colors.gray}
-            style={{fontSize: FontSize.medium * 1.1}}>
-            Packages:
-          </RegularText>
-          {packages.map(item => (
-            <IndividualPackageView
-              key={item.tokenId}
-              imageHash={item.imageUri}
-              title={item.name}
-              amount={item.balance}
-              onPress={() =>
-                navigation.navigate('ChargePackageScreen', {
-                  packageDetail: item,
-                  beneficiaryPhone,
-                })
-              }
-            />
-          ))}
-        </Card> */}
       </View>
     </>
   );
@@ -130,11 +75,5 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.vs * 1.5,
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  individualPackageDetail: {
-    paddingTop: Spacing.vs * 1.5,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
 });

@@ -20,14 +20,11 @@ import {
   RedeemTokenScreen,
   BackupWalletScreen,
   ChargeDrawerScreen,
-  PackageDetailScreen,
   ChargeReceiptScreen,
   CheckApprovalScreen,
   PaymentMethodScreen,
   RedeemReceiptScreen,
   TransferTokenScreen,
-  ChargePackageScreen,
-  RedeemPackageScreen,
   PaymentProcessScreen,
   BackupMnemonicScreen,
   TransferReceiptScreen,
@@ -110,15 +107,9 @@ const AppStack = () => {
         <Stack.Screen name="Tabs" component={Tabs} />
         <Stack.Screen name="ChargeScreen" component={ChargeScreen} />
         <Stack.Screen name="ChargeTokenScreen" component={ChargeTokenScreen} />
-        <Stack.Screen
-          name="ChargePackageScreen"
-          component={ChargePackageScreen}
-        />
-
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
         <Stack.Screen name="AgencyScreen" component={AgencyScreen} />
         <Stack.Screen name="LinkAgencyScreen" component={LinkAgencyScreen} />
-
         <Stack.Screen name="AboutScreen" component={AboutScreen} />
         <Stack.Screen
           name="BackupWalletScreen"
@@ -130,17 +121,11 @@ const AppStack = () => {
         />
         <Stack.Screen name="VerifyOTPScreen" component={VerifyOTPScreen} />
         <Stack.Screen name="ScanScreen" component={ScanScreen} />
-
         <Stack.Screen name="RedeemTokenScreen" component={RedeemTokenScreen} />
-        <Stack.Screen
-          name="RedeemPackageScreen"
-          component={RedeemPackageScreen}
-        />
         <Stack.Screen
           name="RedeemReceiptScreen"
           component={RedeemReceiptScreen}
         />
-
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
         <Stack.Screen
           name="ChargeReceiptScreen"
@@ -169,10 +154,6 @@ const AppStack = () => {
         />
         <Stack.Screen name="PasscodeScreen" component={PasscodeScreen} />
         <Stack.Screen name="LockScreen" component={LockScreen} />
-        <Stack.Screen
-          name="PackageDetailScreen"
-          component={PackageDetailScreen}
-        />
       </Stack.Navigator>
       <LoaderModal />
       <PopupModal />

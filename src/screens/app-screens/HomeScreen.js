@@ -20,7 +20,6 @@ import {
   Logo,
   DollorIcon,
   GearIcon,
-  GiftIcon,
   MoreDotsIcon,
   PersonIcon,
 } from '../../../assets/icons';
@@ -34,15 +33,8 @@ import {
   CustomBottomSheet,
 } from '../../components';
 import {FontSize, Spacing, colors} from '../../constants';
-import {getPackageDetail} from '../../helpers/nftPackageHelpers';
-import {
-  setWalletData,
-  getWalletBalance,
-  getPackageBalanceInFiat,
-  getPackageBatchBalance,
-} from '../../redux/actions/walletActions';
+import {getWalletBalance} from '../../redux/actions/walletActions';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 let BACK_COUNT = 0;
 
@@ -66,23 +58,15 @@ const HomeScreen = ({navigation, route}) => {
   const [userInAgencyStatus, setUserInAgencyStatus] = useState(false);
 
   const wallet = useSelector(state => state.walletReducer.wallet);
-  const packageIds = useSelector(state => state.walletReducer.packageIds);
-  const packages = useSelector(state => state.walletReducer.packages);
   const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
   const unconfirmedBalance = useSelector(
     state => state.walletReducer.unconfirmedBalance,
-  );
-  const packageBalance = useSelector(
-    state => state.walletReducer.packageBalance,
   );
   const transactions = useSelector(
     state => state.transactionReducer.transactions,
   );
   const activeAppSettings = useSelector(
     state => state.agencyReducer.activeAppSettings,
-  );
-  const packageBalanceCurrency = useSelector(
-    state => state.walletReducer.packageBalanceCurrency,
   );
   const [values, setValues] = useState({
     refreshing: false,
@@ -118,10 +102,6 @@ const HomeScreen = ({navigation, route}) => {
     }
   }, []);
 
-  // useEffect(() => {
-  //   // LoaderModal.show();
-  // }, [])
-
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
@@ -132,86 +112,16 @@ const HomeScreen = ({navigation, route}) => {
     }
   };
 
-  const getPackageBatchBalanceSuccess = async (tokenIds, batchBalance) => {
-    if (tokenIds?.length && batchBalance?.length) {
-      dispatch(getPackageBalanceInFiat(tokenIds, batchBalance));
-
-      const packages = await getPackageDetail(
-        {tokenIds, balances: batchBalance},
-        'getPackages',
-      );
-
-      dispatch(
-        setWalletData({
-          packages,
-        }),
-      );
-    }
-    if (tokenIds?.length === 0 && batchBalance?.length === 0) {
-      dispatch(
-        setWalletData({
-          packageBalance: 0,
-          packageBalanceCurrency: '',
-        }),
-      );
-    }
-  };
-
-  const getPackageBalance = async () => {
-    try {
-      let activePackageIds = packageIds?.find(
-        item => item?.agencyUrl === activeAppSettings?.agencyUrl,
-      );
-      if (activePackageIds?.tokenIds?.length) {
-        const walletAddress = activePackageIds?.tokenIds?.map(
-          () => wallet.address,
-        );
-        dispatch(
-          getPackageBatchBalance(
-            activeAppSettings?.agency?.contracts?.rahat,
-            activeAppSettings?.agency?.contracts?.rahat_erc20,
-            activeAppSettings?.agency?.contracts?.rahat_erc1155,
-            wallet,
-            walletAddress,
-            activePackageIds?.tokenIds,
-            getPackageBatchBalanceSuccess,
-          ),
-        );
-      } else {
-        dispatch(
-          setWalletData({
-            packages: [],
-            packageBalance: 0,
-            packageBalanceCurrency: '',
-          }),
-        );
-      }
-    } catch (e) {
-      dispatch(
-        setWalletData({
-          packageBalance: 0,
-          packageBalanceCurrency: '',
-        }),
-      );
-    }
-  };
-
   useEffect(() => {
     let isMounted = true;
     if (isMounted || refresh) {
       getBalance();
-      getPackageBalance();
     }
     return () => (isMounted = false);
   }, [route]);
 
-  useEffect(() => {
-    getPackageBalance();
-  }, [packageIds]);
-
   const onRefresh = () => {
     getBalance();
-    getPackageBalance();
   };
 
   const renderBottomSheet = () => (
@@ -248,14 +158,6 @@ const HomeScreen = ({navigation, route}) => {
               navigation.navigate('RedeemTokenScreen');
             }}
           />
-          {/* <IndividualSettingView
-            icon={<GiftIcon color={colors.gray} />}
-            title={'Packages'}
-            onPress={() => {
-              bottomSheetModalRef.current?.dismiss();
-              navigation.navigate('RedeemPackageScreen');
-            }}
-          /> */}
         </>
       )}
     </CustomBottomSheet>
@@ -330,21 +232,6 @@ const HomeScreen = ({navigation, route}) => {
                 Unconfirmed Balance
               </RegularText>
             </View>
-            {/* <View>
-              {packageBalance === null ? (
-                <ActivityIndicator size={24} color={colors.blue} />
-              ) : (
-                <RegularText color={colors.gray}>
-                  {`${packageBalanceCurrency} ${packageBalance}`}
-                </RegularText>
-              )}
-              <RegularText
-                color={colors.lightGray}
-                style={{paddingTop: Spacing.vs / 3}}
-                fontSize={FontSize.small * 1.1}>
-                Package
-              </RegularText>
-            </View> */}
           </View>
         </Card>
         {userInAgencyStatus === 'new' && (
@@ -378,7 +265,6 @@ const HomeScreen = ({navigation, route}) => {
             <Card>
               {transactions?.slice(0, 3).map((item, index) => (
                 <IndividualStatement
-                  // lastItem={index === transactions.length - 1 ? true : false}
                   lastItem={
                     transactions.length < 4
                       ? index === transactions.length - 1

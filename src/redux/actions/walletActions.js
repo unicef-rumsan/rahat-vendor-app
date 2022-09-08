@@ -1,7 +1,5 @@
 import {ethers} from 'ethers';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ERC1155_Service, TokenService} from '../../services/chain';
-import * as api from '../api';
+import {TokenService} from '../../services/chain';
 import {SET_WALLET_DATA} from '../actionTypes';
 
 export const setWalletData = payloadObj => async dispatch => {
@@ -65,7 +63,6 @@ export const getWalletBalance = (wallet, settings) => async dispatch => {
       settings?.agency?.contracts?.rahat,
       wallet,
       settings?.agency?.contracts?.rahat_erc20,
-      settings?.agency?.contracts?.rahat_erc1155,
     ).getBalance(wallet.address);
     dispatch(
       setWalletData({
@@ -77,58 +74,3 @@ export const getWalletBalance = (wallet, settings) => async dispatch => {
     // alert(e);
   }
 };
-
-export const getPackageBatchBalance =
-  (
-    agencyAddress,
-    tokenAddress,
-    nftAddress,
-    wallet,
-    vendor_address,
-    tokenIds,
-    success,
-    isMounted,
-  ) =>
-  async dispatch => {
-    try {
-      const blnc = await ERC1155_Service(
-        agencyAddress,
-        tokenAddress,
-        nftAddress,
-        wallet,
-      ).getBatchBalance(vendor_address, tokenIds);
-      let tokenQtys = [];
-      if (blnc?.length) {
-        blnc.forEach((item, index) => {
-          tokenQtys.push(item.toNumber());
-        });
-      }
-      success(tokenIds, tokenQtys);
-    } catch (e) {
-      // alert(e);
-      // error(e);
-    }
-  };
-
-export const getPackageBalanceInFiat =
-  (tokenIds, tokenQtys, onSuccess, onError) => async dispatch => {
-    try {
-      const response = await api.apiGetPackageBalanceInFiat({
-        tokenIds,
-        tokenQtys,
-      });
-      dispatch(
-        setWalletData({
-          packageBalance: response?.data?.grandTotal,
-          packageBalanceCurrency: response?.data?.currency,
-        }),
-      );
-
-      onSuccess && onSuccess(response?.data?.grandTotal, tokenIds, tokenQtys);
-    } catch (e) {
-      // alert(e);
-      onError && onError();
-
-      // error(e);
-    }
-  };

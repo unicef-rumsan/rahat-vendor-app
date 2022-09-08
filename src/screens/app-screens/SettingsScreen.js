@@ -43,11 +43,6 @@ const SettingsScreen = ({navigation}) => {
               title={'Profile'}
               onPress={() => navigation.navigate('ProfileScreen')}
             />
-            {/* <SettingComponent
-              icon={<WalletIcon />}
-              title="Payment Methods"
-              onPress={() => navigation.navigate('PaymentMethodScreen')}
-            /> */}
             <IndividualSettingView
               icon={<AgencyIcon />}
               title={'Agency'}

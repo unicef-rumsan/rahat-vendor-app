@@ -89,7 +89,6 @@ const RedeemTokenScreen = ({navigation}) => {
         activeAppSettings?.agency?.contracts?.rahat, //agency address
         wallet,
         activeAppSettings?.agency?.contracts?.rahat_erc20,
-        activeAppSettings?.agency?.contracts?.rahat_erc1155,
       ).transfer(activeAppSettings.agency.contracts.rahat_admin, amount);
 
       let receiptData = {

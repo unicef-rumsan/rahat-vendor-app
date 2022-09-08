@@ -16,7 +16,6 @@ import {
   CustomBottomSheet,
 } from '../../../components';
 import {QRIcon} from '../../../../assets/icons';
-import {getPackageDetail} from '../../../helpers';
 import {RahatService} from '../../../services/chain';
 import {FontSize, Spacing, colors} from '../../../constants';
 
@@ -74,7 +73,6 @@ const ChargeDrawerScreen = ({navigation, route}) => {
         activeAppSettings.agency.contracts.rahat,
         wallet,
         activeAppSettings.agency.contracts.rahat_erc20,
-        activeAppSettings.agency.contracts.rahat_erc1155,
       );
       let balance = await rahatService.getErc20Balance(phone);
       if (balance === 0) {
@@ -89,7 +87,6 @@ const ChargeDrawerScreen = ({navigation, route}) => {
       setValues({...values, isSubmitting: false});
       navigation.navigate('ChargeScreen', {
         tokenBalance: balance,
-        packages: [],
         beneficiaryPhone: phone,
       });
     } catch (e) {

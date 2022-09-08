@@ -23,7 +23,6 @@ import {
   PopupModal,
   LoaderModal,
 } from '../../components';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTranslation} from 'react-i18next';
 import {setRahatPasscode} from '../../redux/actions/authActions';
 let CELL_COUNT = 4;
@@ -32,7 +31,6 @@ const PasscodeScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const {t} = useTranslation();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [passcode, setPasscode] = useState('');
   const [confirmPasscode, setConfirmPasscode] = useState('');
   const [isPasscodeVisible, setIsPasscodeVisible] = useState(false);
@@ -179,17 +177,6 @@ const PasscodeScreen = ({navigation}) => {
               </Pressable>
             </View>
           </View>
-          {/* <View style={styles.inputView}>
-            <RegularText style={{paddingVertical: Spacing.vs}}>
-              Enter your 12 word seed phrase
-            </RegularText>
-            <CustomTextInput
-              placeholder="Enter your 12 word seed phrase"
-              onChangeText={text => setSeedPhrase(text)}
-              // value={scanAmount}
-              // editable={false}
-            />
-          </View> */}
         </View>
         <CustomButton
           title={t('Set Passcode')}

@@ -1,11 +1,7 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 import {useTranslation} from 'react-i18next';
-import {StatusBar, StyleSheet, View, Pressable, Image} from 'react-native';
-import {
-  heightPercentageToDP,
-  widthPercentageToDP,
-} from 'react-native-responsive-screen';
+import {StatusBar, StyleSheet, View, Pressable} from 'react-native';
 import {FontSize, Spacing, colors} from '../../constants';
 import {
   CustomHeader,
@@ -21,8 +17,6 @@ if (Platform.OS === 'android') {
 
 const AssetsScreen = ({navigation, route}) => {
   const {t} = useTranslation();
-
-  // const packages = useSelector(state => state.walletReducer.packages);
   const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
 
   return (
@@ -48,41 +42,6 @@ const AssetsScreen = ({navigation, route}) => {
             {/* <AmountWithAngleBracket amount={10000} /> */}
           </Card>
         </Pressable>
-        {/* <Card style={{ paddingVertical: Spacing.vs * 2 }}>
-          <RegularText
-            color={colors.gray}
-            style={{ fontSize: FontSize.medium * 1.1 }}>
-            Packages:
-          </RegularText>
-          {packages?.length === 0 && (
-            <RegularText
-
-              color={colors.gray}
-              style={{ fontSize: FontSize.medium, paddingTop: Spacing.vs }}>
-              Sorry, you do not have any packages
-            </RegularText>
-          )}
-          {packages?.map((item, index) => (
-            <IndividualPackageView
-              key={index}
-              icon={
-                <Image
-                  source={{
-                    uri: `https://ipfs.rumsan.com/ipfs/${item.imageUri}`,
-                  }}
-                  style={styles.packageIcon}
-                />
-              }
-              title={item.name}
-              balance={item.balance}
-              onPress={() =>
-                navigation.navigate('PackageDetailScreen', {
-                  packageDetail: item,
-                })
-              }
-            />
-          ))}
-        </Card> */}
       </View>
     </>
   );
@@ -100,16 +59,5 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.vs * 1.5,
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  individualPackageDetail: {
-    paddingTop: Spacing.vs * 1.5,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  packageIcon: {
-    height: heightPercentageToDP(6),
-    width: widthPercentageToDP(9),
-    marginRight: Spacing.hs,
   },
 });

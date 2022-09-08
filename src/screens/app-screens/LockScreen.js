@@ -16,12 +16,7 @@ import {
 
 import {useDispatch, useSelector} from 'react-redux';
 import {useTranslation} from 'react-i18next';
-import {
-  CustomButton,
-  LoaderModal,
-  PoppinsMedium,
-  RegularText,
-} from '../../components';
+import {CustomButton, PoppinsMedium, RegularText} from '../../components';
 import {EyeIcon} from '../../../assets/icons';
 import {unlockApp} from '../../redux/actions/authActions';
 
@@ -123,13 +118,6 @@ const LockScreen = () => {
               onPress={handleConfirm}
             />
           </View>
-          {/* <Pressable onPress={() => navigation.navigate("PasscodeScreen")}>
-            <RegularText
-              style={{paddingVertical: Spacing.vs, textAlign: 'center'}}
-              color={colors.blue}>
-              Reset Rahat Passcode
-            </RegularText>
-          </Pressable> */}
         </View>
       </View>
     </>

@@ -73,7 +73,7 @@ export const getAppSettings = (agencyUrl, success, error) => async dispatch => {
   try {
     const response = await api.apiGetAppSettings(agencyUrl);
     let appSettings = response.data;
-    appSettings['agencyUrl'] = agencyUrl;
+    appSettings.agencyUrl = agencyUrl;
     success(appSettings);
     return;
   } catch (e) {

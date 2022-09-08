@@ -17,17 +17,14 @@ import VerifyOTPScreen from './VerifyOTPScreen';
 import LockScreen from './LockScreen';
 import TransferReceiptScreen from './TransferRecieptScreen';
 import AssetsScreen from './AssetsScreen';
-import PackageDetailScreen from './PackageDetailScreen';
 
 import RedeemReceiptScreen from './redeem-screens/RedeemReceiptScreen';
 import RedeemTokenScreen from './redeem-screens/RedeemTokenScreen';
-import RedeemPackageScreen from './redeem-screens/RedeemPackageScreen';
 
 import ChargeReceiptScreen from './charge-screens/ChargeReceiptScreen';
 import ChargeDrawerScreen from './charge-screens/ChargeDrawerScreen';
 import ChargeScreen from './charge-screens/ChargeScreen';
 import ChargeTokenScreen from './charge-screens/ChargeTokenScreen';
-import ChargePackageScreen from './charge-screens/ChargePackageScreen';
 export {
   AboutScreen,
   AgencyScreen,
@@ -49,13 +46,10 @@ export {
   LockScreen,
   TransferReceiptScreen,
   AssetsScreen,
-  PackageDetailScreen,
   RedeemTokenScreen,
-  RedeemPackageScreen,
   RedeemReceiptScreen,
   ChargeDrawerScreen,
   ChargeReceiptScreen,
   ChargeScreen,
   ChargeTokenScreen,
-  ChargePackageScreen,
 };

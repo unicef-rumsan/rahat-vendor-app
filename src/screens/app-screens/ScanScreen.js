@@ -42,7 +42,6 @@ const ScanScreen = ({navigation, route}) => {
 
   const onTransferScan = res => {
     let data = res.data;
-    const temp = ethers?.utils.isAddress(data);
     if (!ethers?.utils.isAddress(data)) {
       return PopupModal.show({
         popupType: 'alert',
