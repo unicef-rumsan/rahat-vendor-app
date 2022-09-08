@@ -1,5 +1,5 @@
 import React, {forwardRef} from 'react';
-import { StyleSheet, ScrollView} from 'react-native';
+import {StyleSheet, ScrollView} from 'react-native';
 import {
   BottomSheetModal,
   BottomSheetModalProvider,
@@ -11,7 +11,7 @@ export const CustomBottomSheet = forwardRef((props, ref) => {
   return (
     <BottomSheetModalProvider>
       <BottomSheetModal
-      android_keyboardInputMode='adjustResize'
+        android_keyboardInputMode="adjustResize"
         enablePanDownToClose={props.enablePanDownToClose}
         backdropComponent={backdropProps =>
           !props.disableBackdrop && <BottomSheetBackdrop {...backdropProps} />

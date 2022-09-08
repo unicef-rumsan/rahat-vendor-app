@@ -1,14 +1,14 @@
 import React from 'react';
 import RNModal from 'react-native-modal';
-import { BackHandler, StyleSheet, View, ScrollView } from 'react-native';
+import {BackHandler, StyleSheet, View, ScrollView} from 'react-native';
 
-import { RegularText } from '..'
-import { colors, FontSize, Spacing } from '../../constants';
-import { CustomButton } from '../CustomButton';
+import {RegularText} from '..';
+import {colors, FontSize, Spacing} from '../../constants';
+import {CustomButton} from '../CustomButton';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { widthPercentageToDP } from 'react-native-responsive-screen';
-import { PoppinsMedium } from '../PoppinsMedium';
-import { useFocusEffect } from '@react-navigation/native';
+import {widthPercentageToDP} from 'react-native-responsive-screen';
+import {PoppinsMedium} from '../PoppinsMedium';
+import {useFocusEffect} from '@react-navigation/native';
 
 export const PopupModal = () => {
   const [state, setState] = React.useState({
@@ -30,7 +30,7 @@ export const PopupModal = () => {
   }, []);
 
   const _close = React.useCallback(() => {
-    setState((state) => ({
+    setState(state => ({
       ...state,
       visible: false,
     }));
@@ -46,7 +46,8 @@ export const PopupModal = () => {
       return () => {
         BackHandler.removeEventListener('hardwareBackPress', backAction);
       };
-    }, [state.visible]));
+    }, [state.visible]),
+  );
 
   return (
     <RNModal
@@ -61,33 +62,31 @@ export const PopupModal = () => {
       animationIn={'fadeIn'}
       animationOut={'fadeOut'}
       backdropColor={'transparent'}
-      swipeDirection={state.options?.nonDismissible ? undefined : 'right'}
-    >
-
+      swipeDirection={state.options?.nonDismissible ? undefined : 'right'}>
       <View
         style={{
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: 'rgba(0,0,0,0.5)',
-        }}
-      >
+        }}>
         <ScrollView
-        contentContainerStyle={{
-          flexGrow:1,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        >
+          contentContainerStyle={{
+            flexGrow: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
               <Ionicons
                 name={
-                  state.messageType === 'success' ? 'checkmark-circle' : 'alert-circle'
+                  state.messageType === 'success'
+                    ? 'checkmark-circle'
+                    : 'alert-circle'
                 }
                 size={62}
                 color={colors.blue}
-                style={{ padding: 0 }}
+                style={{padding: 0}}
               />
               <PoppinsMedium
                 fontSize={FontSize.large * 1.2}
@@ -109,12 +108,12 @@ export const PopupModal = () => {
                   onPress={state.onConfirm || _close}
                 />
               ) : (
-                <View style={{ flexDirection: 'row' }}>
+                <View style={{flexDirection: 'row'}}>
                   <CustomButton
                     title="Cancel"
                     color={colors.gray}
                     width={widthPercentageToDP(35)}
-                    style={{ marginRight: Spacing.hs }}
+                    style={{marginRight: Spacing.hs}}
                     onPress={_close}
                   />
                   <CustomButton
@@ -129,17 +128,17 @@ export const PopupModal = () => {
         </ScrollView>
       </View>
     </RNModal>
-  )
+  );
 };
 
 PopupModal.hide = () => {
   const setState = PopupModal.setStateRef;
   if (setState) {
-    setState((state) => ({ ...state, visible: false }));
+    setState(state => ({...state, visible: false}));
   }
 };
 
-PopupModal.show = (options) => {
+PopupModal.show = options => {
   if (options?.onDidHideCallback) {
     PopupModal.onDidHideCallback = options.onDidHideCallback;
   }
@@ -148,9 +147,9 @@ PopupModal.show = (options) => {
     setState({
       visible: true,
       message: options?.message,
-      popupType: options?.popupType,    //alert or popup
+      popupType: options?.popupType, //alert or popup
       onConfirm: options?.onConfirm,
-      messageType: options?.messageType  // Error or Info
+      messageType: options?.messageType, // Error or Info
     });
   }
 };

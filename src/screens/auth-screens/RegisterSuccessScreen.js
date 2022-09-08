@@ -12,7 +12,7 @@ import {
   SmallText,
 } from '../../components';
 import {Spacing, colors} from '../../constants';
-import { setAuthData } from '../../redux/actions/authActions';
+import {setAuthData} from '../../redux/actions/authActions';
 
 const RegisterSuccessScreen = ({navigation, route}) => {
   const {t} = useTranslation();
@@ -21,7 +21,7 @@ const RegisterSuccessScreen = ({navigation, route}) => {
   const {data} = route?.params;
   const secretWords = (wallet?._mnemonic().phrase || '').split(' ');
 
-  const _storeUserData = (data) => dispatch(setAuthData({userData: data}))
+  const _storeUserData = data => dispatch(setAuthData({userData: data}));
 
   useBackHandler(() => {
     if (data) {
@@ -55,7 +55,8 @@ const RegisterSuccessScreen = ({navigation, route}) => {
       />
       <ScrollView style={styles.container}>
         <SmallText>
-            Here is your 12 words secret. Please write down these words in sequence (using the word number) and store safely
+          Here is your 12 words secret. Please write down these words in
+          sequence (using the word number) and store safely
         </SmallText>
 
         {secretWords?.map((item, index) => (

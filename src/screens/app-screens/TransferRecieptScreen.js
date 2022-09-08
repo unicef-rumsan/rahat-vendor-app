@@ -23,7 +23,6 @@ const TransferReceiptScreen = ({navigation, route}) => {
     </Pressable>
   );
 
-
   const copyToClipboard = string => {
     Clipboard.setString(string);
     RNToasty.Show({title: `${t('Copied to clipboard')}`, duration: 0});

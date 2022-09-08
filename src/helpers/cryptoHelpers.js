@@ -1,7 +1,7 @@
 import Aes from 'react-native-aes-crypto';
 // import {ENCRYPTION_CODE, ENCRYPTION_SALT} from '@env';
 
-const ENCRYPTION_SALT = 'M0OH8JKLAY89BAdDenAsd83221'
+const ENCRYPTION_SALT = 'M0OH8JKLAY89BAdDenAsd83221';
 
 const generateKey = (password, salt, cost, length) =>
   Aes.pbkdf2(password, salt, cost, length);
@@ -18,8 +18,8 @@ const encryptData = async (text, key) => {
 export const encryptionHelper = async (data, code) => {
   const key = await generateKey(code, ENCRYPTION_SALT, 5000, 256);
   return encryptData(JSON.stringify(data), key)
-    .then(async ({ cipher, iv }) => {
-      const result = { cipher, iv };
+    .then(async ({cipher, iv}) => {
+      const result = {cipher, iv};
       return result;
     })
     .catch(error => {
@@ -32,11 +32,11 @@ const decryptData = (encryptedData, key) =>
 
 export const decryptionHelper = async (cipher, iv, code) => {
   const key = await generateKey(code, ENCRYPTION_SALT, 5000, 256);
-  return decryptData({ cipher, iv }, key)
+  return decryptData({cipher, iv}, key)
     .then(walletInfo => {
       return JSON.parse(walletInfo);
     })
     .catch(error => {
-      throw error
+      throw error;
     });
 };

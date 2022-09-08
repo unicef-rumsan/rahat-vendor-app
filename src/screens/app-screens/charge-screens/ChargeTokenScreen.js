@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { Keyboard, StatusBar, StyleSheet, View } from 'react-native';
+import {useTranslation} from 'react-i18next';
+import {useDispatch, useSelector} from 'react-redux';
+import {Keyboard, StatusBar, StyleSheet, View} from 'react-native';
 
-import { AngleRightIcon} from '../../../../assets/icons';
-import { FontSize, Spacing,colors } from '../../../constants';
+import {AngleRightIcon} from '../../../../assets/icons';
+import {FontSize, Spacing, colors} from '../../../constants';
 import {
   Card,
   SmallText,
@@ -20,15 +20,15 @@ import {
   CustomTextInput,
   SwitchAgencyModal,
 } from '../../../components';
-import { RahatService } from '../../../services/chain';
+import {RahatService} from '../../../services/chain';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const AmountWithAngleBracket = ({ amount }) => (
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+const AmountWithAngleBracket = ({amount}) => (
+  <View style={{flexDirection: 'row', alignItems: 'center'}}>
     <RegularText
       color={colors.blue}
       style={{
@@ -41,25 +41,22 @@ const AmountWithAngleBracket = ({ amount }) => (
   </View>
 );
 
-const ChargeTokenScreen = ({ navigation, route }) => {
-  const { tokenBalance, beneficiaryPhone } = route.params;
-  const { t } = useTranslation();
+const ChargeTokenScreen = ({navigation, route}) => {
+  const {tokenBalance, beneficiaryPhone} = route.params;
+  const {t} = useTranslation();
 
-  const wallet  = useSelector(state => state.walletReducer.wallet);
+  const wallet = useSelector(state => state.walletReducer.wallet);
   const userData = useSelector(state => state.authReducer.userData);
-  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
-
+  const activeAppSettings = useSelector(
+    state => state.agencyReducer.activeAppSettings,
+  );
 
   const [values, setValues] = useState({
     amount: '',
     remarks: '',
     textInputErrorFlag: false,
   });
-  const {
-    amount,
-    remarks,
-    textInputErrorFlag,
-  } = values;
+  const {amount, remarks, textInputErrorFlag} = values;
 
   useEffect(() => {
     if (userData?.agencies[0]?.status === 'new') {
@@ -70,8 +67,8 @@ const ChargeTokenScreen = ({ navigation, route }) => {
         onConfirm: () => {
           PopupModal.hide();
           navigation.navigate('HomeScreen');
-        }
-      })
+        },
+      });
     }
   }, [activeAppSettings]);
 
@@ -91,12 +88,12 @@ const ChargeTokenScreen = ({ navigation, route }) => {
 
   const onSubmit = async () => {
     if (amount === '' || amount > tokenBalance) {
-      return setValues({ ...values, textInputErrorFlag: 1 });
+      return setValues({...values, textInputErrorFlag: 1});
     }
 
     Keyboard.dismiss();
     LoaderModal.show({
-      message: 'Please wait...'
+      message: 'Please wait...',
     });
     try {
       await RahatService(
@@ -106,7 +103,7 @@ const ChargeTokenScreen = ({ navigation, route }) => {
         activeAppSettings.agency.contracts.rahat_erc1155,
       ).chargeCustomerERC20(beneficiaryPhone, amount);
 
-      setValues({ ...values, isSubmitting: false });
+      setValues({...values, isSubmitting: false});
       LoaderModal.hide();
 
       navigation.navigate('VerifyOTPScreen', {
@@ -129,7 +126,7 @@ const ChargeTokenScreen = ({ navigation, route }) => {
 
       <View style={styles.container}>
         <SmallText
-          style={{ fontSize: FontSize.small * 1.1 }}
+          style={{fontSize: FontSize.small * 1.1}}
           noPadding
           color={colors.gray}>
           {activeAppSettings.agency.name}
@@ -137,12 +134,12 @@ const ChargeTokenScreen = ({ navigation, route }) => {
         <Card style={styles.tokenDetailCard}>
           <RegularText
             color={colors.gray}
-            style={{ fontSize: FontSize.medium * 1.1 }}>
+            style={{fontSize: FontSize.medium * 1.1}}>
             Token Balance :
           </RegularText>
           <AmountWithAngleBracket amount={tokenBalance} />
         </Card>
-        <Card style={{ paddingVertical: Spacing.vs * 2 }}>
+        <Card style={{paddingVertical: Spacing.vs * 2}}>
           <CustomTextInput
             placeholder={t('Enter amount')}
             keyboardType="numeric"
@@ -161,18 +158,18 @@ const ChargeTokenScreen = ({ navigation, route }) => {
             onChangeText={value => handleTextChange(value, 'remarks')}
           />
           <SmallText
-            style={{ fontSize: FontSize.small / 1.4 }}
+            style={{fontSize: FontSize.small / 1.4}}
             color={colors.lightGray}>
             {t(
               'Important: Please double check the phone number and amount before charging. Transactions cannot be reversed.',
             )}
           </SmallText>
-          <CustomButton
+          {/* <CustomButton
             outlined
             title={'Switch Agency'}
             width={widthPercentageToDP(80)}
             onPress={_onSwitchAgency}
-          />
+          /> */}
           <CustomButton
             onPress={onSubmit}
             title={'Charge'}

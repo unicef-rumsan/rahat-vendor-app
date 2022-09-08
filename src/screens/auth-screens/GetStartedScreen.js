@@ -12,7 +12,8 @@ const GetStartedScreen = ({navigation}) => {
       <View style={styles.content}>
         <Logo />
         <SmallText center style={styles.text}>
-            Supporting vulnerable communities with a simple and efficient relief distribution platform
+          Supporting vulnerable communities with a simple and efficient relief
+          distribution platform
         </SmallText>
       </View>
       <View style={styles.buttonContainer}>

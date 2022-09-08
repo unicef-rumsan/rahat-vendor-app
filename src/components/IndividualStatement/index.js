@@ -7,7 +7,7 @@ import {Pressable, StyleSheet, View, Image} from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {AngleRightIcon} from '../../../assets/icons';
-import {RegularText, SmallText } from '../../components';
+import {RegularText, SmallText} from '../../components';
 import {FontSize, Spacing, colors} from '../../constants';
 
 export const IndividualStatement = ({
@@ -38,7 +38,7 @@ export const IndividualStatement = ({
           style={{paddingRight: Spacing.hs}}
           name={
             transactionType === 'charge'
-              ? 'currency-usd-circle'
+              ? 'currency-usd'
               : transactionType === 'transfer'
               ? 'bank-transfer'
               : 'gift-outline'
@@ -74,6 +74,6 @@ const styles = StyleSheet.create({
     height: heightPercentageToDP(5),
     width: widthPercentageToDP(9),
     borderRadius: 10,
-    marginRight: Spacing.hs ,
+    marginRight: Spacing.hs,
   },
 });

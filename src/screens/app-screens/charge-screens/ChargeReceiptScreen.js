@@ -1,14 +1,14 @@
-import { RNToasty } from 'react-native-toasty';
-import { useTranslation } from 'react-i18next';
-import React, { useEffect, useState } from 'react';
+import {RNToasty} from 'react-native-toasty';
+import {useTranslation} from 'react-i18next';
+import React, {useEffect, useState} from 'react';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 
-import { Spacing, colors } from '../../../constants';
+import {Spacing, colors} from '../../../constants';
 
-import { CustomButton, CustomHeader, SmallText, Card } from '../../../components';
-const ChargeDetail = ({ title, detail, detailColor, onPress }) => (
+import {CustomButton, CustomHeader, SmallText, Card} from '../../../components';
+const ChargeDetail = ({title, detail, detailColor, onPress}) => (
   <Pressable style={styles.chargeDetail} onPress={onPress}>
     <SmallText>{title}</SmallText>
     <SmallText
@@ -21,12 +21,12 @@ const ChargeDetail = ({ title, detail, detailColor, onPress }) => (
   </Pressable>
 );
 
-const ChargeReceiptScreen = ({ navigation, route }) => {
-  const { receiptData, from, packageDetail } = route?.params;
+const ChargeReceiptScreen = ({navigation, route}) => {
+  const {receiptData, from, packageDetail} = route?.params;
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
-    RNToasty.Show({ title: 'Copied to clipboard', duration: 0 });
+    RNToasty.Show({title: 'Copied to clipboard', duration: 0});
   };
 
   return (
@@ -70,7 +70,7 @@ const ChargeReceiptScreen = ({ navigation, route }) => {
         <CustomButton
           title={'Back To Home'}
           color={colors.green}
-          onPress={() => navigation.navigate('HomeScreen', { refresh: true })}
+          onPress={() => navigation.navigate('HomeScreen', {refresh: true})}
         />
       </View>
     </>
@@ -92,5 +92,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     // paddingBottom: Spacing.vs / 3 ,
   },
-  detailText: { width: wp(37), textAlign: 'right' },
+  detailText: {width: wp(37), textAlign: 'right'},
 });

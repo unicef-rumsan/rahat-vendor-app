@@ -1,7 +1,7 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {useTranslation} from 'react-i18next';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {
   HomeScreen,
   ScanScreen,
@@ -32,16 +32,16 @@ import {
   BackupMnemonicScreen,
   TransferReceiptScreen,
 } from '../screens/app-screens';
-import { Spacing, colors} from '../constants';
-import { ChargeIcon, HomeIcon, AssetsIcon } from '../../assets/icons';
-import { LoaderModal, PopupModal, SwitchAgencyModal } from '../components';
+import {Spacing, colors} from '../constants';
+import {ChargeIcon, HomeIcon, AssetsIcon} from '../../assets/icons';
+import {LoaderModal, PopupModal, SwitchAgencyModal} from '../components';
 
 const TabStack = createBottomTabNavigator();
 
 const Stack = createNativeStackNavigator();
 
 const Tabs = () => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   return (
     <>
       <TabStack.Navigator
@@ -50,7 +50,7 @@ const Tabs = () => {
           headerShown: false,
           tabBarActiveTintColor: colors.blue,
           tabBarInactiveTintColor: colors.gray,
-          tabBarStyle: { height: 55 },
+          tabBarStyle: {height: 55},
           unmountOnBlur: true,
           tabBarShowLabel: true,
           tabBarIconStyle: {
@@ -58,14 +58,14 @@ const Tabs = () => {
             marginBottom: 0,
             backgroundColor: 'black',
           },
-          tabBarLabelStyle: { paddingBottom: Spacing.vs / 4, paddingTop: 0 },
+          tabBarLabelStyle: {paddingBottom: Spacing.vs / 4, paddingTop: 0},
         }}>
         <TabStack.Screen
           name="HomeScreen"
           component={HomeScreen}
           options={{
             tabBarLabel: `${t('Home')}`,
-            tabBarIcon: ({ color, size }) => {
+            tabBarIcon: ({color, size}) => {
               return <HomeIcon color={color} />;
             },
           }}
@@ -75,14 +75,14 @@ const Tabs = () => {
           component={ChargeDrawerScreen}
           options={{
             tabBarLabel: `${t('Charge')}`,
-            tabBarIcon: ({ color, size }) => {
+            tabBarIcon: ({color, size}) => {
               return <ChargeIcon color={color} />;
             },
           }}
-          listeners={({ navigation }) => ({
+          listeners={({navigation}) => ({
             tabPress: e => {
               e.preventDefault();
-              navigation.navigate('ChargeDrawerScreen', { phone: null });
+              navigation.navigate('ChargeDrawerScreen', {phone: null});
             },
           })}
         />
@@ -91,7 +91,7 @@ const Tabs = () => {
           component={AssetsScreen}
           options={{
             tabBarLabel: `${t('Assets')}`,
-            tabBarIcon: ({ color, size }) => {
+            tabBarIcon: ({color, size}) => {
               return <AssetsIcon color={color} />;
             },
           }}
@@ -106,7 +106,7 @@ const AppStack = () => {
     <>
       <Stack.Navigator
         initialRouteName={'Tabs'}
-        screenOptions={{ headerShown: false, animation: 'fade' }}>
+        screenOptions={{headerShown: false, animation: 'fade'}}>
         <Stack.Screen name="Tabs" component={Tabs} />
         <Stack.Screen name="ChargeScreen" component={ChargeScreen} />
         <Stack.Screen name="ChargeTokenScreen" component={ChargeTokenScreen} />
@@ -120,7 +120,10 @@ const AppStack = () => {
         <Stack.Screen name="LinkAgencyScreen" component={LinkAgencyScreen} />
 
         <Stack.Screen name="AboutScreen" component={AboutScreen} />
-        <Stack.Screen name="BackupWalletScreen" component={BackupWalletScreen} />
+        <Stack.Screen
+          name="BackupWalletScreen"
+          component={BackupWalletScreen}
+        />
         <Stack.Screen
           name="BackupMnemonicScreen"
           component={BackupMnemonicScreen}
@@ -174,7 +177,6 @@ const AppStack = () => {
       <LoaderModal />
       <PopupModal />
       <SwitchAgencyModal />
-
     </>
   );
 };

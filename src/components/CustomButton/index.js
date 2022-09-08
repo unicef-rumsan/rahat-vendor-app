@@ -6,13 +6,11 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import {
-  widthPercentageToDP as wp,
-} from 'react-native-responsive-screen';
+import {useTranslation} from 'react-i18next';
+import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 
-import { PoppinsMedium } from '../../components';
-import { FontSize, Spacing,colors } from '../../constants';
+import {PoppinsMedium} from '../../components';
+import {FontSize, Spacing, colors} from '../../constants';
 
 export const CustomButton = ({
   color,
@@ -30,12 +28,12 @@ export const CustomButton = ({
   fontSize,
   paddingVertical,
 }) => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   return (
     <View
       style={[
         styles.buttonView,
-        { borderRadius: borderRadius ? borderRadius : 10 },
+        {borderRadius: borderRadius ? borderRadius : 10},
       ]}>
       <Pressable
         onPress={onPress}
@@ -49,7 +47,7 @@ export const CustomButton = ({
             width: width || wp(90),
             opacity: disabled ? 0.8 : 1,
           },
-          { ...style },
+          {...style},
         ]}
         android_ripple={{
           color: 'rgba(0,0,0, 0.1)',
@@ -59,7 +57,7 @@ export const CustomButton = ({
         {isSubmitting ? (
           <ActivityIndicator size="large" color={colors.white} />
         ) : (
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
             {outlined ? (
               <Text
                 style={[

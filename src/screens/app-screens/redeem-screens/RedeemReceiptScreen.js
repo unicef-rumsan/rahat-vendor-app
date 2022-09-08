@@ -13,9 +13,7 @@ const RedeemReceiptScreen = ({navigation, route}) => {
   const {t} = useTranslation();
   const RedeemDetail = ({title, detail, detailColor, onPress}) => (
     <Pressable style={styles.chargeDetail} onPress={onPress}>
-      <SmallText>
-        {title}
-        </SmallText>
+      <SmallText>{title}</SmallText>
       <View>
         {typeof detail === 'object' ? (
           detail.map((item, index) => (
@@ -25,7 +23,7 @@ const RedeemReceiptScreen = ({navigation, route}) => {
               numberOfLines={1}
               color={detailColor || colors.black}
               style={styles.detailText}>
-                {`${item.name} ${item.balance}` }
+              {`${item.name} ${item.balance}`}
             </SmallText>
           ))
         ) : (

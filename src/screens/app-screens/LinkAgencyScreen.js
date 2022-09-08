@@ -1,13 +1,19 @@
-import { ethers } from 'ethers';
-import React, { useState } from 'react';
+import {ethers} from 'ethers';
+import React, {useState} from 'react';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import { useDispatch, useSelector } from 'react-redux';
-import { useIsFocused } from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
+import {useIsFocused} from '@react-navigation/native';
 import QRCodeScanner from 'react-native-qrcode-scanner';
-import { StyleSheet, View, StatusBar, SafeAreaView, Keyboard } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  StatusBar,
+  SafeAreaView,
+  Keyboard,
+} from 'react-native';
 
 import {
   RegularText,
@@ -17,67 +23,73 @@ import {
   PoppinsMedium,
   CustomTextInput,
 } from '../../components';
-import { 
+import {
   setAuthData,
-  registerVendor, 
-  getAppSettings, 
+  registerVendor,
+  getAppSettings,
   getRestoreUserData,
-  clearRegistrationFormData, 
- } from '../../redux/actions/authActions';
-import { RumsanLogo } from '../../../assets/icons';
-import { FontSize, Spacing, colors } from '../../constants';
-import { setWalletData } from '../../redux/actions/walletActions';
-import { setAppSettings } from '../../redux/actions/agencyActions';
-import { setTransactionData } from '../../redux/actions/transactionActions';
+  clearRegistrationFormData,
+} from '../../redux/actions/authActions';
+import {RumsanLogo} from '../../../assets/icons';
+import {FontSize, Spacing, colors} from '../../constants';
+import {setWalletData} from '../../redux/actions/walletActions';
+import {setAppSettings} from '../../redux/actions/agencyActions';
+import {setTransactionData} from '../../redux/actions/transactionActions';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const LinkAgencyScreen = ({ navigation, route }) => {
+const LinkAgencyScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
 
   const wallet = useSelector(state => state.walletReducer.wallet);
   const appSettings = useSelector(state => state.agencyReducer.appSettings);
-  const registrationFormData = useSelector(state => state.authReducer.registrationFormData);
+  const registrationFormData = useSelector(
+    state => state.authReducer.registrationFormData,
+  );
 
   const [agencyCode, setAgencyCode] = useState('');
   const [linkAgencyType, setLinkAgencyType] = useState('qr');
 
   const onScan = res => {
     const agencyUrl = res?.data;
-    if (route.params?.from === 'agencies' && appSettings?.some(item => item.agencyUrl === agencyUrl)) {
+    if (
+      route.params?.from === 'agencies' &&
+      appSettings?.some(item => item.agencyUrl === agencyUrl)
+    ) {
       return PopupModal.show({
-        popupType: "alert",
+        popupType: 'alert',
         messageType: 'Info',
-        message: 'Already linked to this agency. Cannot link same agency twice.'
-      })
+        message:
+          'Already linked to this agency. Cannot link same agency twice.',
+      });
     }
     LoaderModal.show({
-      message: 'Fetching agency details.'
-    })
+      message: 'Fetching agency details.',
+    });
     dispatch(
-      getAppSettings(
-        agencyUrl,
-        onGetAppSettingsSuccess,
-        onGetAppSettingsError
-      ),
+      getAppSettings(agencyUrl, onGetAppSettingsSuccess, onGetAppSettingsError),
     );
   };
 
   const handleLinkAgencyWithCode = () => {
     Keyboard.dismiss();
-    if (route.params?.from === 'agencies' && appSettings?.some(item => item.agencyUrl === agencyCode)) {
+    if (
+      route.params?.from === 'agencies' &&
+      appSettings?.some(item => item.agencyUrl === agencyCode)
+    ) {
       return PopupModal.show({
-        popupType: "alert",
+        popupType: 'alert',
         messageType: 'Info',
-        message: 'Already linked to this agency. Cannot link same agency twice.'
-      })
+        message:
+          'Already linked to this agency. Cannot link same agency twice.',
+      });
     }
     LoaderModal.show({
-      message: 'Fetching agency details.'
+      message: 'Fetching agency details.',
     });
 
     dispatch(
@@ -90,10 +102,12 @@ const LinkAgencyScreen = ({ navigation, route }) => {
   };
 
   const registerNewUser = agencySettings => {
-    const data = registrationFormData ? registrationFormData : route?.params?.data;
+    const data = registrationFormData
+      ? registrationFormData
+      : route?.params?.data;
     LoaderModal.show({
-      message: 'Setting up your rahat account'
-    })
+      message: 'Setting up your rahat account',
+    });
     setTimeout(() => {
       dispatch(
         registerVendor(
@@ -107,7 +121,7 @@ const LinkAgencyScreen = ({ navigation, route }) => {
   };
   const linkNewAgency = agencySettings => {
     LoaderModal.show({
-      message: 'Linking your new agency'
+      message: 'Linking your new agency',
     });
 
     setTimeout(() => {
@@ -124,8 +138,8 @@ const LinkAgencyScreen = ({ navigation, route }) => {
 
   const restoreUser = agencySettings => {
     LoaderModal.show({
-      message: 'Retrieving user data'
-    })
+      message: 'Retrieving user data',
+    });
 
     setTimeout(() => {
       dispatch(
@@ -133,7 +147,7 @@ const LinkAgencyScreen = ({ navigation, route }) => {
           agencySettings,
           wallet.address,
           onRegisterSuccess,
-          onRestoreUserDataError
+          onRestoreUserDataError,
         ),
       );
     }, 200);
@@ -144,11 +158,10 @@ const LinkAgencyScreen = ({ navigation, route }) => {
     if (e.message === 'Not registered') {
       errorMessage = `Sorry, the user with wallet address ${wallet?.address} is not registered in ${agencySettings?.agencyUrl}`;
     }
-    onRegisterError({ message: errorMessage })
-  }
+    onRegisterError({message: errorMessage});
+  };
 
   const onGetAppSettingsSuccess = agencySettings => {
-
     if (agencySettings.isSetup === true) {
       if (route.params?.from === 'signup' || registrationFormData) {
         registerNewUser(agencySettings);
@@ -166,8 +179,10 @@ const LinkAgencyScreen = ({ navigation, route }) => {
     LoaderModal.hide();
     let errorMessage = 'Invalid agency code';
 
-    if (e?.message === `Network Error`) errorMessage = 'Network Error. Please check your internet connection and the agency url';
-
+    if (e?.message === 'Network Error') {
+      errorMessage =
+        'Network Error. Please check your internet connection and the agency url';
+    }
     PopupModal.show({
       popupType: 'alert',
       messageType: 'Error',
@@ -176,48 +191,54 @@ const LinkAgencyScreen = ({ navigation, route }) => {
   };
 
   const onRegisterSuccess = async (data, agencySettings) => {
-
     dispatch(clearRegistrationFormData());
 
     let provider = new ethers.providers.JsonRpcProvider(
       agencySettings?.networkUrl,
     );
     let connectedWallet = wallet.connect(provider);
-    dispatch(setWalletData({ wallet: connectedWallet }));
-    dispatch(setAppSettings({
-      appSettings: [...appSettings, agencySettings],
-      activeAppSettings: agencySettings
-    }));
+    dispatch(setWalletData({wallet: connectedWallet}));
+    dispatch(
+      setAppSettings({
+        appSettings: [...appSettings, agencySettings],
+        activeAppSettings: agencySettings,
+      }),
+    );
 
     if (route.params?.from === 'restore') {
       LoaderModal.hide();
-      dispatch(setAuthData({ userData: data }));
+      dispatch(setAuthData({userData: data}));
       return navigation.replace('Tabs');
     }
 
     if (route.params?.from === 'signup') {
       LoaderModal.hide();
-      return navigation.replace('RegisterSuccessScreen', { data });
+      return navigation.replace('RegisterSuccessScreen', {data});
     }
 
     if (route.params?.from === 'agencies') {
       LoaderModal.hide();
-      dispatch(setAuthData({ userData: data }));
-      dispatch(setTransactionData({ packagesWithActiveAgency: null, transactionsWithActiveAgency: null }));
+      dispatch(setAuthData({userData: data}));
+      dispatch(
+        setTransactionData({
+          packagesWithActiveAgency: null,
+          transactionsWithActiveAgency: null,
+        }),
+      );
       navigation.pop();
     }
   };
 
   const onRegisterError = e => {
-    console.log({e: e.response})
+    console.log({e: e.response});
     const errorMessage = e?.response ? e?.response?.data?.message : e?.message;
 
     LoaderModal.hide();
-    
+
     PopupModal.show({
       popupType: 'alert',
       messageType: 'Error',
-      message: errorMessage || 'Something went wrong. Please try again.'
+      message: errorMessage || 'Something went wrong. Please try again.',
     });
   };
 
@@ -227,7 +248,7 @@ const LinkAgencyScreen = ({ navigation, route }) => {
     PopupModal.show({
       popupType: 'alert',
       messageType: 'Error',
-      message: errorMessage || 'Something went wrong. Please try again.'
+      message: errorMessage || 'Something went wrong. Please try again.',
     });
   };
 
@@ -242,15 +263,15 @@ const LinkAgencyScreen = ({ navigation, route }) => {
         reactivate
         vibrate={false}
         onRead={onScan}
-        cameraStyle={{ height: '100%' }}
-        markerStyle={{ borderColor: 'white' }}
+        cameraStyle={{height: '100%'}}
+        markerStyle={{borderColor: 'white'}}
       />
 
       <View style={styles.alignCenter}>
         <PoppinsMedium
           color={colors.white}
           fontSize={FontSize.large * 1.3}
-          style={{ textAlign: 'center' }}>
+          style={{textAlign: 'center'}}>
           Link Agency
         </PoppinsMedium>
         <PoppinsMedium
@@ -290,7 +311,7 @@ const LinkAgencyScreen = ({ navigation, route }) => {
   const LinkWithCodeUI = () => (
     <View style={styles.linkWithCodeUIContainer}>
       <SafeAreaView style={styles.header}>
-        <PoppinsMedium style={{ fontSize: FontSize.large }}>
+        <PoppinsMedium style={{fontSize: FontSize.large}}>
           Link Agency
         </PoppinsMedium>
       </SafeAreaView>
@@ -304,14 +325,14 @@ const LinkAgencyScreen = ({ navigation, route }) => {
         <View>
           <RegularText
             fontSize={FontSize.medium}
-            style={{ paddingBottom: Spacing.vs }}>
+            style={{paddingBottom: Spacing.vs}}>
             Link agency using code
           </RegularText>
           <CustomTextInput
             placeholder={'Enter Code'}
             keyboardType="url"
             autoCapitalize="none"
-            onChangeText={value =>  setAgencyCode(value)}
+            onChangeText={value => setAgencyCode(value)}
           />
         </View>
 
@@ -321,20 +342,13 @@ const LinkAgencyScreen = ({ navigation, route }) => {
             onPress={() => setLinkAgencyType('qr')}
             outlined
           />
-          <CustomButton
-            title={'Continue'}
-            onPress={handleLinkAgencyWithCode}
-          />
+          <CustomButton title={'Continue'} onPress={handleLinkAgencyWithCode} />
         </View>
       </View>
     </View>
   );
 
-  return (
-    <>
-      {linkAgencyType === 'qr' ? LinkWithQRUI() : LinkWithCodeUI()}
-    </>
-  );
+  return <>{linkAgencyType === 'qr' ? LinkWithCodeUI() : LinkWithQRUI()}</>;
 };
 
 export default LinkAgencyScreen;
@@ -369,8 +383,8 @@ const styles = StyleSheet.create({
     top: 40,
     right: 0,
   },
-  text: { textAlign: 'center', top: 25 },
-  buttonView: { position: 'absolute', bottom: 120, left: 0, right: 0 },
+  text: {textAlign: 'center', top: 25},
+  buttonView: {position: 'absolute', bottom: 120, left: 0, right: 0},
   poweredByView: {
     position: 'absolute',
     flexDirection: 'row',

@@ -1,34 +1,29 @@
 import React from 'react';
-import {
-  View,
-  Modal,
-  Pressable,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { widthPercentageToDP } from 'react-native-responsive-screen';
+import {View, Modal, Pressable, StyleSheet, ScrollView} from 'react-native';
+import {useDispatch, useSelector} from 'react-redux';
+import {widthPercentageToDP} from 'react-native-responsive-screen';
 
-import { RegularText, FlagImage } from '../../components';
-import { setActiveLanguageAction } from '../../redux/actions/languageActions';
-import { availableLanguages, FontSize, Spacing, colors } from '../../constants';
+import {RegularText, FlagImage} from '../../components';
+import {setActiveLanguageAction} from '../../redux/actions/languageActions';
+import {availableLanguages, FontSize, Spacing, colors} from '../../constants';
 
-export const LanguagePicker = ({ show, hide }) => {
+export const LanguagePicker = ({show, hide}) => {
   const dispatch = useDispatch();
-  const { activeLanguage } = useSelector(state => state.languageReducer);
+  const {activeLanguage} = useSelector(state => state.languageReducer);
 
   const handleLanguageItemPress = (name, label, flagName) => {
-    dispatch(setActiveLanguageAction({ activeLanguage: { name, label, flagName } }));
+    dispatch(
+      setActiveLanguageAction({activeLanguage: {name, label, flagName}}),
+    );
     hide();
-  }
+  };
 
-  const LanguageItem = ({ name, label, flagName }) => (
+  const LanguageItem = ({name, label, flagName}) => (
     <Pressable
       style={styles.languageItem}
       onPress={() => handleLanguageItemPress(name, label, flagName)}>
       <FlagImage name={flagName} />
-      <RegularText
-        style={styles.languageItemLabel(activeLanguage.name, name)}>
+      <RegularText style={styles.languageItemLabel(activeLanguage.name, name)}>
         {label}
       </RegularText>
     </Pressable>
@@ -40,11 +35,9 @@ export const LanguagePicker = ({ show, hide }) => {
       transparent={true}
       statusBarTranslucent
       visible={show}>
-      <View
-        style={styles.modalContainer}>
+      <View style={styles.modalContainer}>
         <View style={styles.centeredView}>
-          <ScrollView
-            contentContainerStyle={styles.contentContainer}>
+          <ScrollView contentContainerStyle={styles.contentContainer}>
             <View style={styles.modalView}>
               {availableLanguages.map(item => (
                 <LanguageItem
@@ -110,6 +103,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.large * 1.1,
     color: activeName === name ? colors.blue : colors.black,
   }),
-  flagIcon: { height: 30, width: 40, resizeMode: 'contain' },
-  contentContainer: { flexGrow: 1, justifyContent: 'center' }
+  flagIcon: {height: 30, width: 40, resizeMode: 'contain'},
+  contentContainer: {flexGrow: 1, justifyContent: 'center'},
 });

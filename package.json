@@ -7,7 +7,9 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format": "prettier --write src/**/*.js",
+    "android:build-apk": "cd android && gradlew assembleRelease"
   },
   "dependencies": {
     "@ethersproject/shims": "^5.5.0",
@@ -48,6 +50,7 @@
     "react-native-svg": "^12.1.1",
     "react-native-toasty": "^2.0.0",
     "react-native-vector-icons": "^9.0.0",
+    "react-native-vision-camera": "^2.14.1",
     "react-redux": "^7.2.6",
     "realm": "^10.20.0",
     "redux": "^4.1.2",

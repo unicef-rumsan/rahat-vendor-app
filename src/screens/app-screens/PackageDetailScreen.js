@@ -5,7 +5,7 @@ import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import { Spacing, colors} from '../../constants';
+import {Spacing, colors} from '../../constants';
 import {CustomHeader, Card, SmallText} from '../../components';
 
 let androidPadding = 0;

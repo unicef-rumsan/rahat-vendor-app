@@ -1,13 +1,13 @@
-import React, { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { StatusBar, StyleSheet, View, Image } from 'react-native';
+import React, {useEffect} from 'react';
+import {useTranslation} from 'react-i18next';
+import {StatusBar, StyleSheet, View, Image} from 'react-native';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import {  useSelector } from 'react-redux';
+import {useSelector} from 'react-redux';
 
-import { FontSize, Spacing, colors } from '../../../constants';
+import {FontSize, Spacing, colors} from '../../../constants';
 import {
   Card,
   SmallText,
@@ -17,14 +17,14 @@ import {
   CustomHeader,
   SwitchAgencyModal,
 } from '../../../components';
-import { RahatService } from '../../../services/chain';
+import {RahatService} from '../../../services/chain';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const IndividualPackageDetail = ({ title, value }) => (
+const IndividualPackageDetail = ({title, value}) => (
   <View
     style={{
       flexDirection: 'row',
@@ -39,18 +39,20 @@ const IndividualPackageDetail = ({ title, value }) => (
       numberOfLines={2}
       noPadding
       color={colors.blue}
-      style={{ width: widthPercentageToDP(30), textAlign: 'right' }}>
+      style={{width: widthPercentageToDP(30), textAlign: 'right'}}>
       {value}
     </SmallText>
   </View>
 );
 
-const ChargePackageScreen = ({ navigation, route }) => {
-  const { packageDetail, beneficiaryPhone } = route.params;
-  const { t } = useTranslation();
+const ChargePackageScreen = ({navigation, route}) => {
+  const {packageDetail, beneficiaryPhone} = route.params;
+  const {t} = useTranslation();
   const wallet = useSelector(state => state.walletReducer.wallet);
   const userData = useSelector(state => state.authReducer.userData);
-  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
+  const activeAppSettings = useSelector(
+    state => state.agencyReducer.activeAppSettings,
+  );
 
   useEffect(() => {
     if (userData?.agencies[0]?.status === 'new') {
@@ -61,15 +63,15 @@ const ChargePackageScreen = ({ navigation, route }) => {
         onConfirm: () => {
           PopupModal.hide();
           navigation.navigate('HomeScreen');
-        }
-      })
+        },
+      });
     }
   }, [activeAppSettings]);
 
   const onSubmit = async () => {
     LoaderModal.show({
-      message: 'Please wait...'
-    })
+      message: 'Please wait...',
+    });
     try {
       await RahatService(
         activeAppSettings.agency.contracts.rahat,
@@ -103,14 +105,14 @@ const ChargePackageScreen = ({ navigation, route }) => {
       />
       <View style={styles.container}>
         <SmallText
-          style={{ fontSize: FontSize.small * 1.1 }}
+          style={{fontSize: FontSize.small * 1.1}}
           noPadding
           color={colors.gray}>
           {activeAppSettings.agency.name}
         </SmallText>
 
-        <Card style={{ paddingVertical: Spacing.vs * 2 }}>
-          <View style={{ alignItems: 'center', paddingBottom: Spacing.vs * 3 }}>
+        <Card style={{paddingVertical: Spacing.vs * 2}}>
+          <View style={{alignItems: 'center', paddingBottom: Spacing.vs * 3}}>
             <Image
               source={{
                 uri: `https://ipfs.rumsan.com/ipfs/${packageDetail.imageUri}`,
@@ -122,10 +124,7 @@ const ChargePackageScreen = ({ navigation, route }) => {
               }}
             />
           </View>
-          <IndividualPackageDetail
-            title={'Name'}
-            value={packageDetail.name}
-          />
+          <IndividualPackageDetail title={'Name'} value={packageDetail.name} />
           <IndividualPackageDetail
             title={'Symbol'}
             value={packageDetail.symbol}
@@ -138,12 +137,12 @@ const ChargePackageScreen = ({ navigation, route }) => {
             title={'Worth'}
             value={packageDetail.value}
           />
-          <CustomButton
+          {/* <CustomButton
             title={'Switch Agency'}
             width={widthPercentageToDP(80)}
             outlined
             onPress={_onSwitchAgency}
-          />
+          /> */}
           <CustomButton
             title={'Charge'}
             color={colors.green}

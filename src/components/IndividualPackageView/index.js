@@ -1,13 +1,13 @@
 import React from 'react';
 import CheckBox from '@react-native-community/checkbox';
-import { StyleSheet, View, Pressable } from 'react-native';
+import {StyleSheet, View, Pressable} from 'react-native';
 
-import { RegularText } from '../../components';
-import { AngleRightIcon } from '../../../assets/icons';
-import { FontSize, Spacing, colors } from '../../constants';
+import {RegularText} from '../../components';
+import {AngleRightIcon} from '../../../assets/icons';
+import {FontSize, Spacing, colors} from '../../constants';
 
-const AmountWithAngleBracket = ({ balance }) => (
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+const AmountWithAngleBracket = ({balance}) => (
+  <View style={{flexDirection: 'row', alignItems: 'center'}}>
     <RegularText
       color={colors.blue}
       style={{
@@ -38,11 +38,11 @@ export const IndividualPackageView = ({
         }}>
         {selectable && (
           <CheckBox
-            style={{ marginRight: Spacing.hs / 2 }}
+            style={{marginRight: Spacing.hs / 2}}
             value={isSelected}
             onValueChange={value => onSelect(value)}
             tintColor={colors.blue}
-            tintColors={{ true: colors.blue, false: colors.gray }}
+            tintColors={{true: colors.blue, false: colors.gray}}
           />
         )}
         {icon}

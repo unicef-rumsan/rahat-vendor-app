@@ -1,4 +1,4 @@
-import { SET_WALLET_DATA } from "../actionTypes";
+import {SET_WALLET_DATA} from '../actionTypes';
 
 const initialState = {
   wallet: null,
@@ -10,15 +10,15 @@ const initialState = {
   packageIds: [],
 };
 
-export default (state = initialState, { type, payload }) => {
+export default (state = initialState, {type, payload}) => {
   switch (type) {
     case SET_WALLET_DATA: {
       return {
         ...state,
-        ...payload
+        ...payload,
       };
     }
-    
+
     default:
       return state;
   }

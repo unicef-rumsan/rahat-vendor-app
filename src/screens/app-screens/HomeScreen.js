@@ -42,6 +42,7 @@ import {
   getPackageBatchBalance,
 } from '../../redux/actions/walletActions';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 let BACK_COUNT = 0;
 
@@ -68,6 +69,9 @@ const HomeScreen = ({navigation, route}) => {
   const packageIds = useSelector(state => state.walletReducer.packageIds);
   const packages = useSelector(state => state.walletReducer.packages);
   const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
+  const unconfirmedBalance = useSelector(
+    state => state.walletReducer.unconfirmedBalance,
+  );
   const packageBalance = useSelector(
     state => state.walletReducer.packageBalance,
   );
@@ -244,14 +248,14 @@ const HomeScreen = ({navigation, route}) => {
               navigation.navigate('RedeemTokenScreen');
             }}
           />
-          <IndividualSettingView
+          {/* <IndividualSettingView
             icon={<GiftIcon color={colors.gray} />}
             title={'Packages'}
             onPress={() => {
               bottomSheetModalRef.current?.dismiss();
               navigation.navigate('RedeemPackageScreen');
             }}
-          />
+          /> */}
         </>
       )}
     </CustomBottomSheet>
@@ -271,13 +275,6 @@ const HomeScreen = ({navigation, route}) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-        <Card style={{elevation: 0}}>
-          <View>
-            <Text>
-              <MIcon name="sync" size={24} color="#4F8EF7" /> Synced Account:
-            </Text>
-          </View>
-        </Card>
         <Card>
           <View style={[styles.rowView, {paddingBottom: Spacing.vs / 2}]}>
             <SmallText noPadding color={colors.blue}>
@@ -316,6 +313,24 @@ const HomeScreen = ({navigation, route}) => {
               </RegularText>
             </View>
             <View>
+              {unconfirmedBalance === null ? (
+                <ActivityIndicator size={24} color={colors.blue} />
+              ) : (
+                <RegularText
+                  color={colors.gray}
+                  fontSize={17}
+                  style={{paddingTop: Spacing.vs / 3}}>
+                  {unconfirmedBalance}
+                </RegularText>
+              )}
+              <RegularText
+                color={colors.lightGray}
+                style={{paddingTop: Spacing.vs / 3}}
+                fontSize={FontSize.small * 0.75}>
+                Unconfirmed Balance
+              </RegularText>
+            </View>
+            {/* <View>
               {packageBalance === null ? (
                 <ActivityIndicator size={24} color={colors.blue} />
               ) : (
@@ -329,7 +344,7 @@ const HomeScreen = ({navigation, route}) => {
                 fontSize={FontSize.small * 1.1}>
                 Package
               </RegularText>
-            </View>
+            </View> */}
           </View>
         </Card>
         {userInAgencyStatus === 'new' && (
@@ -415,6 +430,47 @@ const HomeScreen = ({navigation, route}) => {
             </Card>
           </>
         )}
+        <Card>
+          <View>
+            <View style={[styles.cardItem, {alignSelf: 'flex-end'}]}>
+              <MIcon
+                name="sync"
+                color={colors.blue}
+                size={20}
+                style={{
+                  paddingVertical: Spacing.vs,
+                }}
+                onPress={() => {
+                  console.log('helo');
+                }}
+              />
+            </View>
+            <View style={styles.cardItem}>
+              <RegularText
+                color={colors.lightGray}
+                fontSize={FontSize.small * 1.1}>
+                Offline Beneficiary
+              </RegularText>
+              <RegularText
+                color={colors.lightGray}
+                fontSize={FontSize.small * 1.1}>
+                0
+              </RegularText>
+            </View>
+            <View style={styles.cardItem}>
+              <RegularText
+                color={colors.lightGray}
+                fontSize={FontSize.small * 1.1}>
+                Unconfirmed Txns
+              </RegularText>
+              <RegularText
+                color={colors.lightGray}
+                fontSize={FontSize.small * 1.1}>
+                0
+              </RegularText>
+            </View>
+          </View>
+        </Card>
       </ScrollView>
       {renderBottomSheet()}
     </>
@@ -438,7 +494,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,
   },
-
   recentTxnHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -449,4 +504,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  cardItem: {flexDirection: 'row', justifyContent: 'space-between'},
 });

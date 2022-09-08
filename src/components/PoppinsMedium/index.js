@@ -1,11 +1,11 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text } from 'react-native';
+import {useTranslation} from 'react-i18next';
+import {StyleSheet, Text} from 'react-native';
 
-import { FontSize, Spacing, colors } from '../../constants';
+import {FontSize, Spacing, colors} from '../../constants';
 
 export const PoppinsMedium = props => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   return (
     <Text
       {...props}
@@ -15,7 +15,7 @@ export const PoppinsMedium = props => {
           color: props.color || colors.black,
           fontSize: props.fontSize ? props.fontSize : FontSize.medium,
         },
-        { ...props.style },
+        {...props.style},
       ]}>
       {t(props.children)}
     </Text>

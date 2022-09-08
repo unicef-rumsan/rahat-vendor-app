@@ -1,11 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import {StyleSheet, Text} from 'react-native';
+import {useTranslation} from 'react-i18next';
 
-import { FontSize, Spacing, colors } from '../../constants';
+import {FontSize, Spacing, colors} from '../../constants';
 
 export const SmallText = props => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   return (
     <Text
       {...props}
@@ -15,10 +15,10 @@ export const SmallText = props => {
           color: props.color || colors.gray,
           textAlign: props.center ? 'center' : 'auto',
           paddingVertical: props.noPadding ? 0 : Spacing.vs / 2,
-          ...props.style
+          ...props.style,
         },
       ]}>
-      {props?.exact ? props.children :  t(props.children) || props.children}
+      {props?.exact ? props.children : t(props.children) || props.children}
     </Text>
   );
 };

@@ -1,21 +1,17 @@
-import { ethers } from "ethers";
-import { SET_APP_SETTINGS_DATA } from "../actionTypes";
-import * as api from '../api'
-import { setAuthData } from "./authActions";
-import { setWalletData } from "./walletActions";
+import {ethers} from 'ethers';
+import {SET_APP_SETTINGS_DATA} from '../actionTypes';
+import * as api from '../api';
+import {setAuthData} from './authActions';
+import {setWalletData} from './walletActions';
 
-export const setAppSettings = (payloadObj) => ({
+export const setAppSettings = payloadObj => ({
   type: SET_APP_SETTINGS_DATA,
-  payload: payloadObj
-})
+  payload: payloadObj,
+});
 
-export const switchAgencyAction = (payloadObj) => async dispatch => {
-  const {
-    wallet,
-    newAppSettings,
-    onSwitchAgencySuccess,
-    onSwitchAgencyError
-  } = payloadObj;
+export const switchAgencyAction = payloadObj => async dispatch => {
+  const {wallet, newAppSettings, onSwitchAgencySuccess, onSwitchAgencyError} =
+    payloadObj;
   try {
     const response = await api.apiGetUserByWalletAddress(
       newAppSettings.agencyUrl,
@@ -31,25 +27,30 @@ export const switchAgencyAction = (payloadObj) => async dispatch => {
     );
     let connectedWallet = wallet.connect(provider);
 
-    dispatch(setAuthData({
-      userData: response.data
-    }));
+    dispatch(
+      setAuthData({
+        userData: response.data,
+      }),
+    );
 
-    dispatch(setWalletData({
-      wallet: connectedWallet,
-      packages: [],
-      packageBalance: 0,
-      packageBalanceCurrency: '',
-    }));
+    dispatch(
+      setWalletData({
+        wallet: connectedWallet,
+        packages: [],
+        packageBalance: 0,
+        packageBalanceCurrency: '',
+      }),
+    );
 
-    dispatch(setAppSettings({
-      activeAppSettings: newAppSettings
-    }))
+    dispatch(
+      setAppSettings({
+        activeAppSettings: newAppSettings,
+      }),
+    );
 
     onSwitchAgencySuccess();
-  }
-  catch (e) {
-    console.log(e)
+  } catch (e) {
+    console.log(e);
     onSwitchAgencyError(e);
   }
-}
+};

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { RNToasty } from 'react-native-toasty';
-import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { Pressable, StyleSheet, View, Keyboard } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {RNToasty} from 'react-native-toasty';
+import {useTranslation} from 'react-i18next';
+import {useDispatch, useSelector} from 'react-redux';
+import {Pressable, StyleSheet, View, Keyboard} from 'react-native';
 import {
   Card,
   RegularText,
@@ -10,21 +10,25 @@ import {
   LoaderModal,
   CustomButton,
   CustomTextInput,
-  SwitchAgencyModal
+  SwitchAgencyModal,
 } from '../../../components';
-import { TokenService } from '../../../services/chain';
-import { FontSize, Spacing, colors } from '../../../constants';
-import { setTransactionData } from '../../../redux/actions/transactionActions';
+import {TokenService} from '../../../services/chain';
+import {FontSize, Spacing, colors} from '../../../constants';
+import {setTransactionData} from '../../../redux/actions/transactionActions';
 
-const RedeemTokenScreen = ({ navigation }) => {
+const RedeemTokenScreen = ({navigation}) => {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const wallet = useSelector(state => state.walletReducer.wallet);
   const userData = useSelector(state => state.authReducer.userData);
   const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
-  const transactions = useSelector(state => state.transactionReducer.transactions);
-  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
+  const transactions = useSelector(
+    state => state.transactionReducer.transactions,
+  );
+  const activeAppSettings = useSelector(
+    state => state.agencyReducer.activeAppSettings,
+  );
 
   const [amount, setAmount] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -49,7 +53,7 @@ const RedeemTokenScreen = ({ navigation }) => {
     });
   };
 
-  const storeReceipt = (receiptData) => {
+  const storeReceipt = receiptData => {
     let updatedTransactions = [];
 
     if (transactions?.length) {
@@ -58,10 +62,10 @@ const RedeemTokenScreen = ({ navigation }) => {
       updatedTransactions = [receiptData];
     }
 
-    dispatch(setTransactionData({ transactions: updatedTransactions }));
+    dispatch(setTransactionData({transactions: updatedTransactions}));
 
     storeReceiptSuccess(receiptData);
-  }
+  };
 
   const handleRedeem = async () => {
     let timeElapsed = Date.now();
@@ -78,8 +82,8 @@ const RedeemTokenScreen = ({ navigation }) => {
     }
 
     LoaderModal.show({
-      message: 'Please wait...'
-    })
+      message: 'Please wait...',
+    });
     try {
       const receipt = await TokenService(
         activeAppSettings?.agency?.contracts?.rahat, //agency address
@@ -113,7 +117,7 @@ const RedeemTokenScreen = ({ navigation }) => {
         <RegularText
           fontSize={FontSize.medium}
           color={colors.gray}
-          style={{ paddingVertical: Spacing.vs / 2 }}>
+          style={{paddingVertical: Spacing.vs / 2}}>
           {activeAppSettings.agency.name}
         </RegularText>
         <Card>
@@ -158,16 +162,16 @@ const RedeemTokenScreen = ({ navigation }) => {
             error={errorMessage !== '' && errorMessage}
           />
         </View>
-        <CustomButton
+        {/* <CustomButton
           title={'Switch Agency'}
           outlined
           onPress={_onSwitchAgency}
-        />
+        /> */}
         <CustomButton
           title={'Redeem'}
           color={colors.green}
           onPress={handleRedeem}
-          style={{ marginBottom: Spacing.vs * 2 }}
+          style={{marginBottom: Spacing.vs * 2}}
         />
       </View>
     </>
@@ -182,5 +186,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,
   },
-  inputContainer: { paddingTop: Spacing.vs, flex: 1 },
+  inputContainer: {paddingTop: Spacing.vs, flex: 1},
 });

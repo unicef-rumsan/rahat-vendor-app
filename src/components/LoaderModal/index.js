@@ -1,10 +1,10 @@
 import React from 'react';
 import RNModal from 'react-native-modal';
-import { StyleSheet, View, ActivityIndicator, BackHandler } from 'react-native';
+import {StyleSheet, View, ActivityIndicator, BackHandler} from 'react-native';
 
-import { RegularText } from '../../components'
-import { colors, FontSize, Spacing } from '../../constants';
-import { useFocusEffect } from '@react-navigation/native';
+import {RegularText} from '../../components';
+import {colors, FontSize, Spacing} from '../../constants';
+import {useFocusEffect} from '@react-navigation/native';
 
 export const LoaderModal = () => {
   const [state, setState] = React.useState({
@@ -18,14 +18,15 @@ export const LoaderModal = () => {
   useFocusEffect(
     React.useCallback(() => {
       const backAction = () => true;
-      if(state.visible){
+      if (state.visible) {
         BackHandler.addEventListener('hardwareBackPress', backAction);
       }
 
       return () => {
         BackHandler.removeEventListener('hardwareBackPress', backAction);
       };
-    }, [state.visible]));
+    }, [state.visible]),
+  );
 
   const _cleanup = React.useCallback(() => {
     const callback = LoaderModal.onDidHideCallback;
@@ -38,7 +39,7 @@ export const LoaderModal = () => {
   }, []);
 
   const _close = React.useCallback(() => {
-    setState((state) => ({
+    setState(state => ({
       ...state,
       visible: false,
     }));
@@ -57,8 +58,7 @@ export const LoaderModal = () => {
       animationIn={'fadeIn'}
       animationOut={'fadeOut'}
       backdropColor={'transparent'}
-      swipeDirection={state.options?.nonDismissible ? undefined : 'right'}
-    >
+      swipeDirection={state.options?.nonDismissible ? undefined : 'right'}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <ActivityIndicator size="large" color={colors.blue} />
@@ -73,17 +73,17 @@ export const LoaderModal = () => {
         </View>
       </View>
     </RNModal>
-  )
+  );
 };
 
 LoaderModal.hide = () => {
   const setState = LoaderModal.setStateRef;
   if (setState) {
-    setState((state) => ({ ...state, visible: false }));
+    setState(state => ({...state, visible: false}));
   }
 };
 
-LoaderModal.show = (options) => {
+LoaderModal.show = options => {
   if (options?.onDidHideCallback) {
     LoaderModal.onDidHideCallback = options.onDidHideCallback;
   }
@@ -92,7 +92,7 @@ LoaderModal.show = (options) => {
     setState({
       options,
       visible: true,
-      message: options?.message
+      message: options?.message,
     });
   }
 };

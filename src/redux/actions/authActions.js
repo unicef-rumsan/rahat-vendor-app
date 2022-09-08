@@ -6,45 +6,42 @@ import {
   SET_RAHAT_PASSCODE,
   UNLOCK_APP,
   LOCK_APP,
-  UPDATE_BACKINGUP_TO_DRIVE_STATUS
+  UPDATE_BACKINGUP_TO_DRIVE_STATUS,
 } from '../actionTypes';
 
-export const setAuthData = (payloadObj) => ({
+export const setAuthData = payloadObj => ({
   type: SET_AUTH_DATA,
-  payload: payloadObj
+  payload: payloadObj,
 });
 
-export const storeRegistrationFormData = (payloadObj) => ({
+export const storeRegistrationFormData = payloadObj => ({
   type: STORE_REGISTRATION_FORM_DATA,
   payload: payloadObj,
-})
+});
 
-export const setRahatPasscode = (payloadObj) => ({
+export const setRahatPasscode = payloadObj => ({
   type: SET_RAHAT_PASSCODE,
   payload: payloadObj,
 });
 
 export const unlockApp = () => ({
-  type: UNLOCK_APP
-})
+  type: UNLOCK_APP,
+});
 export const lockApp = () => ({
-  type: LOCK_APP
+  type: LOCK_APP,
 });
 
-export const updateBackingupToDriveStatus = (payloadObj) => ({
+export const updateBackingupToDriveStatus = payloadObj => ({
   type: UPDATE_BACKINGUP_TO_DRIVE_STATUS,
-  payload: payloadObj
-})
+  payload: payloadObj,
+});
 
-
-
-export const clearRegistrationFormData = (payloadObj) => ({
+export const clearRegistrationFormData = payloadObj => ({
   type: CLEAR_REGISTRATION_FORM_DATA,
-})
+});
 
 export const registerVendor =
   (agencySettings, userdata, success, error) => async dispatch => {
-
     try {
       const response = await api.apiRegisterVendor(
         agencySettings.agencyUrl,
@@ -56,7 +53,6 @@ export const registerVendor =
     }
   };
 
-
 export const getRestoreUserData =
   (agencySettings, address, success, error) => async dispatch => {
     try {
@@ -65,7 +61,7 @@ export const getRestoreUserData =
         address,
       );
       if (response.status === 204) {
-        return error({ message: 'Not registered' }, agencySettings);
+        return error({message: 'Not registered'}, agencySettings);
       }
       success(response.data, agencySettings);
     } catch (e) {
@@ -92,7 +88,7 @@ export const getUserByWalletAddress =
       if (response.status === 204) {
         return error();
       }
-      setAuthData({userData: response.data})
+      setAuthData({userData: response.data});
       success(response.data, agencyUrl);
     } catch (e) {
       error(e);

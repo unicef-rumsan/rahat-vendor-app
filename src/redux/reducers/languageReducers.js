@@ -1,19 +1,19 @@
-import { SET_ACTIVE_LANGUAGE } from "../actionTypes"
+import {SET_ACTIVE_LANGUAGE} from '../actionTypes';
 
 const initialState = {
-    activeLanguage: {
-        name: 'en',
-        label: 'English',
-        flagName: 'gb'
-    }
-}
+  activeLanguage: {
+    name: 'en',
+    label: 'English',
+    flagName: 'gb',
+  },
+};
 
-export default (state = initialState, { type, payload }) => {
-    switch (type) {
-        case SET_ACTIVE_LANGUAGE:
-            return { ...state, ...payload }
+export default (state = initialState, {type, payload}) => {
+  switch (type) {
+    case SET_ACTIVE_LANGUAGE:
+      return {...state, ...payload};
 
-        default:
-            return state
-    }
-}
+    default:
+      return state;
+  }
+};

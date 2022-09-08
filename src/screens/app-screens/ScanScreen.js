@@ -1,20 +1,20 @@
-import { ethers } from 'ethers';
+import {ethers} from 'ethers';
 import React from 'react';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import { useIsFocused } from '@react-navigation/native';
-import { StyleSheet, View, StatusBar } from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
+import {StyleSheet, View, StatusBar} from 'react-native';
 import QRCodeScanner from 'react-native-qrcode-scanner';
 
-import { RumsanLogo } from '../../../assets/icons';
-import { FontSize, Spacing, colors } from '../../constants';
-import { PoppinsMedium, RegularText, PopupModal } from '../../components';
+import {RumsanLogo} from '../../../assets/icons';
+import {FontSize, Spacing, colors} from '../../constants';
+import {PoppinsMedium, RegularText, PopupModal} from '../../components';
 
-const ScanScreen = ({ navigation, route }) => {
+const ScanScreen = ({navigation, route}) => {
   const isFocused = useIsFocused();
-  const { type } = route.params;
+  const {type} = route.params;
 
   const onChargeScan = res => {
     let phone, amount;
@@ -26,7 +26,7 @@ const ScanScreen = ({ navigation, route }) => {
         popupType: 'alert',
         messageType: 'Error',
         message: 'Invalid QR code',
-      })
+      });
     }
     if (phoneDetails[0] === 'phone') {
       phone = phoneDetails[1].substr(4, phoneDetails[1]?.length);
@@ -36,7 +36,7 @@ const ScanScreen = ({ navigation, route }) => {
     }
 
     if (phone !== undefined && amount !== undefined) {
-      navigation.navigate('ChargeDrawerScreen', { phone, amount });
+      navigation.navigate('ChargeDrawerScreen', {phone, amount});
     }
   };
 
@@ -66,8 +66,8 @@ const ScanScreen = ({ navigation, route }) => {
         showMarker
         vibrate={false}
         reactivate
-        markerStyle={{ borderColor: colors.blue }}
-        cameraStyle={{ height: '100%', backgroundColor: colors.blue }}
+        markerStyle={{borderColor: colors.blue}}
+        cameraStyle={{height: '100%', backgroundColor: colors.blue}}
         onRead={type === 'Charge' ? onChargeScan : onTransferScan}
       />
 
@@ -75,7 +75,7 @@ const ScanScreen = ({ navigation, route }) => {
         <PoppinsMedium
           color={colors.white}
           fontSize={FontSize.large * 1.2}
-          style={{ textAlign: 'center', top: 30 }}>
+          style={{textAlign: 'center', top: 30}}>
           Scan & {type}
         </PoppinsMedium>
 
@@ -135,8 +135,8 @@ const styles = StyleSheet.create({
     top: 40,
     right: 0,
   },
-  text: { textAlign: 'center', top: 25 },
-  buttonView: { position: 'absolute', bottom: 120, left: 0, right: 0 },
+  text: {textAlign: 'center', top: 25},
+  buttonView: {position: 'absolute', bottom: 120, left: 0, right: 0},
   poweredByView: {
     position: 'absolute',
     flexDirection: 'row',

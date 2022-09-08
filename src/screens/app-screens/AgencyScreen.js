@@ -3,11 +3,11 @@ import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import { useDispatch, useSelector } from 'react-redux';
-import { StyleSheet, View, Pressable } from 'react-native';
+import {useDispatch, useSelector} from 'react-redux';
+import {StyleSheet, View, Pressable} from 'react-native';
 
-import { Spacing, colors, FontSize } from '../../constants';
-import { AddCircleIcon } from '../../../assets/icons';
+import {Spacing, colors, FontSize} from '../../constants';
+import {AddCircleIcon} from '../../../assets/icons';
 import {
   SmallText,
   RegularText,
@@ -16,9 +16,9 @@ import {
   LoaderModal,
   PopupModal,
 } from '../../components';
-import { switchAgencyAction } from '../../redux/actions/agencyActions';
+import {switchAgencyAction} from '../../redux/actions/agencyActions';
 
-const AgencyComponent = ({ name, website, onPress }) => {
+const AgencyComponent = ({name, website, onPress}) => {
   return (
     <Pressable style={styles.agencyView} onPress={onPress}>
       <View style={styles.agencyDetailsView}>
@@ -29,32 +29,26 @@ const AgencyComponent = ({ name, website, onPress }) => {
           }}
           style={styles.logo}
         /> */}
-          <PoppinsMedium
-            color={colors.blue}
-            fontSize={FontSize.large * 1.2}
-          >
+          <PoppinsMedium color={colors.blue} fontSize={FontSize.large * 1.2}>
             {name?.[0]}
           </PoppinsMedium>
         </View>
-        <View style={{ paddingHorizontal: Spacing.hs }}>
-          <RegularText color={colors.black}>
-            {name}
-          </RegularText>
-          <SmallText exact>
-            {website}
-          </SmallText>
+        <View style={{paddingHorizontal: Spacing.hs}}>
+          <RegularText color={colors.black}>{name}</RegularText>
+          <SmallText exact>{website}</SmallText>
         </View>
       </View>
     </Pressable>
-  )
+  );
 };
 
-const AgencyScreen = ({ navigation }) => {
+const AgencyScreen = ({navigation}) => {
   const dispatch = useDispatch();
   const userData = useSelector(state => state.authReducer.userData);
   const appSettings = useSelector(state => state.agencyReducer.appSettings);
-  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
-  console.log({appSettings})
+  const activeAppSettings = useSelector(
+    state => state.agencyReducer.activeAppSettings,
+  );
 
   const wallet = useSelector(state => state.walletReducer.wallet);
 
@@ -69,36 +63,36 @@ const AgencyScreen = ({ navigation }) => {
   //   );
   // };
 
-  const onSwitchAgencyError = (error) => {
-    LoaderModal.hide()
+  const onSwitchAgencyError = error => {
+    LoaderModal.hide();
     return PopupModal.show({
       message: String(error),
       popupType: 'alert',
       messageType: 'Error',
-    })
-  }
+    });
+  };
 
   const onSwitchAgencySuccess = () => {
     LoaderModal.hide();
-    navigation.navigate('HomeScreen')
-  }
+    navigation.navigate('HomeScreen');
+  };
 
-  const _onSwitchAgency = (agencyUrl) => () => {
-
-    if (activeAppSettings.agencyUrl === agencyUrl) return
+  const _onSwitchAgency = agencyUrl => () => {
+    if (activeAppSettings.agencyUrl === agencyUrl) return;
 
     LoaderModal.show();
     const newAppSettings = appSettings.find(
       setting => setting.agencyUrl === agencyUrl,
     );
-    dispatch(switchAgencyAction({
-      wallet,
-      onSwitchAgencyError,
-      onSwitchAgencySuccess,
-      newAppSettings,
-    }));
-  } 
-
+    dispatch(
+      switchAgencyAction({
+        wallet,
+        onSwitchAgencyError,
+        onSwitchAgencySuccess,
+        newAppSettings,
+      }),
+    );
+  };
 
   return (
     <>
@@ -126,10 +120,11 @@ const AgencyScreen = ({ navigation }) => {
         {appSettings?.map((settings, i) => (
           <AgencyComponent
             key={i}
-            name={`${settings.agency.name} ${activeAppSettings.agencyUrl === settings.agencyUrl
+            name={`${settings.agency.name} ${
+              activeAppSettings.agencyUrl === settings.agencyUrl
                 ? '(Active)'
                 : ''
-              }`}
+            }`}
             website={settings.agencyUrl}
             onPress={_onSwitchAgency(settings.agencyUrl)}
           />
@@ -156,7 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logo: { height: hp(8), width: wp(17), resizeMode: 'contain' },
+  logo: {height: hp(8), width: wp(17), resizeMode: 'contain'},
   agencyDetailsView: {
     paddingVertical: Spacing.vs,
     flexDirection: 'row',

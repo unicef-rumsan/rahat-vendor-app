@@ -1,14 +1,8 @@
 import React from 'react';
-import {
-  View,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
-import { useSelector } from 'react-redux';
+import {View, Image, Pressable, ScrollView, StyleSheet} from 'react-native';
+import {useSelector} from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
-import { RNToasty } from 'react-native-toasty';
+import {RNToasty} from 'react-native-toasty';
 
 import {
   Card,
@@ -17,20 +11,16 @@ import {
   CustomHeader,
   IndividualSettingView,
 } from '../../components';
-import {
-  PersonIcon,
-  PhoneIcon,
-  LocationIcon,
-} from '../../../assets/icons';
-import { FontSize, Spacing, colors } from '../../constants';
+import {PersonIcon, PhoneIcon, LocationIcon} from '../../../assets/icons';
+import {FontSize, Spacing, colors} from '../../constants';
 import Clipboard from '@react-native-clipboard/clipboard';
 
-const ProfileScreen = ({ navigation }) => {
+const ProfileScreen = ({navigation}) => {
   const userData = useSelector(state => state.authReducer.userData);
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
-    RNToasty.Show({ title: 'Copied to clipboard', duration: 0 });
+    RNToasty.Show({title: 'Copied to clipboard', duration: 0});
   };
 
   return (
@@ -38,8 +28,8 @@ const ProfileScreen = ({ navigation }) => {
       <CustomHeader
         title={'Profile'}
         onBackPress={() => navigation.pop()}
-      // rightIcon={<EditIcon />}
-      // onRightIconPress={() => navigation.navigate('EditProfile')}
+        // rightIcon={<EditIcon />}
+        // onRightIconPress={() => navigation.navigate('EditProfile')}
       />
       <ScrollView style={styles.container}>
         <Image
@@ -52,21 +42,21 @@ const ProfileScreen = ({ navigation }) => {
         <IndividualSettingView
           icon={<PersonIcon />}
           title={userData?.name}
-          style={{ paddingHorizontal: Spacing.hs * 2 }}
+          style={{paddingHorizontal: Spacing.hs * 2}}
         />
         <IndividualSettingView
           icon={<PhoneIcon />}
           title={userData?.phone}
-          style={{ paddingHorizontal: Spacing.hs * 2 }}
+          style={{paddingHorizontal: Spacing.hs * 2}}
         />
         <IndividualSettingView
           icon={<LocationIcon />}
           title={userData?.address}
-          style={{ paddingHorizontal: Spacing.hs * 2 }}
+          style={{paddingHorizontal: Spacing.hs * 2}}
         />
 
         <View
-          style={{ paddingHorizontal: Spacing.hs, marginVertical: Spacing.vs }}>
+          style={{paddingHorizontal: Spacing.hs, marginVertical: Spacing.vs}}>
           <RegularText color={colors.gray}>Your Address</RegularText>
           <Card>
             <View
@@ -91,9 +81,9 @@ const ProfileScreen = ({ navigation }) => {
               <SmallText
                 center
                 color={colors.lightGray}
-                style={{ fontSize: FontSize.xsmall, paddingTop: Spacing.vs }}>
-                This QR Code (address) is your unique identity. Use this to receive digital documents, 
-                assets or verify your identity.',
+                style={{fontSize: FontSize.xsmall, paddingTop: Spacing.vs}}>
+                This QR Code (address) is your unique identity. Use this to
+                receive digital documents, assets or verify your identity.',
               </SmallText>
             </View>
           </Card>

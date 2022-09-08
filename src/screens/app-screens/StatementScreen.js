@@ -1,7 +1,7 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import {useSelector} from 'react-redux';
+import {useTranslation} from 'react-i18next';
+import {ScrollView, StyleSheet, View} from 'react-native';
 
 import {
   Card,
@@ -9,12 +9,14 @@ import {
   RegularText,
   IndividualStatement,
 } from '../../components';
-import { Spacing, colors } from '../../constants';
+import {Spacing, colors} from '../../constants';
 
-const StatementScreen = ({ navigation }) => {
-  const { t } = useTranslation();
+const StatementScreen = ({navigation}) => {
+  const {t} = useTranslation();
   const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
-  const transactions = useSelector(state => state.transactionReducer.transactions);
+  const transactions = useSelector(
+    state => state.transactionReducer.transactions,
+  );
 
   return (
     <>
@@ -24,14 +26,10 @@ const StatementScreen = ({ navigation }) => {
       />
       <ScrollView style={styles.container}>
         <Card>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <RegularText>
-              {'Token Balance'}
-            </RegularText>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+            <RegularText>{'Token Balance'}</RegularText>
 
-            <RegularText color={colors.black}>
-              {tokenBalance}
-            </RegularText>
+            <RegularText color={colors.black}>{tokenBalance}</RegularText>
           </View>
         </Card>
         <Card>
@@ -41,22 +39,24 @@ const StatementScreen = ({ navigation }) => {
               key={index}
               balanceType={item?.balanceType}
               transactionType={item?.transactionType}
-              icon={item?.packages ? item.packages[0]?.imageUri : item?.imageUri}
+              icon={
+                item?.packages ? item.packages[0]?.imageUri : item?.imageUri
+              }
               title={
                 item?.transactionType === 'charge'
                   ? `${item.transactionType} to ...${item.chargeTo?.slice(
-                    item?.chargeTo?.length - 4,
-                    item?.chargeTo?.length,
-                  )}`
+                      item?.chargeTo?.length - 4,
+                      item?.chargeTo?.length,
+                    )}`
                   : item?.transactionType === 'transfer'
-                    ? `${item.transactionType} to ...${item.to?.slice(
+                  ? `${item.transactionType} to ...${item.to?.slice(
                       item?.to?.length - 4,
                       item?.to?.length,
                     )}`
-                    : item?.transactionType === 'redeem' &&
-                      item?.balanceType === 'package'
-                      ? 'redeem package'
-                      : 'redeem token'
+                  : item?.transactionType === 'redeem' &&
+                    item?.balanceType === 'package'
+                  ? 'redeem package'
+                  : 'redeem token'
               }
               amount={item?.amount}
               date={item?.timeStamp}
@@ -65,8 +65,8 @@ const StatementScreen = ({ navigation }) => {
                   item?.transactionType === 'charge'
                     ? 'ChargeReceiptScreen'
                     : item?.transactionType === 'transfer'
-                      ? 'TransferReceiptScreen'
-                      : 'RedeemReceiptScreen',
+                    ? 'TransferReceiptScreen'
+                    : 'RedeemReceiptScreen',
                   {
                     receiptData: item,
                   },

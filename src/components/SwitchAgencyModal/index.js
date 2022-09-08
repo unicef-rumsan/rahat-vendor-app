@@ -1,16 +1,17 @@
 import React from 'react';
 import RNModal from 'react-native-modal';
-import { useSelector } from 'react-redux';
-import { useFocusEffect } from '@react-navigation/native';
-import { StyleSheet, View, BackHandler, ScrollView } from 'react-native';
+import {useSelector} from 'react-redux';
+import {useFocusEffect} from '@react-navigation/native';
+import {StyleSheet, View, BackHandler, ScrollView} from 'react-native';
 
-import { Spacing } from '../../constants';
+import {Spacing} from '../../constants';
 import AgencyComponent from './AgencyComponent';
 
 export const SwitchAgencyModal = () => {
-
   const appSettings = useSelector(state => state.agencyReducer.appSettings);
-  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
+  const activeAppSettings = useSelector(
+    state => state.agencyReducer.activeAppSettings,
+  );
 
   const [state, setState] = React.useState({
     visible: false,
@@ -23,8 +24,8 @@ export const SwitchAgencyModal = () => {
   useFocusEffect(
     React.useCallback(() => {
       const backAction = () => {
-        setState({ ...state, visible: false })
-        return true
+        setState({...state, visible: false});
+        return true;
       };
       if (state.visible) {
         BackHandler.addEventListener('hardwareBackPress', backAction);
@@ -33,7 +34,8 @@ export const SwitchAgencyModal = () => {
       return () => {
         BackHandler.removeEventListener('hardwareBackPress', backAction);
       };
-    }, [state.visible]));
+    }, [state.visible]),
+  );
 
   const _cleanup = React.useCallback(() => {
     const callback = SwitchAgencyModal.onDidHideCallback;
@@ -46,7 +48,7 @@ export const SwitchAgencyModal = () => {
   }, []);
 
   const _close = React.useCallback(() => {
-    setState((state) => ({
+    setState(state => ({
       ...state,
       visible: false,
     }));
@@ -65,19 +67,19 @@ export const SwitchAgencyModal = () => {
       animationIn={'fadeIn'}
       animationOut={'fadeOut'}
       backdropColor={'transparent'}
-      swipeDirection={state.options?.nonDismissible ? undefined : 'right'}
-    >
+      swipeDirection={state.options?.nonDismissible ? undefined : 'right'}>
       <View style={styles.centeredView}>
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+          contentContainerStyle={{flexGrow: 1, justifyContent: 'center'}}>
           <View style={styles.modalView}>
             {appSettings?.map((settings, i) => (
               <AgencyComponent
                 key={i}
-                name={`${settings.agency.name} ${activeAppSettings.agencyUrl === settings.agencyUrl
-                  ? '(Active)'
-                  : ''
-                  }`}
+                name={`${settings.agency.name} ${
+                  activeAppSettings.agencyUrl === settings.agencyUrl
+                    ? '(Active)'
+                    : ''
+                }`}
                 website={settings.agencyUrl}
               />
             ))}
@@ -85,17 +87,17 @@ export const SwitchAgencyModal = () => {
         </ScrollView>
       </View>
     </RNModal>
-  )
+  );
 };
 
 SwitchAgencyModal.hide = () => {
   const setState = SwitchAgencyModal.setStateRef;
   if (setState) {
-    setState((state) => ({ ...state, visible: false }));
+    setState(state => ({...state, visible: false}));
   }
 };
 
-SwitchAgencyModal.show = (options) => {
+SwitchAgencyModal.show = options => {
   if (options?.onDidHideCallback) {
     SwitchAgencyModal.onDidHideCallback = options.onDidHideCallback;
   }
@@ -104,7 +106,7 @@ SwitchAgencyModal.show = (options) => {
     setState({
       options,
       visible: true,
-      message: options?.message
+      message: options?.message,
     });
   }
 };

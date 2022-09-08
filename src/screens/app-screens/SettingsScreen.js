@@ -24,12 +24,8 @@ const SettingsScreen = ({navigation}) => {
 
   return (
     <>
-      <CustomHeader
-        title={'Settings'}
-        onBackPress={() => navigation.pop()}
-      />
+      <CustomHeader title={'Settings'} onBackPress={() => navigation.pop()} />
       <View style={styles.container}>
-
         <LanguagePicker
           show={showLanguagePicker}
           hide={() => setShowLanguagePicker(false)}

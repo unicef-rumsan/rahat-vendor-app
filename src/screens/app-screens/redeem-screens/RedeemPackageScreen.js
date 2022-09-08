@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import { RNToasty } from 'react-native-toasty';
-import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { StyleSheet, View, Image } from 'react-native';
+import {RNToasty} from 'react-native-toasty';
+import {useTranslation} from 'react-i18next';
+import {useDispatch, useSelector} from 'react-redux';
+import {StyleSheet, View, Image} from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 
 import {
@@ -18,28 +18,33 @@ import {
   PopupModal,
   LoaderModal,
 } from '../../../components';
-import { ERC1155_Service } from '../../../services/chain';
-import { FontSize, Spacing, colors } from '../../../constants';
-import { getPackageBalanceInFiat, setWalletData } from '../../../redux/actions/walletActions';
-import { setTransactionData } from '../../../redux/actions/transactionActions';
+import {ERC1155_Service} from '../../../services/chain';
+import {FontSize, Spacing, colors} from '../../../constants';
+import {
+  getPackageBalanceInFiat,
+  setWalletData,
+} from '../../../redux/actions/walletActions';
+import {setTransactionData} from '../../../redux/actions/transactionActions';
 
-const RedeemPackageScreen = ({ navigation }) => {
+const RedeemPackageScreen = ({navigation}) => {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const wallet = useSelector(state => state.walletReducer.wallet);
   const userData = useSelector(state => state.authReducer.userData);
   const packages = useSelector(state => state.walletReducer.packages);
   const packageIds = useSelector(state => state.walletReducer.packageIds);
-  const transactions = useSelector(state => state.transactionReducer.transactions);
-  const activeAppSettings = useSelector(state => state.agencyReducer.activeAppSettings);
+  const transactions = useSelector(
+    state => state.transactionReducer.transactions,
+  );
+  const activeAppSettings = useSelector(
+    state => state.agencyReducer.activeAppSettings,
+  );
 
   const [values, setValues] = useState({
     selectedPackages: [],
   });
-  const {
-    selectedPackages,
-  } = values;
+  const {selectedPackages} = values;
 
   useEffect(() => {
     let temp = userData.agencies?.filter(
@@ -54,23 +59,26 @@ const RedeemPackageScreen = ({ navigation }) => {
     }
   }, [activeAppSettings]);
 
-  const storeReceiptSuccess = (receiptData) => {
+  const storeReceiptSuccess = receiptData => {
     LoaderModal.hide();
-    RNToasty.Success({ title: `${t('Success')}`, duration: 1 });
+    RNToasty.Success({title: `${t('Success')}`, duration: 1});
     navigation.replace('RedeemReceiptScreen', {
       receiptData,
     });
-  }
+  };
 
   const storeReceipt = (receiptData, selectedTokenIds) => {
-    let updatedPackageIds = [], updatedTransactions = [];
+    let updatedPackageIds = [],
+      updatedTransactions = [];
 
-      updatedPackageIds = packageIds?.map((item) => {
-        if (item.agencyUrl === activeAppSettings.agencyUrl) {
-          item.tokenIds = item.tokenIds.filter(value => !selectedTokenIds.includes(value))
-        }
-        return item
-      })
+    updatedPackageIds = packageIds?.map(item => {
+      if (item.agencyUrl === activeAppSettings.agencyUrl) {
+        item.tokenIds = item.tokenIds.filter(
+          value => !selectedTokenIds.includes(value),
+        );
+      }
+      return item;
+    });
 
     if (transactions?.length) {
       updatedTransactions = [receiptData, ...transactions];
@@ -78,11 +86,11 @@ const RedeemPackageScreen = ({ navigation }) => {
       updatedTransactions = [receiptData];
     }
 
-    dispatch(setWalletData({ packageIds: updatedPackageIds }));
-    dispatch(setTransactionData({ transactions: updatedTransactions }));
+    dispatch(setWalletData({packageIds: updatedPackageIds}));
+    dispatch(setTransactionData({transactions: updatedTransactions}));
 
     storeReceiptSuccess(receiptData);
-  }
+  };
 
   const onGetBalanceinFiatSuccess = async (
     balanceInFiat,
@@ -117,7 +125,7 @@ const RedeemPackageScreen = ({ navigation }) => {
         packages: selectedPackages,
       };
 
-      storeReceipt(receiptData, tokenIds)
+      storeReceipt(receiptData, tokenIds);
     } catch (e) {
       // alert(e);
       LoaderModal.hide();
@@ -129,8 +137,8 @@ const RedeemPackageScreen = ({ navigation }) => {
     PopupModal.show({
       popupType: 'alert',
       messageType: 'Error',
-      message: 'Error while getting balance in fiat'
-    })
+      message: 'Error while getting balance in fiat',
+    });
   };
 
   const handleRedeem = async () => {
@@ -138,8 +146,8 @@ const RedeemPackageScreen = ({ navigation }) => {
       amounts = [];
 
     LoaderModal.show({
-      message: 'Please wait...'
-    })
+      message: 'Please wait...',
+    });
 
     selectedPackages.map(item => {
       tokenIds = [...tokenIds, item.tokenId];
@@ -158,10 +166,10 @@ const RedeemPackageScreen = ({ navigation }) => {
 
   const handlePackageSelect = (item, value) => {
     if (value) {
-      setValues({ ...values, selectedPackages: [...selectedPackages, item] });
+      setValues({...values, selectedPackages: [...selectedPackages, item]});
     } else {
       let temp = selectedPackages.filter(i => i.tokenId !== item.tokenId);
-      setValues({ ...values, selectedPackages: temp });
+      setValues({...values, selectedPackages: temp});
     }
   };
 
@@ -173,16 +181,14 @@ const RedeemPackageScreen = ({ navigation }) => {
         <RegularText
           fontSize={FontSize.medium}
           color={colors.gray}
-          style={{ paddingVertical: Spacing.vs / 2 }}>
+          style={{paddingVertical: Spacing.vs / 2}}>
           {activeAppSettings.agency.name}
         </RegularText>
         <Card>
-          <RegularText fontSize={FontSize.medium}>
-            Packages
-          </RegularText>
+          <RegularText fontSize={FontSize.medium}>Packages</RegularText>
           <View style={styles.selectAllCheckBox}>
             <CheckBox
-              style={{ marginRight: Spacing.hs / 2 }}
+              style={{marginRight: Spacing.hs / 2}}
               value={
                 packages?.length && packages.length === selectedPackages.length
                   ? true
@@ -190,15 +196,13 @@ const RedeemPackageScreen = ({ navigation }) => {
               }
               onValueChange={value =>
                 value
-                  ? setValues({ ...values, selectedPackages: packages })
-                  : setValues({ ...values, selectedPackages: [] })
+                  ? setValues({...values, selectedPackages: packages})
+                  : setValues({...values, selectedPackages: []})
               }
               tintColor={colors.blue}
-              tintColors={{ true: colors.blue, false: colors.gray }}
+              tintColors={{true: colors.blue, false: colors.gray}}
             />
-            <RegularText fontSize={FontSize.medium}>
-              Select All
-            </RegularText>
+            <RegularText fontSize={FontSize.medium}>Select All</RegularText>
           </View>
           {packages?.map((item, index) => (
             <IndividualPackageView
@@ -226,7 +230,7 @@ const RedeemPackageScreen = ({ navigation }) => {
           title={'Redeem'}
           color={colors.green}
           onPress={handleRedeem}
-          style={{ marginBottom: Spacing.vs * 2 }}
+          style={{marginBottom: Spacing.vs * 2}}
           disabled={selectedPackages.length === 0 && true}
         />
       </View>
@@ -242,7 +246,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     paddingHorizontal: Spacing.hs,
   },
-  inputContainer: { paddingTop: Spacing.vs, flex: 1 },
+  inputContainer: {paddingTop: Spacing.vs, flex: 1},
   packageIcon: {
     height: hp(6),
     width: wp(9),

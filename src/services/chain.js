@@ -11,7 +11,9 @@ const ABI = {
 
 const getAgencyDetails = async (agencyAddress, tokenAddress, nftAddress) => {
   const details = agencyAddress;
-  const provider = new ethers.providers.JsonRpcProvider('https://testnetwork.esatya.io');
+  const provider = new ethers.providers.JsonRpcProvider(
+    'https://testnetwork.esatya.io',
+  );
   const rahatContract = new ethers.Contract(
     agencyAddress,
     ABI.RAHAT.abi,
@@ -115,7 +117,9 @@ const TokenService = (agencyAddress, wallet, tokenAddress, nftAddress) => {
     },
     async transfer(address, amount) {
       const contract = await this.getContract();
-      const tx = await contract.connect(wallet)?.transfer(address, Number(amount));
+      const tx = await contract
+        .connect(wallet)
+        ?.transfer(address, Number(amount));
       return tx.wait();
     },
   };

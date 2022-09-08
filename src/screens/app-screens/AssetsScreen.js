@@ -1,23 +1,28 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';
-import { StatusBar, StyleSheet, View, Pressable, Image } from 'react-native';
+import {useSelector} from 'react-redux';
+import {useTranslation} from 'react-i18next';
+import {StatusBar, StyleSheet, View, Pressable, Image} from 'react-native';
 import {
   heightPercentageToDP,
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
-import { FontSize, Spacing, colors } from '../../constants';
-import { CustomHeader, Card, RegularText, IndividualPackageView } from '../../components';
+import {FontSize, Spacing, colors} from '../../constants';
+import {
+  CustomHeader,
+  Card,
+  RegularText,
+  // IndividualPackageView,
+} from '../../components';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const AssetsScreen = ({ navigation, route }) => {
-  const { t } = useTranslation();
+const AssetsScreen = ({navigation, route}) => {
+  const {t} = useTranslation();
 
-  const packages = useSelector(state => state.walletReducer.packages);
+  // const packages = useSelector(state => state.walletReducer.packages);
   const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
 
   return (
@@ -29,7 +34,7 @@ const AssetsScreen = ({ navigation, route }) => {
           <Card style={styles.tokenDetailCard}>
             <RegularText
               color={colors.gray}
-              style={{ fontSize: FontSize.medium * 1.1 }}>
+              style={{fontSize: FontSize.medium * 1.1}}>
               Token Balance:
             </RegularText>
             <RegularText
@@ -43,7 +48,7 @@ const AssetsScreen = ({ navigation, route }) => {
             {/* <AmountWithAngleBracket amount={10000} /> */}
           </Card>
         </Pressable>
-        <Card style={{ paddingVertical: Spacing.vs * 2 }}>
+        {/* <Card style={{ paddingVertical: Spacing.vs * 2 }}>
           <RegularText
             color={colors.gray}
             style={{ fontSize: FontSize.medium * 1.1 }}>
@@ -77,7 +82,7 @@ const AssetsScreen = ({ navigation, route }) => {
               }
             />
           ))}
-        </Card>
+        </Card> */}
       </View>
     </>
   );

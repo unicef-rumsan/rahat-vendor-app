@@ -1,11 +1,7 @@
-import React, { useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView
-} from 'react-native';
-import { useDispatch } from 'react-redux';
-import { useTranslation } from 'react-i18next';
+import React, {useRef, useState} from 'react';
+import {View, StyleSheet, ScrollView} from 'react-native';
+import {useDispatch} from 'react-redux';
+import {useTranslation} from 'react-i18next';
 
 import {
   SmallText,
@@ -16,13 +12,13 @@ import {
   CustomButton,
   CustomTextInput,
 } from '../../components';
-import { Spacing, colors } from '../../constants';
-import { getWallet } from '../../redux/actions/walletActions';
+import {Spacing, colors} from '../../constants';
+import {getWallet} from '../../redux/actions/walletActions';
 
 let TOTAL_WORDS = 12;
 
-const RestoreMnemonicScreen = ({ navigation }) => {
-  const { t } = useTranslation();
+const RestoreMnemonicScreen = ({navigation}) => {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const [values, setValues] = useState({});
 
@@ -35,7 +31,7 @@ const RestoreMnemonicScreen = ({ navigation }) => {
         popupType: 'alert',
         messageType: 'Error',
         message: 'Please fill all the 12 secret words',
-      })
+      });
       return;
     }
 
@@ -43,10 +39,19 @@ const RestoreMnemonicScreen = ({ navigation }) => {
       mnemonic = `${mnemonic} ${values[`word${i}`]}`;
     }
 
-    LoaderModal.show({ message: 'Restoring your wallet. This might take a while, please wait...' });
+    LoaderModal.show({
+      message: 'Restoring your wallet. This might take a while, please wait...',
+    });
 
     setTimeout(() => {
-      dispatch(getWallet('restoreUsingMnemonic', getWalletSuccess, handleError, mnemonic.trim()))
+      dispatch(
+        getWallet(
+          'restoreUsingMnemonic',
+          getWalletSuccess,
+          handleError,
+          mnemonic.trim(),
+        ),
+      );
     }, 200);
   };
 
@@ -56,12 +61,12 @@ const RestoreMnemonicScreen = ({ navigation }) => {
       popupType: 'alert',
       messageType: 'Error',
       message: String(e),
-    })
+    });
   };
 
   const getWalletSuccess = () => {
     LoaderModal.hide();
-    navigation.navigate('LinkAgencyScreen', { from: 'restore' });
+    navigation.navigate('LinkAgencyScreen', {from: 'restore'});
   };
 
   return (
@@ -76,7 +81,7 @@ const RestoreMnemonicScreen = ({ navigation }) => {
           <SmallText>One word in each box</SmallText>
         </View>
 
-        {Array.from({ length: 12 }).map((_, index) => (
+        {Array.from({length: 12}).map((_, index) => (
           <CustomTextInput
             key={index}
             placeholder={`${t('Word')} ${t(index + 1)}`}
@@ -94,9 +99,7 @@ const RestoreMnemonicScreen = ({ navigation }) => {
                 ? () => inputRef.current[index + 1].focus()
                 : null
             }
-            error={
-              values[`word${index + 1}`] === '' ? `${'required'}` : null
-            }
+            error={values[`word${index + 1}`] === '' ? `${'required'}` : null}
             blurOnSubmit={index + 1 === TOTAL_WORDS ? true : false}
             autoCapitalize="none"
           />
@@ -128,6 +131,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.hs,
     paddingTop: Spacing.vs,
   },
-  textView: { marginBottom: Spacing.vs },
-  buttonsView: { marginBottom: Spacing.vs * 2 },
+  textView: {marginBottom: Spacing.vs},
+  buttonsView: {marginBottom: Spacing.vs * 2},
 });

@@ -2,12 +2,12 @@ import {ethers} from 'ethers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ERC1155_Service, TokenService} from '../../services/chain';
 import * as api from '../api';
-import { SET_WALLET_DATA } from '../actionTypes';
+import {SET_WALLET_DATA} from '../actionTypes';
 
-export const setWalletData = (payloadObj) => async dispatch => {
+export const setWalletData = payloadObj => async dispatch => {
   dispatch({
-    type: SET_WALLET_DATA, 
-    payload: payloadObj
+    type: SET_WALLET_DATA,
+    payload: payloadObj,
   });
 };
 
@@ -59,23 +59,26 @@ export const restoreUsingDrive =
     }
   };
 
-  export const getWalletBalance =
-  (wallet,settings) => async dispatch => {
-    try {
+export const getWalletBalance = (wallet, settings) => async dispatch => {
+  try {
+    let tokenBalance = await TokenService(
+      settings?.agency?.contracts?.rahat,
+      wallet,
+      settings?.agency?.contracts?.rahat_erc20,
+      settings?.agency?.contracts?.rahat_erc1155,
+    ).getBalance(wallet.address);
+    dispatch(
+      setWalletData({
+        tokenBalance: tokenBalance.toNumber(),
+        unconfirmedBalance: 0,
+      }),
+    );
+  } catch (e) {
+    // alert(e);
+  }
+};
 
-      let tokenBalance = await TokenService(
-        settings?.agency?.contracts?.rahat,
-        wallet,
-        settings?.agency?.contracts?.rahat_erc20,
-        settings?.agency?.contracts?.rahat_erc1155,
-      ).getBalance(wallet.address);
-      dispatch(setWalletData({tokenBalance: tokenBalance.toNumber()}))
-    } catch (e) {
-      // alert(e);
-    }
-  };
-
-  export const getPackageBatchBalance =
+export const getPackageBatchBalance =
   (
     agencyAddress,
     tokenAddress,
@@ -100,25 +103,27 @@ export const restoreUsingDrive =
           tokenQtys.push(item.toNumber());
         });
       }
-      success(tokenIds,tokenQtys);
+      success(tokenIds, tokenQtys);
     } catch (e) {
       // alert(e);
       // error(e);
     }
   };
 
-  export const getPackageBalanceInFiat =
+export const getPackageBalanceInFiat =
   (tokenIds, tokenQtys, onSuccess, onError) => async dispatch => {
     try {
       const response = await api.apiGetPackageBalanceInFiat({
         tokenIds,
         tokenQtys,
       });
-      dispatch(setWalletData({
-        packageBalance: response?.data?.grandTotal,
-        packageBalanceCurrency: response?.data?.currency,
-      }));
-      
+      dispatch(
+        setWalletData({
+          packageBalance: response?.data?.grandTotal,
+          packageBalanceCurrency: response?.data?.currency,
+        }),
+      );
+
       onSuccess && onSuccess(response?.data?.grandTotal, tokenIds, tokenQtys);
     } catch (e) {
       // alert(e);
