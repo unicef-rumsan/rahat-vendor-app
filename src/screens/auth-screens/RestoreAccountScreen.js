@@ -94,7 +94,7 @@ const RestoreAccountScreen = ({navigation}) => {
         });
       }
     } catch (e) {
-      console.log({e});
+      alert(e);
       let errorMessage = e?.message || e?.error || '';
       if (
         e?.message ===
@@ -138,6 +138,7 @@ const RestoreAccountScreen = ({navigation}) => {
 
       handleRestoreWallet(data);
     } catch (e) {
+      alert(e);
       console.log({initialiDriv: 'ko error', e});
       const errorMessage = e?.message || e?.error || '';
       LoaderModal.hide();

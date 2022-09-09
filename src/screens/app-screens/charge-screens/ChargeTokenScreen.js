@@ -4,8 +4,8 @@ import {
   widthPercentageToDP,
 } from 'react-native-responsive-screen';
 import {useTranslation} from 'react-i18next';
-import {useDispatch, useSelector} from 'react-redux';
-import {Keyboard, StatusBar, StyleSheet, View} from 'react-native';
+import {useSelector} from 'react-redux';
+import {Keyboard, Platform, StatusBar, StyleSheet, View} from 'react-native';
 
 import {AngleRightIcon} from '../../../../assets/icons';
 import {FontSize, Spacing, colors} from '../../../constants';
@@ -18,7 +18,6 @@ import {
   CustomButton,
   CustomHeader,
   CustomTextInput,
-  SwitchAgencyModal,
 } from '../../../components';
 import {RahatService} from '../../../services/chain';
 
@@ -114,8 +113,6 @@ const ChargeTokenScreen = ({navigation, route}) => {
       LoaderModal.hide();
     }
   };
-
-  const _onSwitchAgency = () => SwitchAgencyModal.show();
 
   return (
     <>

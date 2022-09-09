@@ -80,7 +80,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
         return PopupModal.show({
           popupType: 'alert',
           messageType: 'Info',
-          message: 'Insufficient fund and packages',
+          message: 'Insufficient fund',
         });
       }
 
@@ -90,12 +90,10 @@ const ChargeDrawerScreen = ({navigation, route}) => {
         beneficiaryPhone: phone,
       });
     } catch (e) {
-      // alert(e);
+      alert(e);
       setValues({...values, isSubmitting: false});
     }
   };
-
-  const _onSwitchAgency = () => SwitchAgencyModal.show();
 
   return (
     <>

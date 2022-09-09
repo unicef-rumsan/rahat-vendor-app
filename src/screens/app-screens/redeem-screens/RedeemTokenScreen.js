@@ -10,7 +10,6 @@ import {
   LoaderModal,
   CustomButton,
   CustomTextInput,
-  SwitchAgencyModal,
 } from '../../../components';
 import {TokenService} from '../../../services/chain';
 import {FontSize, Spacing, colors} from '../../../constants';
@@ -31,6 +30,7 @@ const RedeemTokenScreen = ({navigation}) => {
   );
 
   const [amount, setAmount] = useState('');
+  const [redeemAddress, setRedeemAddress] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -43,6 +43,9 @@ const RedeemTokenScreen = ({navigation}) => {
         duration: 1,
       });
       navigation.pop();
+    }
+    if (!activeAppSettings?.redeem_address) {
+      setRedeemAddress(false);
     }
   }, [activeAppSettings]);
 
@@ -68,6 +71,13 @@ const RedeemTokenScreen = ({navigation}) => {
   };
 
   const handleRedeem = async () => {
+    if (!redeemAddress) {
+      RNToasty.Show({
+        title: 'Redeem Wallet not found. Contact Agency.',
+        duration: 1,
+      });
+      return;
+    }
     let timeElapsed = Date.now();
     let timeStamp = new Date(timeElapsed);
     Keyboard.dismiss();
@@ -89,7 +99,7 @@ const RedeemTokenScreen = ({navigation}) => {
         activeAppSettings?.agency?.contracts?.rahat, //agency address
         wallet,
         activeAppSettings?.agency?.contracts?.rahat_erc20,
-      ).transfer(activeAppSettings.agency.contracts.rahat_admin, amount);
+      ).transfer(activeAppSettings?.redeem_address, amount);
 
       let receiptData = {
         timeStamp: timeStamp.toLocaleString(),
@@ -102,17 +112,27 @@ const RedeemTokenScreen = ({navigation}) => {
 
       storeReceipt(receiptData);
     } catch (e) {
+      alert(e);
       LoaderModal.hide();
     }
   };
-
-  const _onSwitchAgency = () => SwitchAgencyModal.show();
 
   return (
     <>
       <CustomHeader title={'Redeem'} onBackPress={() => navigation.pop()} />
 
       <View style={styles.container}>
+        {!redeemAddress && (
+          <RegularText
+            fontSize={FontSize.medium}
+            color={colors.blue}
+            style={{
+              paddingVertical: Spacing.vs / 2,
+              textAlign: 'center',
+            }}>
+            Redeem Wallet not found. Contact Agency.
+          </RegularText>
+        )}
         <RegularText
           fontSize={FontSize.medium}
           color={colors.gray}
@@ -161,11 +181,6 @@ const RedeemTokenScreen = ({navigation}) => {
             error={errorMessage !== '' && errorMessage}
           />
         </View>
-        {/* <CustomButton
-          title={'Switch Agency'}
-          outlined
-          onPress={_onSwitchAgency}
-        /> */}
         <CustomButton
           title={'Redeem'}
           color={colors.green}
