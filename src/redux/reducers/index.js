@@ -35,5 +35,3 @@ const rootReducer = combineReducers({
 });
 
 export default persistReducer(rootPersistConfig, rootReducer);
-
-// export default rootReducer;

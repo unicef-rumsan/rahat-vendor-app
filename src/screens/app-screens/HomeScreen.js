@@ -34,7 +34,8 @@ import {
 } from '../../components';
 import {FontSize, Spacing, colors} from '../../constants';
 import {getWalletBalance} from '../../redux/actions/walletActions';
-import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import getRealm from '../../database';
 
 let BACK_COUNT = 0;
 
@@ -74,54 +75,12 @@ const HomeScreen = ({navigation, route}) => {
     bottomSheetContent: '',
   });
 
+  const [backupOtps, setBackupOtps] = useState([]);
   const {refreshing, bottomSheetContent} = values;
-
-  useEffect(() => {
-    let temp = userData.agencies?.filter(
-      data => data.agency === activeAppSettings.agency._id,
-    );
-    setUserInAgencyStatus(temp[0]?.status);
-  }, [activeAppSettings, userData, refreshing]);
-
-  useBackHandler(() => {
-    if (route.name === 'HomeScreen' && isFocused) {
-      if (BACK_COUNT < 1) {
-        BACK_COUNT++;
-        RNToasty.Show({
-          title: `${'Press BACK again to exit app'}`,
-          position: 'center',
-        });
-        setTimeout(() => {
-          BACK_COUNT = 0;
-        }, 2000);
-        return true;
-      } else {
-        BackHandler.exitApp();
-        return false;
-      }
-    }
-  }, []);
-
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
-
-  const getBalance = () => {
-    if (wallet) {
-      dispatch(getWalletBalance(wallet, activeAppSettings));
-    }
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-    if (isMounted || refresh) {
-      getBalance();
-    }
-    return () => (isMounted = false);
-  }, [route]);
 
   const onRefresh = () => {
     getBalance();
+    fetchBackupOTPList();
   };
 
   const renderBottomSheet = () => (
@@ -162,6 +121,75 @@ const HomeScreen = ({navigation, route}) => {
       )}
     </CustomBottomSheet>
   );
+
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
+
+  const getBalance = () => {
+    if (wallet) {
+      dispatch(getWalletBalance(wallet, activeAppSettings));
+    }
+  };
+  // const addBeneficiary = async () => {
+  //   const realm = await getRealm();
+  //   return realm
+  //     .write(async () => {
+  //       await realm.create('Backupotps', {
+  //         _id: new ObjectId(),
+  //         phone: '9845160081',
+  //         pin: 1234,
+  //         balance: '100',
+  //       });
+  //     })
+  //     .then(d => alert(d));
+  // };
+  const fetchBackupOTPList = async () => {
+    try {
+      const realm = await getRealm();
+      let list = realm.objects('Backupotps');
+      setBackupOtps(list);
+      return list;
+    } catch (e) {
+      alert(e);
+    }
+  };
+
+  useEffect(() => {
+    let temp = userData.agencies?.filter(
+      data => data.agency === activeAppSettings.agency._id,
+    );
+    setUserInAgencyStatus(temp[0]?.status);
+  }, [activeAppSettings, userData, refreshing]);
+
+  useBackHandler(() => {
+    if (route.name === 'HomeScreen' && isFocused) {
+      if (BACK_COUNT < 1) {
+        BACK_COUNT++;
+        RNToasty.Show({
+          title: `${'Press BACK again to exit app'}`,
+          position: 'center',
+        });
+        setTimeout(() => {
+          BACK_COUNT = 0;
+        }, 2000);
+        return true;
+      } else {
+        BackHandler.exitApp();
+        return false;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (isMounted || refresh) {
+      getBalance();
+      fetchBackupOTPList();
+    }
+    return () => (isMounted = false);
+  }, [route]);
+
   return (
     <>
       <Header
@@ -318,19 +346,6 @@ const HomeScreen = ({navigation, route}) => {
         )}
         <Card>
           <View>
-            <View style={[styles.cardItem, {alignSelf: 'flex-end'}]}>
-              <MIcon
-                name="sync"
-                color={colors.blue}
-                size={20}
-                style={{
-                  paddingVertical: Spacing.vs,
-                }}
-                onPress={() => {
-                  console.log('helo');
-                }}
-              />
-            </View>
             <View style={styles.cardItem}>
               <RegularText
                 color={colors.lightGray}
@@ -340,7 +355,7 @@ const HomeScreen = ({navigation, route}) => {
               <RegularText
                 color={colors.lightGray}
                 fontSize={FontSize.small * 1.1}>
-                0
+                {backupOtps.length}
               </RegularText>
             </View>
             <View style={styles.cardItem}>
