@@ -3,24 +3,26 @@ export const BackupOTPSchema = {
   name: 'Backupotps',
   properties: {
     _id: 'objectId',
-    phone: 'int',
+    _partition: 'string',
+    phone: 'string',
     pin: 'string',
     balance: 'int',
   },
   primaryKey: '_id',
 };
 
-export const TransactionSchema = {
+export const TransactionsSchema = {
   name: 'Transactions',
   properties: {
     _id: 'objectId',
-    vendor: 'string',
-    pin: 'string',
-    phone: 'int',
+    _partition: 'string',
     amount: 'int',
-    txhash: 'string?',
-    status: 'string',
     created_at: 'date',
+    phone: 'int',
+    pin: 'string?',
+    status: 'string',
+    txhash: 'string?',
+    vendor: 'string',
   },
   primaryKey: '_id',
 };
