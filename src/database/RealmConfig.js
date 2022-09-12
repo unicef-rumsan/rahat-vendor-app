@@ -1,10 +1,7 @@
 import Realm from 'realm';
-import {BackupOTPSchema, TransactionSchema} from '../schemas';
-import {REALM_PROJECT_ID} from 'react-native-dotenv';
-
+import * as Schemas from '../schemas';
 // initialize realm with Your RealmApp ID...
-const app = new Realm.App({id: REALM_PROJECT_ID, timeout: 10000});
-
+const app = new Realm.App({id: 'rahat_app-nwswl'});
 // can implement inBuilt JWT, Google, Facebook, Apple Authentication Flow.
 const credentials = Realm.Credentials.anonymous(); // LoggingIn as Anonymous User.
 // Enables offline-first: opens a local realm immediately without waiting
@@ -17,20 +14,23 @@ const getRealm = async () => {
   try {
     // loggedIn as anonymous user
     await app.logIn(credentials);
+    const configuration = {
+      schema: [Schemas.BackupOTPSchema, Schemas.TransactionsSchema],
+      sync: {
+        user: app.currentUser,
+        partitionValue: 'myPartition',
+        newRealmFileBehavior: OpenRealmBehaviorConfiguration,
+        existingRealmFileBehavior: OpenRealmBehaviorConfiguration,
+      },
+      error: e => {
+        console.log('getRealm Err: ', e);
+      },
+    };
+    const data = await Realm.open(configuration);
+    return data;
   } catch (err) {
     console.error('Failed to log in', err);
   }
-  const configuration = {
-    schema: [BackupOTPSchema, TransactionSchema],
-    sync: {
-      user: app.currentUser,
-      partitionValue: 'myPartition',
-      newRealmFileBehavior: OpenRealmBehaviorConfiguration,
-      existingRealmFileBehavior: OpenRealmBehaviorConfiguration,
-    },
-  };
-
-  return Realm.open(configuration);
 };
 
 export default getRealm;

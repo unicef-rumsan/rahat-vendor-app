@@ -379,8 +379,8 @@ const SignupScreen = ({navigation}) => {
           the beneficiaries.
         </SmallText>
         <SmallText noPadding>
-          '2. The vendor will be reimbursed only after redeeming the tokens back
-          to aid agency.'
+          2. The vendor will be reimbursed only after redeeming the tokens back
+          to aid agency.
         </SmallText>
       </View>
       <View>

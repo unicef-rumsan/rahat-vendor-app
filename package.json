@@ -53,7 +53,7 @@
     "react-native-vector-icons": "^9.0.0",
     "react-native-vision-camera": "^2.14.1",
     "react-redux": "^7.2.6",
-    "realm": "^10.20.0",
+    "realm": "11.0.0-rc.0",
     "redux": "^4.1.2",
     "redux-persist": "^6.0.0",
     "redux-thunk": "^2.4.0"
