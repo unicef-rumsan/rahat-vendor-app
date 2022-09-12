@@ -11,7 +11,6 @@ import {store, persistor} from './src/redux/store';
 
 const App = () => {
   const netInfo = useNetInfo();
-  console.log({netInfo});
   return (
     <>
       <StatusBar
