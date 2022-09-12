@@ -25,6 +25,13 @@ import ChargeReceiptScreen from './charge-screens/ChargeReceiptScreen';
 import ChargeDrawerScreen from './charge-screens/ChargeDrawerScreen';
 import ChargeScreen from './charge-screens/ChargeScreen';
 import ChargeTokenScreen from './charge-screens/ChargeTokenScreen';
+
+// Offline
+import OfflineChargeTokenScreen from './offline/ChargeTokenScreen';
+import OfflineVerifyOTPScreen from './offline/VerifyOTPScreen';
+import OfflineChargeDrawerScreen from './offline/ChargeDrawerScreen';
+import OfflineChargeScreen from './offline/ChargeScreen';
+
 export {
   AboutScreen,
   AgencyScreen,
@@ -33,7 +40,6 @@ export {
   CheckApprovalScreen,
   HomeScreen,
   LinkAgencyScreen,
-  // LinkAgencyQRScreen,
   PasscodeScreen,
   PaymentMethodScreen,
   PaymentProcessScreen,
@@ -52,4 +58,8 @@ export {
   ChargeReceiptScreen,
   ChargeScreen,
   ChargeTokenScreen,
+  OfflineChargeScreen,
+  OfflineChargeTokenScreen,
+  OfflineVerifyOTPScreen,
+  OfflineChargeDrawerScreen,
 };

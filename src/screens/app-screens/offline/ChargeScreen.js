@@ -24,15 +24,16 @@ const AmountWithAngleBracket = ({amount}) => (
   </View>
 );
 
-const ChargeScreen = ({navigation, route}) => {
+const OfflineChargeScreen = ({navigation, route}) => {
   const {tokenBalance, beneficiaryPhone} = route.params;
+
   const activeAppSettings = useSelector(
     state => state.agencyReducer.activeAppSettings,
   );
 
   return (
     <>
-      <CustomHeader title={'Charge'} hideBackButton />
+      <CustomHeader title={'Offline Charge'} hideBackButton />
 
       <View style={styles.container}>
         <SmallText style={{fontSize: FontSize.small * 1.1}} color={colors.gray}>
@@ -62,7 +63,7 @@ const ChargeScreen = ({navigation, route}) => {
   );
 };
 
-export default ChargeScreen;
+export default OfflineChargeScreen;
 
 const styles = StyleSheet.create({
   container: {

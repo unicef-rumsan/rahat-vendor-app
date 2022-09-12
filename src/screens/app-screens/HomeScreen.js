@@ -36,6 +36,7 @@ import {FontSize, Spacing, colors} from '../../constants';
 import {getWalletBalance} from '../../redux/actions/walletActions';
 
 import getRealm from '../../database';
+// import {ObjectId} from 'bson';
 
 let BACK_COUNT = 0;
 
@@ -137,9 +138,9 @@ const HomeScreen = ({navigation, route}) => {
   //     .write(async () => {
   //       await realm.create('Backupotps', {
   //         _id: new ObjectId(),
-  //         phone: '9845160081',
-  //         pin: 1234,
-  //         balance: '100',
+  //         phone: 9845160081,
+  //         pin: '1234',
+  //         balance: 100,
   //       });
   //     })
   //     .then(d => alert(d));

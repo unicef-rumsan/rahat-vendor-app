@@ -15,11 +15,9 @@ import {
   CustomBottomSheet,
 } from '../../../components';
 import {QRIcon} from '../../../../assets/icons';
-import {RahatService} from '../../../services/chain';
 import {FontSize, Spacing, colors} from '../../../constants';
 
-const ChargeDrawerScreen = ({navigation, route}) => {
-  const wallet = useSelector(state => state.walletReducer.wallet);
+const OfflineChargeDrawerScreen = ({navigation, route}) => {
   const userData = useSelector(state => state.authReducer.userData);
   const activeAppSettings = useSelector(
     state => state.agencyReducer.activeAppSettings,
@@ -64,16 +62,10 @@ const ChargeDrawerScreen = ({navigation, route}) => {
         message: 'Please enter phone number',
       });
     }
-
     setValues(values => ({...values, isSubmitting: true}));
-
     try {
-      let rahatService = RahatService(
-        activeAppSettings.agency.contracts.rahat,
-        wallet,
-        activeAppSettings.agency.contracts.rahat_erc20,
-      );
-      let balance = await rahatService.getErc20Balance(phone);
+      // Get balance from offline realm
+      const balance = '1000';
       if (balance === 0) {
         setValues({...values, isSubmitting: false});
         return PopupModal.show({
@@ -84,7 +76,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
       }
 
       setValues({...values, isSubmitting: false});
-      navigation.navigate('ChargeScreen', {
+      navigation.navigate('OfflineChargeScreen', {
         tokenBalance: balance,
         beneficiaryPhone: phone,
       });
@@ -96,7 +88,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
 
   return (
     <>
-      <CustomHeader title={'Charge'} hideBackButton />
+      <CustomHeader title={'Offline Charge'} hideBackButton />
 
       <View style={styles.container}>
         <CustomBottomSheet
@@ -144,14 +136,6 @@ const ChargeDrawerScreen = ({navigation, route}) => {
             Important: Please double check the phone number and amount before
             charging. Transactions cannot be reversed.
           </SmallText>
-
-          {/* <CustomButton
-            outlined
-            title={'Switch Agency'}
-            disabled={isSubmitting}
-            width={widthPercentageToDP(90)}
-            onPress={_onSwitchAgency}
-          /> */}
           <CustomButton
             title={'Proceed'}
             color={colors.green}
@@ -166,7 +150,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
   );
 };
 
-export default ChargeDrawerScreen;
+export default OfflineChargeDrawerScreen;
 
 const styles = StyleSheet.create({
   container: {

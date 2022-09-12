@@ -28,16 +28,22 @@ import {
   PaymentProcessScreen,
   BackupMnemonicScreen,
   TransferReceiptScreen,
+  OfflineChargeTokenScreen,
+  OfflineVerifyOTPScreen,
+  OfflineChargeDrawerScreen,
+  OfflineChargeScreen,
 } from '../screens/app-screens';
 import {Spacing, colors} from '../constants';
 import {ChargeIcon, HomeIcon, AssetsIcon} from '../../assets/icons';
 import {LoaderModal, PopupModal, SwitchAgencyModal} from '../components';
+import {useNetInfo} from '@react-native-community/netinfo';
 
 const TabStack = createBottomTabNavigator();
 
 const Stack = createNativeStackNavigator();
 
 const Tabs = () => {
+  const netInfo = useNetInfo();
   const {t} = useTranslation();
   return (
     <>
@@ -72,14 +78,18 @@ const Tabs = () => {
           component={ChargeDrawerScreen}
           options={{
             tabBarLabel: `${t('Charge')}`,
-            tabBarIcon: ({color, size}) => {
+            tabBarIcon: ({color}) => {
               return <ChargeIcon color={color} />;
             },
           }}
           listeners={({navigation}) => ({
             tabPress: e => {
               e.preventDefault();
-              navigation.navigate('ChargeDrawerScreen', {phone: null});
+              if (netInfo.isConnected) {
+                navigation.navigate('ChargeDrawerScreen', {phone: null});
+              } else {
+                navigation.navigate('OfflineChargeDrawerScreen', {phone: null});
+              }
             },
           })}
         />
@@ -88,7 +98,7 @@ const Tabs = () => {
           component={AssetsScreen}
           options={{
             tabBarLabel: `${t('Assets')}`,
-            tabBarIcon: ({color, size}) => {
+            tabBarIcon: ({color}) => {
               return <AssetsIcon color={color} />;
             },
           }}
@@ -105,6 +115,24 @@ const AppStack = () => {
         initialRouteName={'Tabs'}
         screenOptions={{headerShown: false, animation: 'fade'}}>
         <Stack.Screen name="Tabs" component={Tabs} />
+        {/* Offline */}
+        <Stack.Screen
+          name="OfflineChargeTokenScreen"
+          component={OfflineChargeTokenScreen}
+        />
+        <Stack.Screen
+          name="OfflineVerifyOTPScreen"
+          component={OfflineVerifyOTPScreen}
+        />
+        <Stack.Screen
+          name="OfflineChargeDrawerScreen"
+          component={OfflineChargeDrawerScreen}
+        />
+        <Stack.Screen
+          name="OfflineChargeScreen"
+          component={OfflineChargeScreen}
+        />
+        {/* Offline */}
         <Stack.Screen name="ChargeScreen" component={ChargeScreen} />
         <Stack.Screen name="ChargeTokenScreen" component={ChargeTokenScreen} />
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} />

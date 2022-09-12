@@ -4,7 +4,7 @@ import {RNToasty} from 'react-native-toasty';
 import {useDispatch, useSelector} from 'react-redux';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
 
-import {FontSize, Spacing, colors} from '../../constants';
+import {FontSize, Spacing, colors} from '../../../constants';
 import {
   Card,
   PopupModal,
@@ -13,17 +13,17 @@ import {
   CustomHeader,
   CustomTextInput,
   LoaderModal,
-} from '../../components';
-import {RahatService} from '../../services/chain';
-import {setTransactionData} from '../../redux/actions/transactionActions';
-import {setWalletData} from '../../redux/actions/walletActions';
+} from '../../../components';
+import {RahatService} from '../../../services/chain';
+import {setTransactionData} from '../../../redux/actions/transactionActions';
+import {setWalletData} from '../../../redux/actions/walletActions';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const VerifyOTPScreen = ({navigation, route}) => {
+const OfflineVerifyOTPScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
 
   const wallet = useSelector(state => state.walletReducer.wallet);
@@ -74,22 +74,14 @@ const VerifyOTPScreen = ({navigation, route}) => {
     }
     LoaderModal.show();
     try {
-      const rahatService = RahatService(
-        activeAppSettings.agency.contracts.rahat,
-        wallet,
-        activeAppSettings.agency.contracts.rahat_erc20,
-      );
-
-      let receipt, receiptData;
-
-      if (type === 'erc20') {
-        receipt = await rahatService.verifyChargeForERC20(phone, otp);
-      }
+      let receiptData;
+      // compare and verify otp from realm
+      // receipt = await rahatService.verifyChargeForERC20(phone, otp);
 
       receiptData = {
         timeStamp: today.toLocaleString(),
-        transactionHash: receipt.transactionHash,
-        to: receipt.to,
+        transactionHash: '',
+        to: activeAppSettings.redeem_address,
         status: 'success',
         chargeTo: phone,
         amount: type === 'erc20' ? amount : 0,
@@ -111,7 +103,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
 
   return (
     <>
-      <CustomHeader title={'Verify OTP'} hideBackButton />
+      <CustomHeader title={'Offline Verify OTP'} hideBackButton />
       <View style={styles.container}>
         <Card>
           <RegularText
@@ -137,7 +129,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
   );
 };
 
-export default VerifyOTPScreen;
+export default OfflineVerifyOTPScreen;
 
 const styles = StyleSheet.create({
   container: {

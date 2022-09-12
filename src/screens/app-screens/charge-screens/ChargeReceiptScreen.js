@@ -1,8 +1,7 @@
 import {RNToasty} from 'react-native-toasty';
-import {useTranslation} from 'react-i18next';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {Pressable, StyleSheet, View} from 'react-native';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
 
 import {Spacing, colors} from '../../../constants';
@@ -22,7 +21,7 @@ const ChargeDetail = ({title, detail, detailColor, onPress}) => (
 );
 
 const ChargeReceiptScreen = ({navigation, route}) => {
-  const {receiptData, from, packageDetail} = route?.params;
+  const {receiptData} = route?.params;
 
   const copyToClipboard = string => {
     Clipboard.setString(string);
@@ -35,12 +34,6 @@ const ChargeReceiptScreen = ({navigation, route}) => {
       <View style={styles.container}>
         <Card>
           <ChargeDetail title={'Type'} detail={receiptData?.balanceType} />
-          {receiptData?.packageName && (
-            <ChargeDetail
-              title={'Package Name'}
-              detail={receiptData?.packageName}
-            />
-          )}
           <ChargeDetail
             title={'Charge To'}
             detail={receiptData?.chargeTo}
@@ -90,7 +83,6 @@ const styles = StyleSheet.create({
   chargeDetail: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // paddingBottom: Spacing.vs / 3 ,
   },
   detailText: {width: wp(37), textAlign: 'right'},
 });

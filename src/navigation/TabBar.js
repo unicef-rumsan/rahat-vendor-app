@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {
   widthPercentageToDP as wp,
@@ -23,7 +23,6 @@ const MainTabScreen = () => {
         tabBarLabelPosition: 'below-icon',
         tabBarColor: 'white',
         tabBarHideOnKeyboard: true,
-        unmountOnBlur,
         headerShown: false,
         tabBarStyle: {
           height: hp('8%'),

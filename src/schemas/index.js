@@ -3,9 +3,9 @@ export const BackupOTPSchema = {
   name: 'Backupotps',
   properties: {
     _id: 'objectId',
-    phone: 'string',
-    pin: 'int',
-    balance: 'string',
+    phone: 'int',
+    pin: 'string',
+    balance: 'int',
   },
   primaryKey: '_id',
 };
@@ -15,8 +15,8 @@ export const TransactionSchema = {
   properties: {
     _id: 'objectId',
     vendor: 'string',
-    wallet: 'string',
-    phone: 'string',
+    pin: 'string',
+    phone: 'int',
     amount: 'int',
     txhash: 'string?',
     status: 'string',
