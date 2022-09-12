@@ -60,9 +60,6 @@ const HomeScreen = ({navigation, route}) => {
 
   const wallet = useSelector(state => state.walletReducer.wallet);
   const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
-  const unconfirmedBalance = useSelector(
-    state => state.walletReducer.unconfirmedBalance,
-  );
   const transactions = useSelector(
     state => state.transactionReducer.transactions,
   );
@@ -76,11 +73,15 @@ const HomeScreen = ({navigation, route}) => {
   });
 
   const [backupOtps, setBackupOtps] = useState([]);
+  const [transactionData, setTransactionData] = useState([]);
+  const [unconfirmedBalance, setUnconfirmedBalance] = useState(0);
+  const [unconfirmedTxns, setUnconfirmedTxns] = useState(0);
   const {refreshing, bottomSheetContent} = values;
 
   const onRefresh = () => {
     getBalance();
     fetchBackupOTPList();
+    fetchOfflineTransactionsList();
   };
 
   const renderBottomSheet = () => (
@@ -151,6 +152,38 @@ const HomeScreen = ({navigation, route}) => {
     }
   };
 
+  const fetchOfflineTransactionsList = async () => {
+    try {
+      getRealm().then(realm => {
+        const txData = realm.objects('Transactions');
+        setTransactionData(txData);
+        txData.addListener(() => {
+          setTransactionData([...txData]);
+        });
+        return () => {
+          const listTxns = realm.objects('Transactions');
+          listTxns.removeAllListeners();
+          realm.close();
+        };
+      });
+    } catch (e) {
+      alert(e);
+    }
+  };
+
+  useMemo(() => {
+    let sum = 0;
+    let count = 0;
+    transactionData.forEach(tx => {
+      if (tx.status === 'pending') {
+        sum += tx.amount;
+        count++;
+      }
+    });
+    setUnconfirmedBalance(sum);
+    setUnconfirmedTxns(count);
+  }, [transactionData]);
+
   useEffect(() => {
     let temp = userData.agencies?.filter(
       data => data.agency === activeAppSettings.agency._id,
@@ -182,6 +215,7 @@ const HomeScreen = ({navigation, route}) => {
     if (isMounted || refresh) {
       getBalance();
       fetchBackupOTPList();
+      fetchOfflineTransactionsList();
     }
     return () => (isMounted = false);
   }, [route]);
@@ -363,7 +397,7 @@ const HomeScreen = ({navigation, route}) => {
               <RegularText
                 color={colors.lightGray}
                 fontSize={FontSize.small * 1.1}>
-                0
+                {unconfirmedTxns}
               </RegularText>
             </View>
           </View>

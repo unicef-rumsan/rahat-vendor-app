@@ -5,6 +5,8 @@ import {
 } from 'react-native-responsive-screen';
 import {useSelector} from 'react-redux';
 import {StyleSheet, View, Pressable} from 'react-native';
+import {searchOTP} from '../../../providers/Otp';
+import {searchTxn} from '../../../providers/Transaction';
 
 import {
   SmallText,
@@ -65,21 +67,37 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
     setValues(values => ({...values, isSubmitting: true}));
     try {
       // Get balance from offline realm
-      const balance = '1000';
-      if (balance === 0) {
+      const search = await searchOTP(phone);
+      const foundTxn = await searchTxn(phone);
+      let sum = 0;
+      foundTxn.forEach(txn => {
+        sum += txn.amount;
+      });
+      if (search.length > 0) {
+        const balance = search[0].balance - sum;
+        const pin = search[0].pin;
+        if (balance === 0) {
+          setValues({...values, isSubmitting: false});
+          return PopupModal.show({
+            popupType: 'alert',
+            messageType: 'Info',
+            message: 'Insufficient fund',
+          });
+        }
+
         setValues({...values, isSubmitting: false});
+        navigation.navigate('OfflineChargeScreen', {
+          tokenBalance: balance,
+          beneficiaryPhone: phone,
+          pin: pin,
+        });
+      } else {
         return PopupModal.show({
           popupType: 'alert',
           messageType: 'Info',
-          message: 'Insufficient fund',
+          message: 'Beneficiary not found',
         });
       }
-
-      setValues({...values, isSubmitting: false});
-      navigation.navigate('OfflineChargeScreen', {
-        tokenBalance: balance,
-        beneficiaryPhone: phone,
-      });
     } catch (e) {
       alert(e);
       setValues({...values, isSubmitting: false});

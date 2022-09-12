@@ -14,9 +14,9 @@ import {
   CustomTextInput,
   LoaderModal,
 } from '../../../components';
-import {RahatService} from '../../../services/chain';
 import {setTransactionData} from '../../../redux/actions/transactionActions';
 import {setWalletData} from '../../../redux/actions/walletActions';
+import {addTransaction} from '../../../providers/Transaction';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -25,7 +25,6 @@ if (Platform.OS === 'android') {
 
 const OfflineVerifyOTPScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
-
   const wallet = useSelector(state => state.walletReducer.wallet);
   const activeAppSettings = useSelector(
     state => state.agencyReducer.activeAppSettings,
@@ -34,8 +33,7 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
     state => state.transactionReducer.transactions,
   );
 
-  const {phone, remarks, type, amount} = route?.params;
-
+  const {phone, remarks, type, amount, pin} = route?.params;
   const [otp, setOtp] = useState('');
 
   const storeReceiptSuccess = receiptData => {
@@ -64,25 +62,34 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
   const onSubmit = async () => {
     let timeElapsed = Date.now();
     let today = new Date(timeElapsed);
+    const ISODate = new Date().toISOString();
     Keyboard.dismiss();
-    if (otp === '') {
+    if (otp === '' || otp !== pin) {
       return PopupModal.show({
         popupType: 'alert',
         messageType: 'Info',
-        message: "Please enter otp sent to customer's phone",
+        message: 'Please enter correct OTP',
       });
     }
     LoaderModal.show();
     try {
       let receiptData;
-      // compare and verify otp from realm
-      // receipt = await rahatService.verifyChargeForERC20(phone, otp);
-
+      // Enter transaction in realm
+      const transactionPayload = {
+        amount: Number(amount),
+        created_at: ISODate,
+        phone: Number(phone),
+        pin,
+        status: 'pending',
+        txhash: '',
+        vendor: wallet.address,
+      };
+      await addTransaction(transactionPayload);
       receiptData = {
         timeStamp: today.toLocaleString(),
         transactionHash: '',
         to: activeAppSettings.redeem_address,
-        status: 'success',
+        status: 'Pending',
         chargeTo: phone,
         amount: type === 'erc20' ? amount : 0,
         transactionType: 'charge',
@@ -92,24 +99,30 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
       };
       storeReceiptData(receiptData);
     } catch (e) {
-      LoaderModal.hide();
-      PopupModal.show({
-        popupType: 'alert',
-        message: 'Invalid  OTP. Please try again',
-        messageType: 'Error',
-      });
+      alert(e);
+      //TODO: Turn on for Production
+      // LoaderModal.hide();
+      // PopupModal.show({
+      //   popupType: 'alert',
+      //   message: 'Invalid  OTP. Please try again',
+      //   messageType: 'Error',
+      // });
     }
   };
-
   return (
     <>
       <CustomHeader title={'Offline Verify OTP'} hideBackButton />
       <View style={styles.container}>
         <Card>
           <RegularText
+            fontSize={FontSize.bold}
+            style={{paddingBottom: Spacing.vs, textAlign: 'center'}}>
+            {`Phone Number: ${phone}`}
+          </RegularText>
+          <RegularText
             fontSize={FontSize.medium}
             style={{paddingBottom: Spacing.vs}}>
-            OTP from SMS (ask from customer)
+            {`OTP for Rs. ${amount} Transaction`}
           </RegularText>
           <CustomTextInput
             placeholder={'Enter OTP'}

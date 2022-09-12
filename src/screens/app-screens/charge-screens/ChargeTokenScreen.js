@@ -86,7 +86,7 @@ const ChargeTokenScreen = ({navigation, route}) => {
   };
 
   const onSubmit = async () => {
-    if (amount === '' || amount > tokenBalance) {
+    if (amount === '' || amount > tokenBalance || amount < 1) {
       return setValues({...values, textInputErrorFlag: 1});
     }
 

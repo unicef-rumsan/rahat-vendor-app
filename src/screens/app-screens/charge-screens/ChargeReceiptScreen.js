@@ -41,8 +41,10 @@ const ChargeReceiptScreen = ({navigation, route}) => {
           />
           <ChargeDetail
             title={'Status'}
-            detail={'Success'}
-            detailColor={colors.green}
+            detail={receiptData?.status}
+            detailColor={
+              receiptData?.status === 'success' ? colors.green : colors.blue
+            }
           />
           <ChargeDetail
             title={'To'}

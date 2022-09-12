@@ -19,7 +19,6 @@ import {
   CustomHeader,
   CustomTextInput,
 } from '../../../components';
-import {RahatService} from '../../../services/chain';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -41,10 +40,9 @@ const AmountWithAngleBracket = ({amount}) => (
 );
 
 const OfflineChargeTokenScreen = ({navigation, route}) => {
-  const {tokenBalance, beneficiaryPhone} = route.params;
+  const {tokenBalance, beneficiaryPhone, pin} = route.params;
   const {t} = useTranslation();
 
-  const wallet = useSelector(state => state.walletReducer.wallet);
   const userData = useSelector(state => state.authReducer.userData);
   const activeAppSettings = useSelector(
     state => state.agencyReducer.activeAppSettings,
@@ -86,7 +84,7 @@ const OfflineChargeTokenScreen = ({navigation, route}) => {
   };
 
   const onSubmit = async () => {
-    if (amount === '' || amount > tokenBalance) {
+    if (amount === '' || amount > tokenBalance || amount < 1) {
       return setValues({...values, textInputErrorFlag: 1});
     }
 
@@ -98,6 +96,7 @@ const OfflineChargeTokenScreen = ({navigation, route}) => {
       setValues({...values, isSubmitting: false});
       LoaderModal.hide();
       navigation.navigate('OfflineVerifyOTPScreen', {
+        pin,
         phone: beneficiaryPhone,
         amount: amount,
         remarks: remarks,
