@@ -11,7 +11,7 @@ import {
 } from '../screens/auth-screens';
 import {PopupModal} from '../components';
 import {LinkAgencyScreen} from '../screens/app-screens';
-import {LoaderModal, SwitchAgencyModal} from '../components';
+import {LoaderModal} from '../components';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,7 +22,9 @@ const AuthStack = () => {
     state => state.authReducer.registrationFormData,
   );
 
-  if (walletInfo && registrationFormData) initialRouteName = 'LinkAgencyScreen';
+  if (walletInfo && registrationFormData) {
+    initialRouteName = 'LinkAgencyScreen';
+  }
 
   return (
     <>
