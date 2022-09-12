@@ -92,6 +92,7 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
           pin: pin,
         });
       } else {
+        setValues({...values, isSubmitting: false});
         return PopupModal.show({
           popupType: 'alert',
           messageType: 'Info',
@@ -99,8 +100,8 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
         });
       }
     } catch (e) {
-      alert(e);
       setValues({...values, isSubmitting: false});
+      alert(e);
     }
   };
 

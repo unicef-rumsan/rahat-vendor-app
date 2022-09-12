@@ -103,8 +103,8 @@ const OfflineChargeTokenScreen = ({navigation, route}) => {
         type: 'erc20',
       });
     } catch (e) {
-      alert(e);
       LoaderModal.hide();
+      alert(e);
     }
   };
 

@@ -175,14 +175,14 @@ const HomeScreen = ({navigation, route}) => {
     let sum = 0;
     let count = 0;
     transactionData.forEach(tx => {
-      if (tx.status === 'pending') {
+      if (tx.status === 'pending' && tx.vendor === wallet.address) {
         sum += tx.amount;
         count++;
       }
     });
     setUnconfirmedBalance(sum);
     setUnconfirmedTxns(count);
-  }, [transactionData]);
+  }, [transactionData, wallet.address]);
 
   useEffect(() => {
     let temp = userData.agencies?.filter(
