@@ -36,7 +36,6 @@ import {FontSize, Spacing, colors} from '../../constants';
 import {getWalletBalance} from '../../redux/actions/walletActions';
 
 import getRealm from '../../database';
-// import {ObjectId} from 'bson';
 
 let BACK_COUNT = 0;
 
@@ -132,25 +131,21 @@ const HomeScreen = ({navigation, route}) => {
       dispatch(getWalletBalance(wallet, activeAppSettings));
     }
   };
-  // const addBeneficiary = async () => {
-  //   const realm = await getRealm();
-  //   return realm
-  //     .write(async () => {
-  //       await realm.create('Backupotps', {
-  //         _id: new ObjectId(),
-  //         phone: 9845160081,
-  //         pin: '1234',
-  //         balance: 100,
-  //       });
-  //     })
-  //     .then(d => alert(d));
-  // };
+
   const fetchBackupOTPList = async () => {
     try {
-      const realm = await getRealm();
-      let list = realm.objects('Backupotps');
-      setBackupOtps(list);
-      return list;
+      getRealm().then(realm => {
+        const data = realm.objects('Backupotps');
+        setBackupOtps(data);
+        data.addListener(() => {
+          setBackupOtps([...data]);
+        });
+        return () => {
+          const list = realm.objects('Backupotps');
+          list.removeAllListeners();
+          realm.close();
+        };
+      });
     } catch (e) {
       alert(e);
     }
