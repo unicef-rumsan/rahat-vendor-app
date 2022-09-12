@@ -85,7 +85,7 @@ const Tabs = () => {
           listeners={({navigation}) => ({
             tabPress: e => {
               e.preventDefault();
-              if (netInfo.isConnected) {
+              if (netInfo.isConnected && netInfo.isInternetReachable) {
                 navigation.navigate('ChargeDrawerScreen', {phone: null});
               } else {
                 navigation.navigate('OfflineChargeDrawerScreen', {phone: null});

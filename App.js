@@ -11,12 +11,15 @@ import {store, persistor} from './src/redux/store';
 
 const App = () => {
   const netInfo = useNetInfo();
+  console.log({netInfo});
   return (
     <>
       <StatusBar
         translucent
         barStyle="dark-content"
-        backgroundColor={netInfo.isConnected ? 'white' : 'red'}
+        backgroundColor={
+          netInfo.isConnected && netInfo.isInternetReachable ? 'white' : 'red'
+        }
       />
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
