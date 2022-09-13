@@ -43,7 +43,7 @@ const ChargeScreen = ({navigation, route}) => {
         </SmallText>
         <Pressable
           onPress={() => {
-            navigation.navigate('OfflineChargeTokenScreen', {
+            navigation.navigate('ChargeTokenScreen', {
               tokenBalance,
               beneficiaryPhone,
             });
