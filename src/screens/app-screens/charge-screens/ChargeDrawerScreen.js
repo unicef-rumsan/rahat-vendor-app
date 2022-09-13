@@ -144,14 +144,6 @@ const ChargeDrawerScreen = ({navigation, route}) => {
             Important: Please double check the phone number and amount before
             charging. Transactions cannot be reversed.
           </SmallText>
-
-          {/* <CustomButton
-            outlined
-            title={'Switch Agency'}
-            disabled={isSubmitting}
-            width={widthPercentageToDP(90)}
-            onPress={_onSwitchAgency}
-          /> */}
           <CustomButton
             title={'Proceed'}
             color={colors.green}
