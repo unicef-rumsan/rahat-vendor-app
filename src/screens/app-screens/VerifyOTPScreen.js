@@ -17,6 +17,7 @@ import {
 import {RahatService} from '../../services/chain';
 import {setTransactionData} from '../../redux/actions/transactionActions';
 import {setWalletData} from '../../redux/actions/walletActions';
+import {addTransaction} from '../../providers/Transaction';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -64,6 +65,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
   const onSubmit = async () => {
     let timeElapsed = Date.now();
     let today = new Date(timeElapsed);
+    const ISODate = new Date().toISOString();
     Keyboard.dismiss();
     if (otp === '') {
       return PopupModal.show({
@@ -85,7 +87,17 @@ const VerifyOTPScreen = ({navigation, route}) => {
       if (type === 'erc20') {
         receipt = await rahatService.verifyChargeForERC20(phone, otp);
       }
-
+      // Enter transaction in realm
+      const transactionPayload = {
+        amount: Number(amount),
+        created_at: ISODate,
+        phone: Number(phone),
+        pin: otp,
+        status: 'success',
+        txhash: receipt.transactionHash,
+        vendor: wallet.address,
+      };
+      await addTransaction(transactionPayload);
       receiptData = {
         timeStamp: today.toLocaleString(),
         transactionHash: receipt.transactionHash,
