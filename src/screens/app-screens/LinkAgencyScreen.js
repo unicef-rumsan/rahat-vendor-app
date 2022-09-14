@@ -336,14 +336,14 @@ const LinkAgencyScreen = ({navigation, route}) => {
           />
         </View>
 
-        {/* <View>
-          <CustomButton
+        <View>
+          {/* <CustomButton
             title={'LINK AGENCY WITH QR SCAN'}
             onPress={() => setLinkAgencyType('qr')}
             outlined
-          />
+          /> */}
           <CustomButton title={'Continue'} onPress={handleLinkAgencyWithCode} />
-        </View> */}
+        </View>
       </View>
     </View>
   );
