@@ -139,7 +139,6 @@ const RestoreAccountScreen = ({navigation}) => {
       handleRestoreWallet(data);
     } catch (e) {
       alert(e);
-      console.log({initialiDriv: 'ko error', e});
       const errorMessage = e?.message || e?.error || '';
       LoaderModal.hide();
       PopupModal.show({

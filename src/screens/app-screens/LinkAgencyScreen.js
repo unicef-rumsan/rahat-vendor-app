@@ -5,14 +5,13 @@ import {
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import {useDispatch, useSelector} from 'react-redux';
-import {useIsFocused} from '@react-navigation/native';
-import QRCodeScanner from 'react-native-qrcode-scanner';
 import {
   StyleSheet,
   View,
   StatusBar,
   SafeAreaView,
   Keyboard,
+  Platform,
 } from 'react-native';
 
 import {
@@ -30,7 +29,6 @@ import {
   getRestoreUserData,
   clearRegistrationFormData,
 } from '../../redux/actions/authActions';
-import {RumsanLogo} from '../../../assets/icons';
 import {FontSize, Spacing, colors} from '../../constants';
 import {setWalletData} from '../../redux/actions/walletActions';
 import {setAppSettings} from '../../redux/actions/agencyActions';
@@ -43,7 +41,6 @@ if (Platform.OS === 'android') {
 
 const LinkAgencyScreen = ({navigation, route}) => {
   const dispatch = useDispatch();
-  const isFocused = useIsFocused();
 
   const wallet = useSelector(state => state.walletReducer.wallet);
   const appSettings = useSelector(state => state.agencyReducer.appSettings);
@@ -52,28 +49,6 @@ const LinkAgencyScreen = ({navigation, route}) => {
   );
 
   const [agencyCode, setAgencyCode] = useState('');
-  const [linkAgencyType, setLinkAgencyType] = useState('qr');
-
-  const onScan = res => {
-    const agencyUrl = res?.data;
-    if (
-      route.params?.from === 'agencies' &&
-      appSettings?.some(item => item.agencyUrl === agencyUrl)
-    ) {
-      return PopupModal.show({
-        popupType: 'alert',
-        messageType: 'Info',
-        message:
-          'Already linked to this agency. Cannot link same agency twice.',
-      });
-    }
-    LoaderModal.show({
-      message: 'Fetching agency details.',
-    });
-    dispatch(
-      getAppSettings(agencyUrl, onGetAppSettingsSuccess, onGetAppSettingsError),
-    );
-  };
 
   const handleLinkAgencyWithCode = () => {
     Keyboard.dismiss();
@@ -252,103 +227,45 @@ const LinkAgencyScreen = ({navigation, route}) => {
     });
   };
 
-  const LinkWithQRUI = () => (
-    <View style={styles.container}>
-      {isFocused && (
-        <StatusBar backgroundColor="rgba(0,0,0,0)" barStyle="light-content" />
-      )}
+  return (
+    <>
+      <View style={styles.linkWithCodeUIContainer}>
+        <SafeAreaView style={styles.header}>
+          <PoppinsMedium style={{fontSize: FontSize.large}}>
+            Link Agency
+          </PoppinsMedium>
+        </SafeAreaView>
 
-      <QRCodeScanner
-        showMarker
-        reactivate
-        vibrate={false}
-        onRead={onScan}
-        cameraStyle={{height: '100%'}}
-        markerStyle={{borderColor: 'white'}}
-      />
-
-      <View style={styles.alignCenter}>
-        <PoppinsMedium
-          color={colors.white}
-          fontSize={FontSize.large * 1.3}
-          style={{textAlign: 'center'}}>
-          Link Agency
-        </PoppinsMedium>
-        <PoppinsMedium
-          color={colors.white}
-          fontSize={FontSize.large}
-          style={styles.text}>
-          Scan QR code to link agency
-        </PoppinsMedium>
-        <PoppinsMedium
-          color={colors.white}
-          fontSize={FontSize.small / 1.1}
-          style={styles.text}>
-          Please align the QR code within the frame
-        </PoppinsMedium>
-      </View>
-      <View style={styles.buttonView}>
-        <CustomButton
-          title={'LINK AGENCY USING CODE'}
-          onPress={() => setLinkAgencyType('code')}
-        />
-      </View>
-      <View style={styles.poweredByView}>
-        <RegularText
-          color={colors.white}
+        <View
           style={{
-            textAlign: 'center',
-            paddingHorizontal: Spacing.hs / 3,
-            fontSize: FontSize.small,
+            flex: 1,
+            justifyContent: 'space-between',
+            marginBottom: Spacing.vs * 3,
           }}>
-          Powered By
-        </RegularText>
-        <RumsanLogo />
-      </View>
-    </View>
-  );
+          <View>
+            <RegularText
+              fontSize={FontSize.medium}
+              style={{paddingBottom: Spacing.vs}}>
+              Link agency using code
+            </RegularText>
+            <CustomTextInput
+              placeholder={'Enter Code'}
+              keyboardType="url"
+              autoCapitalize="none"
+              onChangeText={value => setAgencyCode(value)}
+            />
+          </View>
 
-  const LinkWithCodeUI = () => (
-    <View style={styles.linkWithCodeUIContainer}>
-      <SafeAreaView style={styles.header}>
-        <PoppinsMedium style={{fontSize: FontSize.large}}>
-          Link Agency
-        </PoppinsMedium>
-      </SafeAreaView>
-
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'space-between',
-          marginBottom: Spacing.vs * 3,
-        }}>
-        <View>
-          <RegularText
-            fontSize={FontSize.medium}
-            style={{paddingBottom: Spacing.vs}}>
-            Link agency using code
-          </RegularText>
-          <CustomTextInput
-            placeholder={'Enter Code'}
-            keyboardType="url"
-            autoCapitalize="none"
-            onChangeText={value => setAgencyCode(value)}
-          />
-        </View>
-
-        <View>
-          {/* <CustomButton
-            title={'LINK AGENCY WITH QR SCAN'}
-            onPress={() => setLinkAgencyType('qr')}
-            outlined
-          /> */}
-          <CustomButton title={'Continue'} onPress={handleLinkAgencyWithCode} />
+          <View>
+            <CustomButton
+              title={'Continue'}
+              onPress={handleLinkAgencyWithCode}
+            />
+          </View>
         </View>
       </View>
-    </View>
+    </>
   );
-
-  return <>{linkAgencyType === 'qr' ? LinkWithCodeUI() : LinkWithQRUI()}</>;
 };
 
 export default LinkAgencyScreen;
