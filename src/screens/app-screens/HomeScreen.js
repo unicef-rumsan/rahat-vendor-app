@@ -185,10 +185,16 @@ const HomeScreen = ({navigation, route}) => {
   }, [transactionData, wallet.address]);
 
   useEffect(() => {
-    let temp = userData.agencies?.filter(
-      data => data.agency === activeAppSettings.agency._id,
-    );
-    setUserInAgencyStatus(temp[0]?.status);
+    let isMounted = true;
+    if (isMounted) {
+      let temp = userData.agencies?.filter(
+        data => data.agency === activeAppSettings.agency._id,
+      );
+      setUserInAgencyStatus(temp[0]?.status);
+    }
+    return () => {
+      isMounted = false;
+    };
   }, [activeAppSettings, userData, refreshing]);
 
   useBackHandler(() => {

@@ -12,7 +12,13 @@ export const LoaderModal = () => {
   });
 
   React.useEffect(() => {
-    LoaderModal.setStateRef = setState;
+    let isMounted = true;
+    if (isMounted) {
+      LoaderModal.setStateRef = setState;
+    }
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useFocusEffect(
