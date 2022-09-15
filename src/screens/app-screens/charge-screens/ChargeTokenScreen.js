@@ -69,7 +69,7 @@ const ChargeTokenScreen = ({navigation, route}) => {
         },
       });
     }
-  }, [activeAppSettings]);
+  }, [activeAppSettings, userData, navigation]);
 
   const handleTextChange = (value, name) => {
     let tempValue;

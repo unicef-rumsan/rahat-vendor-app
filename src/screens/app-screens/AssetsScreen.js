@@ -1,14 +1,9 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 import {useTranslation} from 'react-i18next';
-import {StatusBar, StyleSheet, View, Pressable} from 'react-native';
+import {StatusBar, StyleSheet, View, Pressable, Platform} from 'react-native';
 import {FontSize, Spacing, colors} from '../../constants';
-import {
-  CustomHeader,
-  Card,
-  RegularText,
-  // IndividualPackageView,
-} from '../../components';
+import {CustomHeader, Card, RegularText} from '../../components';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -24,7 +19,7 @@ const AssetsScreen = ({navigation, route}) => {
       <CustomHeader title={'Assets'} hideBackButton />
 
       <View style={styles.container}>
-        <Pressable onPress={() => navigation.navigate('ChargeTokenScreen')}>
+        <Pressable onPress={() => navigation.navigate('RedeemTokenScreen')}>
           <Card style={styles.tokenDetailCard}>
             <RegularText
               color={colors.gray}
@@ -39,7 +34,6 @@ const AssetsScreen = ({navigation, route}) => {
               }}>
               {tokenBalance}
             </RegularText>
-            {/* <AmountWithAngleBracket amount={10000} /> */}
           </Card>
         </Pressable>
       </View>
