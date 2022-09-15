@@ -133,6 +133,8 @@ const TransferTokenScreen = ({navigation, route}) => {
   };
 
   const onSuccess = () => {
+    setValues({...values, showLoader: false});
+    LoaderModal.hide();
     let timeElapsed = Date.now();
     let timeStamp = new Date(timeElapsed);
 
