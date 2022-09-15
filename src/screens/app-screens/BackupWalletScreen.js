@@ -58,15 +58,18 @@ const BackupWalletScreen = ({navigation}) => {
     });
 
     try {
-      let encryptedData = await encryptionHelper(walletInfo, passcode);
+      const encryptedData = await encryptionHelper(walletInfo, passcode);
       if (encryptedData.cipher) {
-        await gdrive.files
-          .newMultipartUploader()
-          .setData(JSON.stringify(encryptedData), MimeTypes.BINARY)
-          .setRequestBody({
-            name: 'rahat_v2_backup',
-          })
-          .execute();
+        const id = (
+          await gdrive.files
+            .newMultipartUploader()
+            .setData(JSON.stringify(encryptedData), MimeTypes.BINARY)
+            .setRequestBody({
+              name: 'rahat_v2_backup',
+            })
+            .execute()
+        ).id;
+        console.log({id});
         LoaderModal.hide();
         PopupModal.show({
           popupType: 'alert',
@@ -75,6 +78,7 @@ const BackupWalletScreen = ({navigation}) => {
         });
       }
     } catch (e) {
+      console.log({e});
       LoaderModal.hide();
       PopupModal.show({
         popupType: 'alert',
@@ -207,7 +211,7 @@ const BackupWalletScreen = ({navigation}) => {
           <SmallText>Option 2: Backup to Google Drive.</SmallText>
           <SmallText style={styles.description}>
             {t(
-              "Another easier way to backup is just storing an encrypted form of your wallet in your Google Drive. You still have to remember or write down your 6 digit app passcode, as the app uses this passcode to encrypt the wallet before sending to Google Drive, for security. You will need to sign in with Google and give access to Drive. The app will create a folder called 'eSatyaWalletBackup'. NEVER delete it or any contents within it.",
+              "Another easier way to backup is just storing an encrypted form of your wallet in your Google Drive. You still have to remember or write down your 6 digit app passcode, as the app uses this passcode to encrypt the wallet before sending to Google Drive, for security. You will need to sign in with Google and give access to Drive. The app will create a file called 'rahat_v2_backup'. NEVER delete it.",
             )}
           </SmallText>
           <CustomButton

@@ -86,7 +86,7 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
         }
 
         setValues({...values, isSubmitting: false});
-        navigation.navigate('OfflineChargeScreen', {
+        navigation.navigate('OfflineChargeTokenScreen', {
           tokenBalance: balance,
           beneficiaryPhone: phone,
           pin: pin,

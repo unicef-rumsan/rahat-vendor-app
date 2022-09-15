@@ -63,7 +63,7 @@ const AgencyScreen = ({navigation}) => {
   //   );
   // };
 
-  const onSwitchAgencyError = error => {
+  const onError = error => {
     LoaderModal.hide();
     return PopupModal.show({
       message: String(error),
@@ -72,7 +72,7 @@ const AgencyScreen = ({navigation}) => {
     });
   };
 
-  const onSwitchAgencySuccess = () => {
+  const onSuccess = () => {
     LoaderModal.hide();
     navigation.navigate('HomeScreen');
   };
@@ -87,8 +87,8 @@ const AgencyScreen = ({navigation}) => {
     dispatch(
       switchAgencyAction({
         wallet,
-        onSwitchAgencyError,
-        onSwitchAgencySuccess,
+        onError,
+        onSuccess,
         newAppSettings,
       }),
     );

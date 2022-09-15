@@ -39,7 +39,7 @@ const ChargeScreen = ({navigation, route}) => {
           {activeAppSettings?.agency?.name}
         </SmallText>
         <SmallText style={{fontSize: FontSize.small * 1.1}} color={colors.gray}>
-          Charge To :
+          Charge To : {beneficiaryPhone}
         </SmallText>
         <Pressable
           onPress={() => {

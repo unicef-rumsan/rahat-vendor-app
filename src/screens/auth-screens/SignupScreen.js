@@ -160,7 +160,6 @@ const SignupScreen = ({navigation}) => {
     };
 
     dispatch(storeRegistrationFormData({registrationFormData: data}));
-
     navigation.replace('LinkAgencyScreen', {
       data,
       from: 'signup',

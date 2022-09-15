@@ -113,7 +113,7 @@ const TransferTokenScreen = ({navigation, route}) => {
 
   const storeReceiptSuccess = receiptData => {
     setValues({...values, showLoader: false});
-    navigation.replace('TransferReceiptScreen', {
+    navigation.navigate('TransferReceiptScreen', {
       receiptData,
     });
   };

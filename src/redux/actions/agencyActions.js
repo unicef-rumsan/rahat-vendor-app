@@ -10,8 +10,7 @@ export const setAppSettings = payloadObj => ({
 });
 
 export const switchAgencyAction = payloadObj => async dispatch => {
-  const {wallet, newAppSettings, onSwitchAgencySuccess, onSwitchAgencyError} =
-    payloadObj;
+  const {wallet, newAppSettings, onError, onSuccess} = payloadObj;
   try {
     const response = await api.apiGetUserByWalletAddress(
       newAppSettings.agencyUrl,
@@ -48,9 +47,9 @@ export const switchAgencyAction = payloadObj => async dispatch => {
       }),
     );
 
-    onSwitchAgencySuccess();
+    onSuccess();
   } catch (e) {
     console.log(e);
-    onSwitchAgencyError(e);
+    onError(e);
   }
 };

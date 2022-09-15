@@ -114,7 +114,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
       }
 
       setValues({...values, isSubmitting: false});
-      navigation.navigate('ChargeScreen', {
+      navigation.navigate('ChargeTokenScreen', {
         tokenBalance: balance,
         beneficiaryPhone: phone,
       });

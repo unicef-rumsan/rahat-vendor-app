@@ -100,13 +100,12 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
       storeReceiptData(receiptData);
     } catch (e) {
       alert(e);
-      //TODO: Turn on for Production
-      // LoaderModal.hide();
-      // PopupModal.show({
-      //   popupType: 'alert',
-      //   message: 'Invalid  OTP. Please try again',
-      //   messageType: 'Error',
-      // });
+      LoaderModal.hide();
+      PopupModal.show({
+        popupType: 'alert',
+        message: 'Invalid  OTP. Please try again',
+        messageType: 'Error',
+      });
     }
   };
   return (
