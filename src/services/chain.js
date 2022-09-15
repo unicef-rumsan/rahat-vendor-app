@@ -81,14 +81,10 @@ const RahatService = (agencyAddress, wallet, tokenAddress, triggerAddress) => {
   };
 };
 
-const TokenService = (agencyAddress, wallet, tokenAddress, nftAddress) => {
+const TokenService = (agencyAddress, wallet, tokenAddress) => {
   return {
     async getContract() {
-      const agency = await getAgencyDetails(
-        agencyAddress,
-        tokenAddress,
-        nftAddress,
-      );
+      const agency = await getAgencyDetails(agencyAddress, tokenAddress, '');
       return agency.tokenContract;
     },
 

@@ -67,7 +67,6 @@ export const getWalletBalance = (wallet, settings) => async dispatch => {
     dispatch(
       setWalletData({
         tokenBalance: tokenBalance.toNumber(),
-        unconfirmedBalance: 0,
       }),
     );
   } catch (e) {
