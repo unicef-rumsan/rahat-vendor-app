@@ -99,6 +99,7 @@ const ChargeTokenScreen = ({navigation, route}) => {
         activeAppSettings.agency.contracts.rahat,
         wallet,
         activeAppSettings.agency.contracts.rahat_erc20,
+        activeAppSettings.agency.contracts.rahat_trigger,
       ).chargeCustomerERC20(beneficiaryPhone, amount);
       setValues({...values, isSubmitting: false});
       LoaderModal.hide();

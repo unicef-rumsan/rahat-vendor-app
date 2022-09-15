@@ -3,9 +3,14 @@ import {ethers} from 'ethers';
 const ABI = {
   TOKEN: require('../../assets/contracts/RahatERC20.json'),
   RAHAT: require('../../assets/contracts/Rahat.json'),
+  TRIGGER: require('../../assets/contracts/RahatTriggerResponse.json'),
 };
 
-const getAgencyDetails = async (agencyAddress, tokenAddress) => {
+const getAgencyDetails = async (
+  agencyAddress,
+  tokenAddress,
+  triggerAddress,
+) => {
   const details = agencyAddress;
   const provider = new ethers.providers.JsonRpcProvider(
     'https://testnetwork.esatya.io',
@@ -21,19 +26,40 @@ const getAgencyDetails = async (agencyAddress, tokenAddress) => {
     provider,
   );
 
+  const rahatTriggerResponseContract = new ethers.Contract(
+    triggerAddress,
+    ABI.TRIGGER.abi,
+    provider,
+  );
   return {
     details,
     provider,
     rahatContract,
     tokenContract,
+    rahatTriggerResponseContract,
   };
 };
 
-const RahatService = (agencyAddress, wallet, tokenAddress) => {
+const RahatService = (agencyAddress, wallet, tokenAddress, triggerAddress) => {
   return {
     async getContract() {
-      const agency = await getAgencyDetails(agencyAddress, tokenAddress);
+      const agency = await getAgencyDetails(
+        agencyAddress,
+        tokenAddress,
+        triggerAddress,
+      );
       return agency.rahatContract.connect(wallet);
+    },
+
+    async getTriggerResponse() {
+      const agency = await getAgencyDetails(
+        agencyAddress,
+        tokenAddress,
+        triggerAddress,
+      );
+      const isProjectActivated =
+        await agency.rahatTriggerResponseContract.isLive();
+      return isProjectActivated;
     },
 
     async getErc20Balance(phone) {

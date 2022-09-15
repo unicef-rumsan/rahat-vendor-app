@@ -80,6 +80,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
         activeAppSettings.agency.contracts.rahat,
         wallet,
         activeAppSettings.agency.contracts.rahat_erc20,
+        activeAppSettings.agency.contracts.rahat_trigger,
       );
 
       let receipt, receiptData;

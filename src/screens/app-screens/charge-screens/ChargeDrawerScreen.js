@@ -54,7 +54,36 @@ const ChargeDrawerScreen = ({navigation, route}) => {
       });
     }
     bottomSheetModalRef.current?.present();
-  }, [activeAppSettings]);
+  }, [activeAppSettings, navigation, userData]);
+
+  useEffect(() => {
+    async function checkProjectActivation() {
+      try {
+        let rahatService = RahatService(
+          activeAppSettings.agency.contracts.rahat,
+          wallet,
+          activeAppSettings.agency.contracts.rahat_erc20,
+          activeAppSettings.agency.contracts.rahat_trigger,
+        );
+        let balance = await rahatService.getTriggerResponse();
+        if (!balance) {
+          return PopupModal.show({
+            popupType: 'alert',
+            messageType: 'Info',
+            message: 'Project not activated. Contact Agency.',
+            onConfirm: () => {
+              PopupModal.hide();
+              navigation.navigate('HomeScreen');
+            },
+          });
+        }
+        return true;
+      } catch (e) {
+        alert(e);
+      }
+    }
+    checkProjectActivation();
+  }, [activeAppSettings, wallet, navigation]);
 
   const handleProceed = async () => {
     if (phone === '') {
@@ -72,6 +101,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
         activeAppSettings.agency.contracts.rahat,
         wallet,
         activeAppSettings.agency.contracts.rahat_erc20,
+        activeAppSettings.agency.contracts.rahat_trigger,
       );
       let balance = await rahatService.getErc20Balance(phone);
       if (balance === 0) {
