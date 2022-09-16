@@ -57,7 +57,6 @@ const RestoreAccountScreen = ({navigation}) => {
   };
 
   const onError = e => {
-    // let error = JSON.stringify(e);
     LoaderModal.hide();
     PopupModal.show({
       popupType: 'alert',
@@ -209,11 +208,11 @@ const RestoreAccountScreen = ({navigation}) => {
             title={'RESTORE USING SEED PHRASE'}
             onPress={() => navigation.navigate('RestoreMnemonicScreen')}
           />
-          <CustomButton
+          {/* <CustomButton
             title={'RESTORE USING GOOGLE DRIVE'}
             color={colors.green}
             onPress={() => setValues({...values, showPasscodeModal: true})}
-          />
+          /> */}
         </View>
       </View>
     </>
