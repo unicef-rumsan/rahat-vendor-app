@@ -44,6 +44,7 @@ const imagePickerConfigs = {
   cropperToolbarTitle: 'Edit Image',
   cropperToolbarWidgetColor: colors.white,
   includeBase64: true,
+  freeStyleCropEnabled: true,
 };
 
 const profilePickerConfigs = {...imagePickerConfigs, width: 400, height: 400};
