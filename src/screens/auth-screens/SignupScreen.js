@@ -136,7 +136,7 @@ const SignupScreen = ({navigation}) => {
         setPageTitle(`${t('Register')}`);
         break;
     }
-  }, [activePage, t]);
+  }, [activePage]);
 
   const handleSubmit = () => {
     LoaderModal.show({message: 'Creating your wallet. Please wait...'});

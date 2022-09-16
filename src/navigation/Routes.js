@@ -50,26 +50,20 @@ const Routes = () => {
   }, [activeLanguage]);
 
   useEffect(() => {
-    let isMounted = true;
-    if (isMounted) {
-      setAuthData({initializing: true});
-      if (walletInfo) {
-        const provider = new ethers.providers.JsonRpcProvider(
-          activeAppSettings?.networkUrl,
-        );
+    setAuthData({initializing: true});
+    if (walletInfo) {
+      const provider = new ethers.providers.JsonRpcProvider(
+        activeAppSettings?.networkUrl,
+      );
 
-        const temp = new ethers.Wallet(walletInfo.privateKey);
-        const connectedWallet = temp.connect(provider);
-        dispatch(setWalletData({wallet: connectedWallet}));
-        dispatch(setAuthData());
-      }
-
+      const temp = new ethers.Wallet(walletInfo.privateKey);
+      const connectedWallet = temp.connect(provider);
+      dispatch(setWalletData({wallet: connectedWallet}));
       dispatch(setAuthData());
+      return;
     }
-    return () => {
-      isMounted = false;
-    };
-  }, [activeAppSettings, walletInfo, dispatch]);
+    dispatch(setAuthData());
+  }, []);
 
   if (initializing) {
     return (
