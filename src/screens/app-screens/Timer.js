@@ -1,8 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {Text} from 'react-native';
 
-const Timer = () => {
+const Timer = props => {
   const [count, setCount] = useState(0);
+
+  const {onChange} = props;
+  onChange(count);
+
   useEffect(() => {
     const timer = () => {
       setCount(count + 1);
