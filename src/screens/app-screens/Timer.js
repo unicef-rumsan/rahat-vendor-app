@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import {Text} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import {FontSize, Spacing, colors} from '../../constants';
+import {Card, RegularText} from '../../components';
 
 const Timer = props => {
   const [count, setCount] = useState(0);
@@ -15,10 +17,41 @@ const Timer = props => {
     return () => clearInterval(id);
   }, [count]);
 
-  return <Text>Duration (Secs): {count}</Text>;
+  return (
+    <View style={styles.container}>
+      <Card style={styles.tokenDetailCard}>
+        <RegularText
+          color={colors.gray}
+          style={{fontSize: FontSize.medium * 1.1}}>
+          Duration (Secs):
+        </RegularText>
+        <RegularText
+          color={colors.gray}
+          style={{
+            fontSize: FontSize.medium * 1.1,
+            paddingHorizontal: Spacing.hs,
+          }}>
+          {count}
+        </RegularText>
+      </Card>
+    </View>
+  );
 };
 
 export default Timer;
 
-// Call like this in Parent Component
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.white,
+    paddingHorizontal: Spacing.hs,
+  },
+  tokenDetailCard: {
+    paddingVertical: Spacing.vs * 1.5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+});
+
+// Call like this in Parent Component; Add getTimeFromTimer function
 // <Timer onChange={getTimeFromTimer} />
