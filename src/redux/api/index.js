@@ -11,3 +11,6 @@ export const apiGetRestoreUserData = (agencyUrl, data) =>
 
 export const apiGetAppSettings = agencyUrl =>
   axios.get(`${agencyUrl}/api/v1/app/settings`);
+
+export const apiGetWards = () =>
+  axios.get('https://unicef-api.xa.rahat.io/api/v1/beneficiaries/wards');

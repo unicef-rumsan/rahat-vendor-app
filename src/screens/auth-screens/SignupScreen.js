@@ -19,6 +19,7 @@ import {useTranslation} from 'react-i18next';
 import CheckBox from '@react-native-community/checkbox';
 import ImagePicker from 'react-native-image-crop-picker';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 import {
   SmallText,
@@ -31,6 +32,7 @@ import {
 import {FontSize, Spacing, colors} from '../../constants';
 import {getWallet} from '../../redux/actions/walletActions';
 import {storeRegistrationFormData} from '../../redux/actions/authActions';
+import {apiGetWards} from '../../redux/api';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -90,6 +92,10 @@ const SignupScreen = ({navigation}) => {
   const [activePage, setActivePage] = useState(0);
   const [pageTitle, setPageTitle] = useState('');
   const [agreeTC, setAgreeTC] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [wardNum, setWardNum] = useState(null);
+  const [items, setItems] = useState([]);
+  const [wardCheckErr, setWardCheckErr] = useState(false);
 
   const inputRef = useRef([]);
 
@@ -98,7 +104,7 @@ const SignupScreen = ({navigation}) => {
     phone: '',
     address: '',
     email: '',
-    // govt_id: '',
+    ward: '',
     profileImageUrl: '',
     idFrontImageUrl: '',
     idBackImageUrl: '',
@@ -112,7 +118,7 @@ const SignupScreen = ({navigation}) => {
     address,
     email,
     phone,
-    // govt_id,
+    ward,
     profileImageUrl,
     idFrontImageUrl,
     idBackImageUrl,
@@ -138,6 +144,17 @@ const SignupScreen = ({navigation}) => {
     }
   }, [activePage]);
 
+  useEffect(() => {
+    async function getWards() {
+      let {data: wards} = await apiGetWards();
+      wards = wards.map(wrd => {
+        return {label: wrd, value: wrd};
+      });
+      setItems(wards);
+    }
+    getWards();
+  }, []);
+
   const handleSubmit = () => {
     LoaderModal.show({message: 'Creating your wallet. Please wait...'});
     setTimeout(() => {
@@ -154,8 +171,8 @@ const SignupScreen = ({navigation}) => {
       phone,
       wallet_address,
       email,
+      // ward,
       address,
-      // govt_id,
       govt_id_image: idFrontImageUrl,
       photo: profileImageUrl,
     };
@@ -173,6 +190,9 @@ const SignupScreen = ({navigation}) => {
   };
 
   const handleTextChange = (value, name) => {
+    if (name === 'ward') {
+      setWardCheckErr(false);
+    }
     setValues({
       ...values,
       [name]: value,
@@ -185,15 +205,17 @@ const SignupScreen = ({navigation}) => {
       address === '' ||
       phone === '' ||
       email === '' ||
-      // govt_id === '' ||
+      ward === '' ||
+      ward === null ||
       !email.includes('@')
     ) {
       setValues({...values, registerErrorFlag: 1});
+      setWardCheckErr(true);
       return;
     }
     setActivePage(prev => prev + 1);
   };
-
+  console.log({values});
   const registerPage = () => (
     <View style={styles().pageView}>
       <View>
@@ -252,9 +274,7 @@ const SignupScreen = ({navigation}) => {
           placeholder={t('Address')}
           value={address}
           ref={input => (inputRef.current['address'] = input)}
-          // onSubmitEditing={() => inputRef.current['govt_id'].focus()}
           returnKeyType="done"
-          // blurOnSubmit={false}
           onChangeText={value => handleTextChange(value, 'address')}
           error={
             registerErrorFlag === 1 &&
@@ -263,20 +283,33 @@ const SignupScreen = ({navigation}) => {
           }
         />
 
-        {/* <CustomTextInput
-          placeholder="Government Issued Document No."
-          value={govt_id}
-          onChangeText={value => handleTextChange(value, 'govt_id')}
-          error={
-            registerErrorFlag === 1 &&
-            govt_id === '' &&
-            'Document No. is required'
-          }
-          returnKeyType="done"
-          // blurOnSubmit={false}
-          keyboardType={'email-address'}
-          ref={input => (inputRef.current['govt_id'] = input)}
-        /> */}
+        <DropDownPicker
+          open={open}
+          value={wardNum}
+          items={items}
+          setOpen={setOpen}
+          setValue={setWardNum}
+          setItems={setItems}
+          placeholder={t('Ward')}
+          textStyle={{
+            fontSize: FontSize.medium,
+            color: colors.gray,
+            paddingHorizontal: 7.5,
+          }}
+          style={{borderColor: colors.gray}}
+          returnKeyType="next"
+          autoCapitalize="none"
+          blurOnSubmit={false}
+          onChangeValue={value => handleTextChange(value, 'ward')}
+        />
+        {wardCheckErr ? (
+          <SmallText
+            noPadding
+            color={colors.danger}
+            style={{paddingHorizontal: Spacing.hs, paddingTop: Spacing.vs / 5}}>
+            {`${t('Ward')} ${t('is required')}`}
+          </SmallText>
+        ) : null}
       </View>
       <CustomButton
         title={t('Next')}
