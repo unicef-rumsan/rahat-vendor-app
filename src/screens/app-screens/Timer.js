@@ -19,3 +19,6 @@ const Timer = props => {
 };
 
 export default Timer;
+
+// Call like this in Parent Component
+// <Timer onChange={getTimeFromTimer} />
