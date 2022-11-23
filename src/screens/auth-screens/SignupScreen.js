@@ -171,7 +171,7 @@ const SignupScreen = ({navigation}) => {
       phone,
       wallet_address,
       email,
-      // ward,
+      // ward, TODO: enable after API update
       address,
       govt_id_image: idFrontImageUrl,
       photo: profileImageUrl,
@@ -215,7 +215,7 @@ const SignupScreen = ({navigation}) => {
     }
     setActivePage(prev => prev + 1);
   };
-  console.log({values});
+
   const registerPage = () => (
     <View style={styles().pageView}>
       <View>
