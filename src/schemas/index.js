@@ -5,6 +5,7 @@ export const BackupOTPSchema = {
     _id: 'objectId',
     phone: 'string',
     pin: 'string',
+    ward: 'string',
     balance: 'int',
   },
   primaryKey: '_id',
