@@ -51,7 +51,7 @@ const ProfileScreen = ({navigation}) => {
         />
         <IndividualSettingView
           icon={<LocationIcon />}
-          title={userData?.address.concat(' ', userData?.ward || '')}
+          title={userData?.address.concat(', Ward ', userData?.ward || '-')}
           style={{paddingHorizontal: Spacing.hs * 2}}
         />
 

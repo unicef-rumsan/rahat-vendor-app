@@ -171,7 +171,7 @@ const SignupScreen = ({navigation}) => {
       phone,
       wallet_address,
       email,
-      // ward, TODO: enable after API update
+      ward,
       address,
       govt_id_image: idFrontImageUrl,
       photo: profileImageUrl,
