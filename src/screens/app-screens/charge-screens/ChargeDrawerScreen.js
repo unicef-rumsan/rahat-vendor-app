@@ -102,13 +102,14 @@ const ChargeDrawerScreen = ({navigation, route}) => {
       // Get balance from offline realm
       const search = await searchOTP(phone);
       const foundTxn = await searchTxn(phone);
-      let sum = 0;
-      foundTxn.forEach(txn => {
-        sum += txn.amount;
-      });
-      const offlineBalance = search[0]?.balance - sum;
       const ward = search[0]?.ward || '';
-      if (search.length > 0) {
+
+      if (search.length > 0 && foundTxn.length > 0) {
+        let sum = 0;
+        foundTxn.forEach(txn => {
+          sum += txn.amount;
+        });
+        const offlineBalance = search[0]?.balance - sum;
         if (offlineBalance === 0) {
           setValues({...values, isSubmitting: false});
           return PopupModal.show({
