@@ -153,7 +153,7 @@ const SignupScreen = ({navigation}) => {
       setItems(wards);
     }
     getWards();
-  }, []);
+  }, [open]);
 
   const handleSubmit = () => {
     LoaderModal.show({message: 'Creating your wallet. Please wait...'});
