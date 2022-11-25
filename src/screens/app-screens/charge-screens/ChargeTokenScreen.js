@@ -41,7 +41,7 @@ const AmountWithAngleBracket = ({amount}) => (
 );
 
 const ChargeTokenScreen = ({navigation, route}) => {
-  const {tokenBalance, beneficiaryPhone} = route.params;
+  const {tokenBalance, beneficiaryPhone, ward} = route.params;
   const {t} = useTranslation();
 
   const wallet = useSelector(state => state.walletReducer.wallet);
@@ -55,6 +55,7 @@ const ChargeTokenScreen = ({navigation, route}) => {
     remarks: '',
     textInputErrorFlag: false,
   });
+  const [warningMsg, setWarningMsg] = useState('');
   const {amount, remarks, textInputErrorFlag} = values;
 
   useEffect(() => {
@@ -70,6 +71,17 @@ const ChargeTokenScreen = ({navigation, route}) => {
       });
     }
   }, [activeAppSettings, userData, navigation]);
+
+  useEffect(() => {
+    if (!userData?.ward) {
+      setWarningMsg('Vendor has not been assigned to any ward');
+    } else if (!ward) {
+      setWarningMsg('Beneficiary has not been assigned to any ward');
+    } else if (userData?.ward !== ward) {
+      setWarningMsg("Vendor and Beneficiary ward doesn't match");
+    }
+    userData?.ward !== ward;
+  }, [userData?.ward, ward]);
 
   const handleTextChange = (value, name) => {
     let tempValue;
@@ -126,6 +138,15 @@ const ChargeTokenScreen = ({navigation, route}) => {
           color={colors.gray}>
           {activeAppSettings.agency.name}
         </SmallText>
+        {warningMsg ? (
+          <Card style={styles.tokenDetailCard}>
+            <RegularText
+              color={colors.yellow}
+              style={{fontSize: FontSize.extraSmall}}>
+              {warningMsg}
+            </RegularText>
+          </Card>
+        ) : null}
         <Card style={styles.tokenDetailCard}>
           <RegularText
             color={colors.gray}

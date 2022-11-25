@@ -17,6 +17,8 @@ import {
 import {QRIcon} from '../../../../assets/icons';
 import {RahatService} from '../../../services/chain';
 import {FontSize, Spacing, colors} from '../../../constants';
+import {searchOTP} from '../../../providers/Otp';
+import {searchTxn} from '../../../providers/Transaction';
 
 const ChargeDrawerScreen = ({navigation, route}) => {
   const wallet = useSelector(state => state.walletReducer.wallet);
@@ -97,27 +99,54 @@ const ChargeDrawerScreen = ({navigation, route}) => {
     setValues(values => ({...values, isSubmitting: true}));
 
     try {
-      let rahatService = RahatService(
-        activeAppSettings.agency.contracts.rahat,
-        wallet,
-        activeAppSettings.agency.contracts.rahat_erc20,
-        activeAppSettings.agency.contracts.rahat_trigger,
-      );
-      let balance = await rahatService.getErc20Balance(phone);
-      if (balance === 0) {
+      // Get balance from offline realm
+      const search = await searchOTP(phone);
+      const foundTxn = await searchTxn(phone);
+      let sum = 0;
+      foundTxn.forEach(txn => {
+        sum += txn.amount;
+      });
+      const offlineBalance = search[0]?.balance - sum;
+      const ward = search[0]?.ward || '';
+      if (search.length > 0) {
+        if (offlineBalance === 0) {
+          setValues({...values, isSubmitting: false});
+          return PopupModal.show({
+            popupType: 'alert',
+            messageType: 'Info',
+            message: 'Insufficient fund',
+          });
+        }
         setValues({...values, isSubmitting: false});
-        return PopupModal.show({
-          popupType: 'alert',
-          messageType: 'Info',
-          message: 'Insufficient fund',
+        navigation.navigate('ChargeTokenScreen', {
+          tokenBalance: offlineBalance, //TBD
+          beneficiaryPhone: phone,
+          ward: ward,
+        });
+      } else {
+        let rahatService = RahatService(
+          activeAppSettings.agency.contracts.rahat,
+          wallet,
+          activeAppSettings.agency.contracts.rahat_erc20,
+          activeAppSettings.agency.contracts.rahat_trigger,
+        );
+        let balance = await rahatService.getErc20Balance(phone);
+        if (balance === 0) {
+          setValues({...values, isSubmitting: false});
+          return PopupModal.show({
+            popupType: 'alert',
+            messageType: 'Info',
+            message: 'Insufficient fund',
+          });
+        }
+
+        setValues({...values, isSubmitting: false});
+        navigation.navigate('ChargeTokenScreen', {
+          tokenBalance: balance,
+          beneficiaryPhone: phone,
+          ward: ward,
         });
       }
-
-      setValues({...values, isSubmitting: false});
-      navigation.navigate('ChargeTokenScreen', {
-        tokenBalance: balance,
-        beneficiaryPhone: phone,
-      });
     } catch (e) {
       alert(e);
       setValues({...values, isSubmitting: false});

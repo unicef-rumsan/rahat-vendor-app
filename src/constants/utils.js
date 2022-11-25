@@ -11,6 +11,7 @@ export const Spacing = {
 };
 
 export const FontSize = {
+  extraSmall: hp(1.4),
   xsmall: hp(1.5),
   small: hp(1.8),
   regular: hp(2.4),

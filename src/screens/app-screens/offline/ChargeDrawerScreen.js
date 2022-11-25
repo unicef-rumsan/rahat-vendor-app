@@ -74,8 +74,9 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
         sum += txn.amount;
       });
       if (search.length > 0) {
-        const balance = search[0].balance - sum;
-        const pin = search[0].pin;
+        const balance = search[0]?.balance - sum;
+        const pin = search[0]?.pin;
+        const ward = search[0]?.ward || '';
         if (balance === 0) {
           setValues({...values, isSubmitting: false});
           return PopupModal.show({
@@ -90,6 +91,7 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
           tokenBalance: balance,
           beneficiaryPhone: phone,
           pin: pin,
+          ward: ward,
         });
       } else {
         setValues({...values, isSubmitting: false});

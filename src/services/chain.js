@@ -13,7 +13,7 @@ const getAgencyDetails = async (
 ) => {
   const details = agencyAddress;
   const provider = new ethers.providers.JsonRpcProvider(
-    'https://testnetwork.esatya.io',
+    'https://chain.esatya.io',
   );
   const rahatContract = new ethers.Contract(
     agencyAddress,
