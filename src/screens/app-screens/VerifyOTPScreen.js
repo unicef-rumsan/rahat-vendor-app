@@ -36,7 +36,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
     state => state.transactionReducer.transactions,
   );
 
-  const {phone, remarks, type, amount} = route?.params;
+  const {phone, remarks, type, amount, isQR} = route?.params;
 
   const [otp, setOtp] = useState('');
   const [otpDuration, setOtpDuration] = useState('');
@@ -100,6 +100,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
         txhash: receipt.transactionHash,
         vendor: wallet.address,
         otpDuration,
+        isQR,
       };
       await addTransaction(transactionPayload);
       receiptData = {
