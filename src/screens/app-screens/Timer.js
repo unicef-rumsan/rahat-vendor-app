@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet} from 'react-native';
 import {FontSize, Spacing, colors} from '../../constants';
 import {Card, RegularText} from '../../components';
 
@@ -18,23 +18,21 @@ const Timer = props => {
   }, [count]);
 
   return (
-    <View style={styles.container}>
-      <Card style={styles.tokenDetailCard}>
-        <RegularText
-          color={colors.gray}
-          style={{fontSize: FontSize.medium * 1.1}}>
-          Duration (Secs):
-        </RegularText>
-        <RegularText
-          color={colors.gray}
-          style={{
-            fontSize: FontSize.medium * 1.1,
-            paddingHorizontal: Spacing.hs,
-          }}>
-          {count}
-        </RegularText>
-      </Card>
-    </View>
+    <Card style={styles.tokenDetailCard}>
+      <RegularText
+        color={colors.gray}
+        style={{fontSize: FontSize.medium * 1.1}}>
+        OTP Duration (Secs):
+      </RegularText>
+      <RegularText
+        color={colors.gray}
+        style={{
+          fontSize: FontSize.medium * 1.1,
+          paddingHorizontal: Spacing.hs,
+        }}>
+        {count}
+      </RegularText>
+    </Card>
   );
 };
 

@@ -18,6 +18,8 @@ import {setTransactionData} from '../../../redux/actions/transactionActions';
 import {setWalletData} from '../../../redux/actions/walletActions';
 import {addTransaction} from '../../../providers/Transaction';
 
+import Timer from '../../app-screens/Timer';
+
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
@@ -33,8 +35,9 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
     state => state.transactionReducer.transactions,
   );
 
-  const {phone, remarks, type, amount, pin} = route?.params;
+  const {phone, remarks, type, amount, pin, isQR} = route?.params;
   const [otp, setOtp] = useState('');
+  const [otpDuration, setOtpDuration] = useState('');
 
   const storeReceiptSuccess = receiptData => {
     LoaderModal.hide();
@@ -83,6 +86,9 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
         status: 'pending',
         txhash: '',
         vendor: wallet.address,
+        isQR,
+        isOffline: true,
+        otpDuration,
       };
       await addTransaction(transactionPayload);
       receiptData = {
@@ -108,10 +114,16 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
       });
     }
   };
+
+  const getTimeFromTimer = time => {
+    setOtpDuration(String(time));
+  };
+
   return (
     <>
       <CustomHeader title={'Offline Verify OTP'} hideBackButton />
       <View style={styles.container}>
+        <Timer onChange={getTimeFromTimer} />
         <Card>
           <RegularText
             fontSize={FontSize.bold}

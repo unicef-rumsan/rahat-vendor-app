@@ -123,6 +123,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
           tokenBalance: offlineBalance, //TBD
           beneficiaryPhone: phone,
           ward: ward,
+          isQR: route?.params?.isQR || false,
         });
       } else {
         let rahatService = RahatService(
@@ -146,6 +147,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
           tokenBalance: balance,
           beneficiaryPhone: phone,
           ward: ward,
+          isQR: route?.params?.isQR || false,
         });
       }
     } catch (e) {

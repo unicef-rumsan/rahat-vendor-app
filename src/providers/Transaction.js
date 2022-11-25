@@ -8,6 +8,7 @@ const addTransaction = async payload => {
   instance.write(async () => {
     newData = instance.create('Transactions', {
       _id: new ObjectId(),
+      _partition: 'myPartition',
       ...payload,
     });
   });

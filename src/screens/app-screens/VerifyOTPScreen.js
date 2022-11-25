@@ -18,6 +18,7 @@ import {RahatService} from '../../services/chain';
 import {setTransactionData} from '../../redux/actions/transactionActions';
 import {setWalletData} from '../../redux/actions/walletActions';
 import {addTransaction} from '../../providers/Transaction';
+import Timer from '../app-screens/Timer';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
@@ -38,6 +39,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
   const {phone, remarks, type, amount} = route?.params;
 
   const [otp, setOtp] = useState('');
+  const [otpDuration, setOtpDuration] = useState('');
 
   const storeReceiptSuccess = receiptData => {
     LoaderModal.hide();
@@ -97,6 +99,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
         status: 'success',
         txhash: receipt.transactionHash,
         vendor: wallet.address,
+        otpDuration,
       };
       await addTransaction(transactionPayload);
       receiptData = {
@@ -122,10 +125,15 @@ const VerifyOTPScreen = ({navigation, route}) => {
     }
   };
 
+  const getTimeFromTimer = time => {
+    setOtpDuration(String(time));
+  };
+
   return (
     <>
       <CustomHeader title={'Verify OTP'} hideBackButton />
       <View style={styles.container}>
+        <Timer onChange={getTimeFromTimer} />
         <Card>
           <RegularText
             fontSize={FontSize.medium}

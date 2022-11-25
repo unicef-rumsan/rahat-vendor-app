@@ -92,6 +92,7 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
           beneficiaryPhone: phone,
           pin: pin,
           ward: ward,
+          isQR: route?.params?.isQR || false,
         });
       } else {
         setValues({...values, isSubmitting: false});

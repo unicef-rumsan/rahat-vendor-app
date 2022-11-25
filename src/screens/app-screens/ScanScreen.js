@@ -65,9 +65,17 @@ const ScanScreen = ({navigation, route}) => {
 
       if (phone !== undefined && amount !== undefined) {
         if (netInfo.isConnected && netInfo.isInternetReachable) {
-          navigation.navigate('ChargeDrawerScreen', {phone, amount});
+          navigation.navigate('ChargeDrawerScreen', {
+            phone,
+            amount,
+            isQR: true,
+          });
         } else {
-          navigation.navigate('OfflineChargeDrawerScreen', {phone, amount});
+          navigation.navigate('OfflineChargeDrawerScreen', {
+            phone,
+            amount,
+            isQR: true,
+          });
         }
       }
     },
