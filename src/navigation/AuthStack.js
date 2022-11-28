@@ -6,7 +6,8 @@ import {
   LandingScreen,
   RegisterSuccessScreen,
   RestoreAccountScreen,
-  RestoreMnemonicScreen,
+  // RestoreMnemonicScreen,
+  ResoreMnemonicScreenTemp,
   SignupScreen,
 } from '../screens/auth-screens';
 import {PopupModal} from '../components';
@@ -46,7 +47,7 @@ const AuthStack = () => {
         />
         <Stack.Screen
           name="RestoreMnemonicScreen"
-          component={RestoreMnemonicScreen}
+          component={ResoreMnemonicScreenTemp}
         />
       </Stack.Navigator>
       <LoaderModal />

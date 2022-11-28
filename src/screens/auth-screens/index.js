@@ -4,6 +4,7 @@ import RegisterSuccessScreen from './RegisterSuccessScreen';
 import RestoreAccountScreen from './RestoreAccountScreen';
 import RestoreMnemonicScreen from './RestoreMnemonicScreen';
 import SignupScreen from './SignupScreen';
+import ResoreMnemonicScreenTemp from './RestoreMnemonicScreenTemp';
 
 export {
   GetStartedScreen,
@@ -12,4 +13,5 @@ export {
   RestoreAccountScreen,
   RestoreMnemonicScreen,
   SignupScreen,
+  ResoreMnemonicScreenTemp,
 };
