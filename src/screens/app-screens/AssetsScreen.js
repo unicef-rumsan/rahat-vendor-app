@@ -48,21 +48,6 @@ const AssetsScreen = ({navigation, route}) => {
   }, [activeAppSettings?.agencyUrl]);
 
   useEffect(() => {
-    async function getContractsABIs() {
-      try {
-        const {
-          data: {abi},
-        } = await apiGetContractAbi(activeAppSettings?.agencyUrl, 'rahat');
-        setRahatAbi(abi);
-        return abi;
-      } catch (e) {
-        console.log('err', e);
-      }
-    }
-    getContractsABIs();
-  }, [activeAppSettings?.agencyUrl]);
-
-  useEffect(() => {
     async function getRahatWalletABI() {
       try {
         const {
@@ -106,7 +91,6 @@ const AssetsScreen = ({navigation, route}) => {
 
       const [walletAddress, cashAllow, cashBal] =
         await rahatContract.vendorBalance(wallet?.address);
-      console.log('here');
       if (walletAddress) {
         setRahatWalletAddress(walletAddress);
         setCashAllowance(cashAllow.toNumber());
@@ -127,23 +111,26 @@ const AssetsScreen = ({navigation, route}) => {
       const provider = new ethers.providers.JsonRpcProvider(
         activeAppSettings?.networkUrl,
       );
-      const VendorContract = new ethers.Contract(
+      const VendorContracts = new ethers.Contract(
         rahatWalletAddress,
         rahatWalletAbi,
         provider,
       );
-      setVendorContract(VendorContract);
+      setVendorContract(VendorContracts);
     } catch (e) {
       console.log(e);
     }
   }, [activeAppSettings?.networkUrl, rahatWalletAbi, rahatWalletAddress]);
 
   const cashAccept = async () => {
-    await VendorContract.claimToken(
+    const isAccepted = await VendorContract.claimToken(
       contractsAddresses.rahat_wallet,
       contractsAddresses.rahat,
       cashAllowance,
     );
+    if (isAccepted) {
+      setCashAvailable(false);
+    }
   };
 
   const getVendorData = useCallback(async () => {
