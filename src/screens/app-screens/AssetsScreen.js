@@ -1,36 +1,25 @@
-import {ethers} from 'ethers';
-import React, {useCallback, useEffect, useState} from 'react';
-import {useSelector} from 'react-redux';
-import {useTranslation} from 'react-i18next';
-import {widthPercentageToDP} from 'react-native-responsive-screen';
-import {StatusBar, StyleSheet, View, Pressable, Platform} from 'react-native';
-import {FontSize, Spacing, colors} from '../../constants';
-import {CustomButton, CustomHeader, Card, RegularText} from '../../components';
-import {apiGetAppSettings, apiGetContractAbi} from '../../redux/api';
+import { ethers } from 'ethers';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
+import { widthPercentageToDP } from 'react-native-responsive-screen';
+import { RNToasty } from 'react-native-toasty';
+import { StatusBar, StyleSheet, View, Pressable, Platform } from 'react-native';
+import { FontSize, Spacing, colors } from '../../constants';
+import { CustomButton, CustomHeader, Card, RegularText } from '../../components';
+import { getBalances } from '../../redux/actions/walletActions';
+import { LoaderModal } from '../../components/LoaderModal';
+import { makeWalletContract } from '../../services/chain';
+
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-// TODO
-// get rahatWalletAbi from https://unicef-api.xa.rahat.io/api/v1/app/contracts/rahat_wallet
-// get rahatWalletAddress from  rahat.vendorBalance(vendorAddress) =>  walletAddress
-
-// vendorWalletInstance = makeContract(rahatWalletAbi,rahaWalletAddress)
-
-// accept Cash Token:
-//  - vendorWalletInstance.claimToken(rahat_cash_address,rahatAddress,cashAllowance)
-
-const AssetsScreen = ({navigation, route}) => {
-  const {t} = useTranslation();
-  const [cashBalance, setCashBalance] = useState(0);
-  const [isCashAvailable, setCashAvailable] = useState(false);
-  const [cashAllowance, setCashAllowance] = useState(0);
-  const [rahatWalletAbi, setRahatWalletAbi] = useState(null);
-  const [rahatAbi, setRahatAbi] = useState(null);
-  const [rahatWalletAddress, setRahatWalletAddress] = useState('');
-  const [contractsAddresses, setContractsAddresses] = useState(null);
+const AssetsScreen = ({ navigation, route }) => {
+  const { t } = useTranslation();
+  const dispatch = useDispatch();
   const [VendorContract, setVendorContract] = useState(null);
   const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
   // Importing the AsyncStorage Data
@@ -38,126 +27,81 @@ const AssetsScreen = ({navigation, route}) => {
     state => state.agencyReducer.activeAppSettings,
   );
   const wallet = useSelector(state => state.walletReducer.wallet);
+  const cashAllowance = useSelector(state => state.walletReducer.cashAllowance)
+  const vendorWalletContract = useSelector(state => state.walletReducer.vendorWalletContract)
+  const cashBalance = useSelector(state => state.walletReducer.cashBalance)
 
-  useEffect(() => {
-    async function getAllContracts() {
-      const {data} = await apiGetAppSettings(activeAppSettings?.agencyUrl);
-      setContractsAddresses(data?.agency?.contracts);
+  const fetchBalances = () => {
+    if (wallet) {
+      dispatch(getBalances(wallet, activeAppSettings));
     }
-    getAllContracts();
-  }, [activeAppSettings?.agencyUrl]);
+  };
 
-  useEffect(() => {
-    async function getRahatWalletABI() {
-      try {
-        const {
-          data: {abi},
-        } = await apiGetContractAbi(
-          activeAppSettings?.agencyUrl,
-          'rahat_wallet',
-        );
-        setRahatWalletAbi(abi);
-      } catch (e) {
-        console.log('err', e);
-      }
-    }
-    getRahatWalletABI();
-  }, [activeAppSettings?.agencyUrl]);
-
-  useEffect(() => {
-    async function getRahatABI() {
-      try {
-        const {
-          data: {abi},
-        } = await apiGetContractAbi(activeAppSettings?.agencyUrl, 'rahat');
-        setRahatAbi(abi);
-      } catch (e) {
-        console.log('err', e);
-      }
-    }
-    getRahatABI();
-  }, [activeAppSettings?.agencyUrl]);
-
-  const getRahatWalletAddress = useCallback(async () => {
+  const makeVendorWalletContract = useCallback(() => {
     try {
-      const provider = new ethers.providers.JsonRpcProvider(
-        activeAppSettings?.networkUrl,
-      );
-      const rahatContract = new ethers.Contract(
-        contractsAddresses?.rahat,
-        rahatAbi,
-        provider,
-      );
-
-      const [walletAddress, cashAllow, cashBal] =
-        await rahatContract.vendorBalance(wallet?.address);
-      if (walletAddress) {
-        setRahatWalletAddress(walletAddress);
-        setCashAllowance(cashAllow.toNumber());
-        setCashBalance(cashBal.toNumber());
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }, [
-    activeAppSettings?.networkUrl,
-    contractsAddresses,
-    rahatAbi,
-    wallet?.address,
-  ]);
-
-  const makeVendorContract = useCallback(() => {
-    try {
-      const provider = new ethers.providers.JsonRpcProvider(
-        activeAppSettings?.networkUrl,
-      );
-      const VendorContracts = new ethers.Contract(
-        rahatWalletAddress,
-        rahatWalletAbi,
-        provider,
-      );
+      const VendorContracts = makeWalletContract(vendorWalletContract, wallet);
       setVendorContract(VendorContracts);
     } catch (e) {
       console.log(e);
     }
-  }, [activeAppSettings?.networkUrl, rahatWalletAbi, rahatWalletAddress]);
+  }, [activeAppSettings?.networkUrl, vendorWalletContract]);
 
   const cashAccept = async () => {
-    const isAccepted = await VendorContract.claimToken(
-      contractsAddresses.rahat_wallet,
-      contractsAddresses.rahat,
-      cashAllowance,
-    );
-    if (isAccepted) {
-      setCashAvailable(false);
+    try {
+      LoaderModal.show({ message: "Accepting Cash..." })
+      const tx = await VendorContract.claimToken(
+        activeAppSettings?.agency?.contracts?.rahat_cash || '',
+        activeAppSettings?.agency?.contracts?.rahat || '',
+        cashAllowance,
+      );
+      const receipt = await tx.wait();
+      if (receipt.status) {
+        RNToasty.Success({
+          title: 'Cash Accepted',
+          duration: 0,
+          position: "top"
+        });
+      }
+      else {
+        RNToasty.Error({
+          title: "Transaction Fialed",
+          duration: 1,
+          position: "top"
+        })
+      }
+    }
+    catch (e) {
+      console.log(e)
+      RNToasty.Error({
+        title: "Transaction Error",
+        duration: 1,
+        position: "top"
+      })
+    }
+    finally {
+      LoaderModal.hide()
+      fetchBalances()
     }
   };
 
-  const getVendorData = useCallback(async () => {
-    try {
-      await getRahatWalletAddress();
-      makeVendorContract();
-    } catch (e) {
-      console.log('err', e);
+  useEffect(() => {
+    let processing = true;
+    if (processing) {
+      fetchBalances()
     }
-  }, [getRahatWalletAddress, makeVendorContract]);
+    return () => (processing = false);
+  }, [])
 
   useEffect(() => {
-    getVendorData();
-  }, [getVendorData]);
-
-  useEffect(() => {
-    setCashAvailable(true);
-  }, [cashAllowance]);
-
-  console.log({isCashAvailable, cashAllowance, cashBalance});
+    makeVendorWalletContract();
+  }, [makeVendorWalletContract]);
 
   return (
     <>
       <CustomHeader title={'Assets'} hideBackButton />
 
       <View style={styles.container}>
-        {isCashAvailable ? (
+        {cashAllowance ? (
           <Card style={styles.cashAcceptCard}>
             <RegularText color={colors.gray} style={styles.cashAlert}>
               {`You have received ${cashAllowance} cash from Palika`}
@@ -175,7 +119,7 @@ const AssetsScreen = ({navigation, route}) => {
           <Card style={styles.tokenDetailCard}>
             <RegularText
               color={colors.gray}
-              style={{fontSize: FontSize.medium * 1.1}}>
+              style={{ fontSize: FontSize.medium * 1.1 }}>
               Token Balance:
             </RegularText>
             <RegularText
@@ -191,7 +135,7 @@ const AssetsScreen = ({navigation, route}) => {
         <Card style={styles.tokenDetailCard}>
           <RegularText
             color={colors.gray}
-            style={{fontSize: FontSize.medium * 1.1}}>
+            style={{ fontSize: FontSize.medium * 1.1 }}>
             Cash Balance:
           </RegularText>
           <RegularText

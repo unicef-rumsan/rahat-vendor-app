@@ -1,10 +1,19 @@
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';
 
 const ABI = {
   TOKEN: require('../../assets/contracts/RahatERC20.json'),
   RAHAT: require('../../assets/contracts/Rahat.json'),
   TRIGGER: require('../../assets/contracts/RahatTriggerResponse.json'),
+  RAHAT_WALLET: require('../../assets/contracts/RahatWallet.json')
 };
+
+const makeWalletContract = (walletContractAddress, wallet) => {
+  return new ethers.Contract(
+    walletContractAddress,
+    ABI.RAHAT_WALLET.abi,
+    wallet
+  );
+}
 
 const getAgencyDetails = async (
   agencyAddress,
@@ -31,6 +40,7 @@ const getAgencyDetails = async (
     ABI.TRIGGER.abi,
     provider,
   );
+
   return {
     details,
     provider,
@@ -78,6 +88,16 @@ const RahatService = (agencyAddress, wallet, tokenAddress, triggerAddress) => {
       const tx = await contract.getERC20FromClaim(Number(phone), otp);
       return tx.wait();
     },
+    async getVendorBalance(address) {
+      const contract = await this.getContract();
+      const [vendorWalletContract, cashAllowance, cashBalance, tokenBalance] = await contract.vendorBalance(address);
+      return ({
+        vendorWalletContract,
+        cashAllowance: cashAllowance.toNumber(),
+        cashBalance: cashBalance.toNumber(),
+        tokenBalance: tokenBalance.toNumber()
+      })
+    }
   };
 };
 
@@ -102,4 +122,4 @@ const TokenService = (agencyAddress, wallet, tokenAddress) => {
   };
 };
 
-export {RahatService, TokenService};
+export { RahatService, TokenService, makeWalletContract };

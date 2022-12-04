@@ -1,6 +1,6 @@
-import {ethers} from 'ethers';
-import {TokenService} from '../../services/chain';
-import {SET_WALLET_DATA} from '../actionTypes';
+import { ethers } from 'ethers';
+import { RahatService, TokenService } from '../../services/chain';
+import { SET_WALLET_DATA } from '../actionTypes';
 
 export const setWalletData = payloadObj => async dispatch => {
   dispatch({
@@ -40,7 +40,7 @@ export const getWallet =
       address: wallet.address,
     };
 
-    dispatch(setWalletData({wallet, walletInfo}));
+    dispatch(setWalletData({ wallet, walletInfo }));
     onSuccess(wallet);
   };
 
@@ -50,7 +50,7 @@ export const restoreUsingDrive =
       let wallet;
       wallet = new ethers.Wallet(walletInfo.privateKey);
 
-      dispatch(setWalletData({wallet, walletInfo}));
+      dispatch(setWalletData({ wallet, walletInfo }));
       onSuccess();
     } catch (e) {
       onError(e);
@@ -69,7 +69,43 @@ export const getWalletBalance = (wallet, settings) => async dispatch => {
         tokenBalance: tokenBalance.toNumber(),
       }),
     );
+    // TODO: Implement this if we are using RAHAT contract everytime for token balance
+
+    // let balances = await RahatService(
+    //   settings?.agency?.contracts?.rahat,
+    //   wallet,
+    //   settings?.agency?.contracts?.rahat_erc20,
+    //   settings?.agency?.contracts?.rahat_trigger
+    // ).getVendorBalance(wallet.address);
+    // console.log(balances);
+    // dispatch(
+    //   setWalletData({
+    //     tokenBalance: balances.tokenBalance,
+    //     cashBalance: balances.cashBalance,
+    //     cashAllowance: balances.cashAllowance
+    //   }),
+    // );
+
   } catch (e) {
     // alert(e);
   }
+
 };
+
+
+export const getBalances = (wallet, settings) => async dispatch => {
+  let { cashAllowance, cashBalance, vendorWalletContract } = await RahatService(
+    settings?.agency?.contracts?.rahat,
+    wallet,
+    settings?.agency?.contracts?.rahat_erc20,
+    settings?.agency?.contracts?.rahat_trigger
+  ).getVendorBalance(wallet.address);
+  console.log({ cashAllowance, cashBalance, vendorWalletContract })
+  dispatch(
+    setWalletData({
+      cashBalance,
+      cashAllowance,
+      vendorWalletContract
+    }),
+  );
+}
