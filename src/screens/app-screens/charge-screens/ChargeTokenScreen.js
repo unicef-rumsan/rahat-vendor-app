@@ -123,6 +123,7 @@ const ChargeTokenScreen = ({navigation, route}) => {
         type: 'erc20',
         isQR,
         txnStart,
+        name,
       });
     } catch (e) {
       alert(e);
