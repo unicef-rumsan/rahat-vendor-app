@@ -78,7 +78,7 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
         const pin = search[0]?.pin;
         const ward = search[0]?.ward || '';
         const name = search[0]?.name || '';
-        if (balance === 0) {
+        if (balance <= 0) {
           setValues({...values, isSubmitting: false});
           return PopupModal.show({
             popupType: 'alert',

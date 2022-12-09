@@ -111,7 +111,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
           sum += txn.amount;
         });
         const offlineBalance = search[0]?.balance - sum;
-        if (offlineBalance === 0) {
+        if (offlineBalance <= 0) {
           setValues({...values, isSubmitting: false});
           return PopupModal.show({
             popupType: 'alert',
