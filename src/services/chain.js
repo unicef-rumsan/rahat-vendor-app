@@ -16,14 +16,12 @@ const makeWalletContract = (walletContractAddress, wallet) => {
 }
 
 const getAgencyDetails = async (
+  provider,
   agencyAddress,
   tokenAddress,
   triggerAddress,
 ) => {
   const details = agencyAddress;
-  const provider = new ethers.providers.JsonRpcProvider(
-    'https://chain-test.esatya.io',
-  );
   const rahatContract = new ethers.Contract(
     agencyAddress,
     ABI.RAHAT.abi,
@@ -54,6 +52,7 @@ const RahatService = (agencyAddress, wallet, tokenAddress, triggerAddress) => {
   return {
     async getContract() {
       const agency = await getAgencyDetails(
+        wallet.provider,
         agencyAddress,
         tokenAddress,
         triggerAddress,
@@ -63,6 +62,7 @@ const RahatService = (agencyAddress, wallet, tokenAddress, triggerAddress) => {
 
     async getTriggerResponse() {
       const agency = await getAgencyDetails(
+        wallet.provider,
         agencyAddress,
         tokenAddress,
         triggerAddress,
@@ -104,7 +104,7 @@ const RahatService = (agencyAddress, wallet, tokenAddress, triggerAddress) => {
 const TokenService = (agencyAddress, wallet, tokenAddress) => {
   return {
     async getContract() {
-      const agency = await getAgencyDetails(agencyAddress, tokenAddress, '');
+      const agency = await getAgencyDetails(wallet.provider, agencyAddress, tokenAddress, '');
       return agency.tokenContract;
     },
 
