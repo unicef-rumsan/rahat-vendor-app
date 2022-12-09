@@ -41,7 +41,7 @@ const AmountWithAngleBracket = ({amount}) => (
 );
 
 const ChargeTokenScreen = ({navigation, route}) => {
-  const {tokenBalance, beneficiaryPhone, ward, isQR} = route.params;
+  const {tokenBalance, beneficiaryPhone, ward, isQR, txnStart} = route.params;
   const {t} = useTranslation();
 
   const wallet = useSelector(state => state.walletReducer.wallet);
@@ -121,6 +121,7 @@ const ChargeTokenScreen = ({navigation, route}) => {
         remarks: remarks,
         type: 'erc20',
         isQR,
+        txnStart,
       });
     } catch (e) {
       alert(e);

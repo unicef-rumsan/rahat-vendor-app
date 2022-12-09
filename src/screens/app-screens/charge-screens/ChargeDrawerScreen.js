@@ -26,7 +26,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
   const activeAppSettings = useSelector(
     state => state.agencyReducer.activeAppSettings,
   );
-
+  const txnStart = new Date().valueOf();
   const [phone, setPhone] = useState('');
   const [values, setValues] = useState({
     isSubmitting: false,
@@ -126,6 +126,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
           ward: ward,
           name: name,
           isQR: route?.params?.isQR || false,
+          txnStart,
         });
       } else {
         let rahatService = RahatService(
@@ -151,6 +152,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
           ward: ward,
           name: name,
           isQR: route?.params?.isQR || false,
+          txnStart,
         });
       }
     } catch (e) {
