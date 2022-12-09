@@ -41,7 +41,8 @@ const AmountWithAngleBracket = ({amount}) => (
 );
 
 const ChargeTokenScreen = ({navigation, route}) => {
-  const {tokenBalance, beneficiaryPhone, ward, isQR, txnStart} = route.params;
+  const {tokenBalance, beneficiaryPhone, ward, isQR, txnStart, name} =
+    route.params;
   const {t} = useTranslation();
 
   const wallet = useSelector(state => state.walletReducer.wallet);
@@ -150,12 +151,27 @@ const ChargeTokenScreen = ({navigation, route}) => {
           </Card>
         ) : null}
         <Card style={styles.tokenDetailCard}>
-          <RegularText
-            color={colors.gray}
-            style={{fontSize: FontSize.medium * 1.1}}>
-            Token Balance :
-          </RegularText>
-          <AmountWithAngleBracket amount={tokenBalance} />
+          <View>
+            <View style={styles.cardItem}>
+              <RegularText color={colors.gray} fontSize={FontSize.medium * 1.1}>
+                Name :
+              </RegularText>
+              <RegularText
+                color={colors.gray}
+                fontSize={FontSize.small * 1.1}
+                style={{textTransform: 'capitalize'}}>
+                {name}
+              </RegularText>
+            </View>
+            <View style={styles.cardItem}>
+              <RegularText
+                color={colors.gray}
+                style={{fontSize: FontSize.medium * 1.1}}>
+                Token Balance :
+              </RegularText>
+              <AmountWithAngleBracket amount={tokenBalance} />
+            </View>
+          </View>
         </Card>
         <Card style={{paddingVertical: Spacing.vs * 2}}>
           <CustomTextInput
@@ -228,4 +244,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  cardItem: {flexDirection: 'row', justifyContent: 'space-between'},
 });
