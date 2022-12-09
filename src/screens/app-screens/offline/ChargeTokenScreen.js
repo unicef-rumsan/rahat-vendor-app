@@ -166,12 +166,6 @@ const OfflineChargeTokenScreen = ({navigation, route}) => {
               <AmountWithAngleBracket amount={tokenBalance} />
             </View>
           </View>
-          {/* <RegularText
-            color={colors.gray}
-            style={{fontSize: FontSize.medium * 1.1}}>
-            Token Balance :
-          </RegularText>
-          <AmountWithAngleBracket amount={tokenBalance} /> */}
         </Card>
         <Card style={{paddingVertical: Spacing.vs * 2}}>
           <CustomTextInput

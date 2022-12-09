@@ -103,6 +103,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
       const search = await searchOTP(phone);
       const foundTxn = await searchTxn(phone);
       const ward = search[0]?.ward || '';
+      const name = search[0]?.name || '';
 
       if (search.length > 0 && foundTxn.length > 0) {
         let sum = 0;
@@ -123,6 +124,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
           tokenBalance: offlineBalance, //TBD
           beneficiaryPhone: phone,
           ward: ward,
+          name: name,
           isQR: route?.params?.isQR || false,
         });
       } else {
@@ -147,6 +149,7 @@ const ChargeDrawerScreen = ({navigation, route}) => {
           tokenBalance: balance,
           beneficiaryPhone: phone,
           ward: ward,
+          name: name,
           isQR: route?.params?.isQR || false,
         });
       }

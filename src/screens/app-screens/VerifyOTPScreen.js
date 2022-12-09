@@ -36,7 +36,7 @@ const VerifyOTPScreen = ({navigation, route}) => {
     state => state.transactionReducer.transactions,
   );
 
-  const {phone, remarks, type, amount, isQR} = route?.params;
+  const {phone, remarks, type, amount, isQR, name} = route?.params;
 
   const [otp, setOtp] = useState('');
   const [otpDuration, setOtpDuration] = useState('');
@@ -136,6 +136,14 @@ const VerifyOTPScreen = ({navigation, route}) => {
       <View style={styles.container}>
         <Timer onChange={getTimeFromTimer} />
         <Card>
+          <RegularText
+            fontSize={FontSize.bold}
+            style={{
+              paddingBottom: Spacing.vs,
+              textTransform: 'capitalize',
+            }}>
+            {`Name: ${name}`}
+          </RegularText>
           <RegularText
             fontSize={FontSize.medium}
             style={{paddingBottom: Spacing.vs}}>
