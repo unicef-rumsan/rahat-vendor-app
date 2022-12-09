@@ -26,6 +26,8 @@ export const TransactionsSchema = {
     isQR: {type: 'bool', default: false},
     otpDuration: 'string?',
     vendor: 'string',
+    txnStart: 'string?',
+    txnEnd: 'string?',
   },
   primaryKey: '_id',
 };

@@ -25,7 +25,7 @@ const AmountWithAngleBracket = ({amount}) => (
 );
 
 const OfflineChargeScreen = ({navigation, route}) => {
-  const {tokenBalance, beneficiaryPhone, pin} = route.params;
+  const {tokenBalance, beneficiaryPhone, pin, txnStart} = route.params;
 
   const activeAppSettings = useSelector(
     state => state.agencyReducer.activeAppSettings,
@@ -48,6 +48,7 @@ const OfflineChargeScreen = ({navigation, route}) => {
               tokenBalance,
               beneficiaryPhone,
               pin,
+              txnStart,
             });
           }}>
           <Card style={styles.tokenDetailCard}>

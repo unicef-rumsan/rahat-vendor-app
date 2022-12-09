@@ -40,7 +40,8 @@ const AmountWithAngleBracket = ({amount}) => (
 );
 
 const OfflineChargeTokenScreen = ({navigation, route}) => {
-  const {tokenBalance, beneficiaryPhone, name, pin, ward, isQR} = route.params;
+  const {tokenBalance, beneficiaryPhone, name, pin, ward, isQR, txnStart} =
+    route.params;
   const {t} = useTranslation();
 
   const userData = useSelector(state => state.authReducer.userData);
@@ -115,6 +116,7 @@ const OfflineChargeTokenScreen = ({navigation, route}) => {
         name: name,
         type: 'erc20',
         isQR,
+        txnStart,
       });
     } catch (e) {
       LoaderModal.hide();

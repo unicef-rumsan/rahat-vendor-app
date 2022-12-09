@@ -24,7 +24,7 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
   const activeAppSettings = useSelector(
     state => state.agencyReducer.activeAppSettings,
   );
-
+  const txnStart = new Date().valueOf();
   const [phone, setPhone] = useState('');
   const [values, setValues] = useState({
     isSubmitting: false,
@@ -95,6 +95,7 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
           ward: ward,
           name: name,
           isQR: route?.params?.isQR || false,
+          txnStart,
         });
       } else {
         setValues({...values, isSubmitting: false});
@@ -109,11 +110,9 @@ const OfflineChargeDrawerScreen = ({navigation, route}) => {
       alert(e);
     }
   };
-
   return (
     <>
       <CustomHeader title={'Offline Charge'} hideBackButton />
-
       <View style={styles.container}>
         <CustomBottomSheet
           enablePanDownToClose={false}

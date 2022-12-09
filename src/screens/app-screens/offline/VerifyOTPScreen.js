@@ -35,7 +35,8 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
     state => state.transactionReducer.transactions,
   );
 
-  const {phone, remarks, type, amount, pin, name, isQR} = route?.params;
+  const {phone, remarks, type, amount, pin, name, isQR, txnStart} =
+    route?.params;
   const [otp, setOtp] = useState('');
   const [otpDuration, setOtpDuration] = useState('');
 
@@ -89,6 +90,8 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
         isQR,
         isOffline: true,
         otpDuration,
+        txnStart: String(txnStart),
+        txnEnd: String(new Date().valueOf()),
       };
       await addTransaction(transactionPayload);
       receiptData = {
