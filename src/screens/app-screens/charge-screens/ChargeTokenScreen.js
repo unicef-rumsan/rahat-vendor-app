@@ -161,7 +161,7 @@ const ChargeTokenScreen = ({navigation, route}) => {
                 color={colors.gray}
                 fontSize={FontSize.small * 1.1}
                 style={{textTransform: 'capitalize'}}>
-                {name}
+                {' ' + name}
               </RegularText>
             </View>
             <View style={styles.cardItem}>
