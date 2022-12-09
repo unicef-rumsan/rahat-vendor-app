@@ -1,24 +1,22 @@
-import { ethers } from 'ethers';
-import React, { useCallback, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';
-import { widthPercentageToDP } from 'react-native-responsive-screen';
-import { RNToasty } from 'react-native-toasty';
-import { StatusBar, StyleSheet, View, Pressable, Platform } from 'react-native';
-import { FontSize, Spacing, colors } from '../../constants';
-import { CustomButton, CustomHeader, Card, RegularText } from '../../components';
-import { getBalances } from '../../redux/actions/walletActions';
-import { LoaderModal } from '../../components/LoaderModal';
-import { makeWalletContract } from '../../services/chain';
-
+import React, {useCallback, useEffect, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {useTranslation} from 'react-i18next';
+import {widthPercentageToDP} from 'react-native-responsive-screen';
+import {RNToasty} from 'react-native-toasty';
+import {StatusBar, StyleSheet, View, Pressable, Platform} from 'react-native';
+import {FontSize, Spacing, colors} from '../../constants';
+import {CustomButton, CustomHeader, Card, RegularText} from '../../components';
+import {getBalances} from '../../redux/actions/walletActions';
+import {LoaderModal} from '../../components/LoaderModal';
+import {makeWalletContract} from '../../services/chain';
 
 let androidPadding = 0;
 if (Platform.OS === 'android') {
   androidPadding = StatusBar.currentHeight;
 }
 
-const AssetsScreen = ({ navigation, route }) => {
-  const { t } = useTranslation();
+const AssetsScreen = ({navigation, route}) => {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const [VendorContract, setVendorContract] = useState(null);
   const tokenBalance = useSelector(state => state.walletReducer.tokenBalance);
@@ -27,9 +25,11 @@ const AssetsScreen = ({ navigation, route }) => {
     state => state.agencyReducer.activeAppSettings,
   );
   const wallet = useSelector(state => state.walletReducer.wallet);
-  const cashAllowance = useSelector(state => state.walletReducer.cashAllowance)
-  const vendorWalletContract = useSelector(state => state.walletReducer.vendorWalletContract)
-  const cashBalance = useSelector(state => state.walletReducer.cashBalance)
+  const cashAllowance = useSelector(state => state.walletReducer.cashAllowance);
+  const vendorWalletContract = useSelector(
+    state => state.walletReducer.vendorWalletContract,
+  );
+  const cashBalance = useSelector(state => state.walletReducer.cashBalance);
 
   const fetchBalances = () => {
     if (wallet) {
@@ -44,11 +44,11 @@ const AssetsScreen = ({ navigation, route }) => {
     } catch (e) {
       console.log(e);
     }
-  }, [activeAppSettings?.networkUrl, vendorWalletContract]);
+  }, [vendorWalletContract, wallet]);
 
   const cashAccept = async () => {
     try {
-      LoaderModal.show({ message: "Accepting Cash..." })
+      LoaderModal.show({message: 'Accepting Cash...'});
       const tx = await VendorContract.claimToken(
         activeAppSettings?.agency?.contracts?.rahat_cash || '',
         activeAppSettings?.agency?.contracts?.rahat || '',
@@ -59,38 +59,35 @@ const AssetsScreen = ({ navigation, route }) => {
         RNToasty.Success({
           title: 'Cash Accepted',
           duration: 0,
-          position: "top"
+          position: 'top',
+        });
+      } else {
+        RNToasty.Error({
+          title: 'Transaction Fialed',
+          duration: 1,
+          position: 'top',
         });
       }
-      else {
-        RNToasty.Error({
-          title: "Transaction Fialed",
-          duration: 1,
-          position: "top"
-        })
-      }
-    }
-    catch (e) {
-      console.log(e)
+    } catch (e) {
+      console.log(e);
       RNToasty.Error({
-        title: "Transaction Error",
+        title: 'Transaction Error',
         duration: 1,
-        position: "top"
-      })
-    }
-    finally {
-      LoaderModal.hide()
-      fetchBalances()
+        position: 'top',
+      });
+    } finally {
+      LoaderModal.hide();
+      fetchBalances();
     }
   };
 
   useEffect(() => {
     let processing = true;
     if (processing) {
-      fetchBalances()
+      fetchBalances();
     }
     return () => (processing = false);
-  }, [])
+  }, []);
 
   useEffect(() => {
     makeVendorWalletContract();
@@ -119,7 +116,7 @@ const AssetsScreen = ({ navigation, route }) => {
           <Card style={styles.tokenDetailCard}>
             <RegularText
               color={colors.gray}
-              style={{ fontSize: FontSize.medium * 1.1 }}>
+              style={{fontSize: FontSize.medium * 1.1}}>
               Token Balance:
             </RegularText>
             <RegularText
@@ -135,7 +132,7 @@ const AssetsScreen = ({ navigation, route }) => {
         <Card style={styles.tokenDetailCard}>
           <RegularText
             color={colors.gray}
-            style={{ fontSize: FontSize.medium * 1.1 }}>
+            style={{fontSize: FontSize.medium * 1.1}}>
             Cash Balance:
           </RegularText>
           <RegularText

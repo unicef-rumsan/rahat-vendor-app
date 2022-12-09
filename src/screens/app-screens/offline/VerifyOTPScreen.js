@@ -35,7 +35,7 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
     state => state.transactionReducer.transactions,
   );
 
-  const {phone, remarks, type, amount, pin, isQR} = route?.params;
+  const {phone, remarks, type, amount, pin, name, isQR} = route?.params;
   const [otp, setOtp] = useState('');
   const [otpDuration, setOtpDuration] = useState('');
 
@@ -127,7 +127,15 @@ const OfflineVerifyOTPScreen = ({navigation, route}) => {
         <Card>
           <RegularText
             fontSize={FontSize.bold}
-            style={{paddingBottom: Spacing.vs, textAlign: 'center'}}>
+            style={{
+              paddingBottom: Spacing.vs,
+              textTransform: 'capitalize',
+            }}>
+            {`Name: ${name}`}
+          </RegularText>
+          <RegularText
+            fontSize={FontSize.bold}
+            style={{paddingBottom: Spacing.vs}}>
             {`Phone Number: ${phone}`}
           </RegularText>
           <RegularText

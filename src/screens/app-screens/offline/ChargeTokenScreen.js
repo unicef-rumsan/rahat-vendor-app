@@ -40,7 +40,7 @@ const AmountWithAngleBracket = ({amount}) => (
 );
 
 const OfflineChargeTokenScreen = ({navigation, route}) => {
-  const {tokenBalance, beneficiaryPhone, pin, ward, isQR} = route.params;
+  const {tokenBalance, beneficiaryPhone, name, pin, ward, isQR} = route.params;
   const {t} = useTranslation();
 
   const userData = useSelector(state => state.authReducer.userData);
@@ -112,6 +112,7 @@ const OfflineChargeTokenScreen = ({navigation, route}) => {
         phone: beneficiaryPhone,
         amount: amount,
         remarks: remarks,
+        name: name,
         type: 'erc20',
         isQR,
       });
@@ -144,12 +145,33 @@ const OfflineChargeTokenScreen = ({navigation, route}) => {
           </Card>
         ) : null}
         <Card style={styles.tokenDetailCard}>
-          <RegularText
+          <View>
+            <View style={styles.cardItem}>
+              <RegularText color={colors.gray} fontSize={FontSize.medium * 1.1}>
+                Name :
+              </RegularText>
+              <RegularText
+                color={colors.gray}
+                fontSize={FontSize.small * 1.1}
+                style={{textTransform: 'capitalize'}}>
+                {name}
+              </RegularText>
+            </View>
+            <View style={styles.cardItem}>
+              <RegularText
+                color={colors.gray}
+                style={{fontSize: FontSize.medium * 1.1}}>
+                Token Balance :
+              </RegularText>
+              <AmountWithAngleBracket amount={tokenBalance} />
+            </View>
+          </View>
+          {/* <RegularText
             color={colors.gray}
             style={{fontSize: FontSize.medium * 1.1}}>
             Token Balance :
           </RegularText>
-          <AmountWithAngleBracket amount={tokenBalance} />
+          <AmountWithAngleBracket amount={tokenBalance} /> */}
         </Card>
         <Card style={{paddingVertical: Spacing.vs * 2}}>
           <CustomTextInput
@@ -222,4 +244,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  cardItem: {flexDirection: 'row', justifyContent: 'space-between'},
 });
