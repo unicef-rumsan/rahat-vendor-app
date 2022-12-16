@@ -1,8 +1,7 @@
 import Realm from 'realm';
 import * as Schemas from '../schemas';
-import { REALM_APP_ID } from 'react-native-dotenv';
 // initialize realm with Your RealmApp ID...
-const app = new Realm.App({ id: REALM_APP_ID });
+const app = new Realm.App({id: 'rahat_app-zeyxg'});
 // can implement inBuilt JWT, Google, Facebook, Apple Authentication Flow.
 const credentials = Realm.Credentials.anonymous(); // LoggingIn as Anonymous User.
 // Enables offline-first: opens a local realm immediately without waiting

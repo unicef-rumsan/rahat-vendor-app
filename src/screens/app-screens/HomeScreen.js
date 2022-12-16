@@ -15,6 +15,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useIsFocused} from '@react-navigation/native';
 import {useBackHandler} from '@react-native-community/hooks';
 import {widthPercentageToDP} from 'react-native-responsive-screen';
+import {REALM_APP_ID} from 'react-native-dotenv';
 
 import {
   Logo,
@@ -41,7 +42,9 @@ let BACK_COUNT = 0;
 
 const Header = ({title, onRightIconPress}) => (
   <SafeAreaView style={styles.headerContainer}>
-    <Logo />
+    <View style={REALM_APP_ID.includes('stage') ? styles.env : ''}>
+      <Logo />
+    </View>
     <Text style={styles.headerTitle}>{title}</Text>
     <Pressable onPress={onRightIconPress} hitSlop={50}>
       <MoreDotsIcon />
@@ -440,6 +443,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  env: {
+    backgroundColor: 'red',
   },
   cardItem: {flexDirection: 'row', justifyContent: 'space-between'},
 });
