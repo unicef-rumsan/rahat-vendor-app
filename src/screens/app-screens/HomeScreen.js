@@ -42,9 +42,7 @@ let BACK_COUNT = 0;
 
 const Header = ({title, onRightIconPress}) => (
   <SafeAreaView style={styles.headerContainer}>
-    <View style={REALM_APP_ID.includes('stage') ? styles.env : ''}>
-      <Logo />
-    </View>
+    <Logo />
     <Text style={styles.headerTitle}>{title}</Text>
     <Pressable onPress={onRightIconPress} hitSlop={50}>
       <MoreDotsIcon />
@@ -238,7 +236,9 @@ const HomeScreen = ({navigation, route}) => {
           handlePresentModalPress();
         }}
       />
-
+      <View style={REALM_APP_ID.includes('stage') ? styles.env : ''}>
+        <Text style={styles.env_text}>Warning! This is test environment!</Text>
+      </View>
       <ScrollView
         style={styles.container}
         refreshControl={
@@ -445,7 +445,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   env: {
-    backgroundColor: 'red',
+    fontFamily: 'Lora-Regular',
+    fontSize: FontSize.regular,
+    flexDirection: 'column',
+    alignItems: 'center',
+    textAlign: 'center',
+    backgroundColor: colors.yellow,
+  },
+  env_text: {
+    fontFamily: 'Lora-Regular',
+    fontSize: FontSize.regular,
+    flexDirection: 'column',
+    alignItems: 'center',
+    textAlign: 'center',
+    backgroundColor: colors.yellow,
+    color: '#fff',
   },
   cardItem: {flexDirection: 'row', justifyContent: 'space-between'},
 });
