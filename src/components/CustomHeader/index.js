@@ -44,7 +44,8 @@ export const CustomHeader = ({
           <View />
         )}
       </SafeAreaView>
-      <View style={REALM_APP_ID.includes('stage') ? styles.env : ''}>
+      <View
+        style={REALM_APP_ID.includes('stage') ? styles.env : {display: 'none'}}>
         <Text style={styles.env_text}>Warning! This is test environment!</Text>
       </View>
     </SafeAreaView>
